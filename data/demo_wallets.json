@@ -1,0 +1,10 @@
+{
+  "_comment": "Fill `address` for each scenario after scripts/build_halo.py runs. Pick them from data/halo.json: a d=1 entry gives a 2-hop wallet, a d=2 entry gives a 3-hop wallet. Leave an address empty and the UI hides that preset. Verify every one against /api/screen before publishing.",
+  "wallets": [
+    { "key": "direct", "label": "Known Lazarus address", "address": "" },
+    { "key": "one",    "label": "1 hop",                 "address": "" },
+    { "key": "two",    "label": "2 hops",                "address": "" },
+    { "key": "three",  "label": "3 hops",                "address": "" },
+    { "key": "clean",  "label": "No exposure",           "address": "" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Lazarus Exposure Oracle",
+  "version": "0.0.1",
+  "author": "Magic Newton Foundation",
+  "link": "",
+  "description": "Traces a wallet against a Lazarus Group seed set from Arkham Intelligence using public Ethereum transaction data, and returns the shortest exposure path found within three hops."
+}

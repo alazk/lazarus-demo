@@ -1,0 +1,6 @@
+{
+  "name": "lazarus-exposure-demo",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" }
+}

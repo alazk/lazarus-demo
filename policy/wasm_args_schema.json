@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "description": "Inputs passed to the Lazarus exposure oracle at evaluation time",
+  "properties": {
+    "address": {
+      "type": "string",
+      "description": "The wallet to screen, 0x-prefixed. The policy requires this to match the intent's `to` field, so a caller cannot screen one address while transacting with another.",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    }
+  },
+  "required": ["address"]
+}

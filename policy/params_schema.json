@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "description": "Lazarus exposure policy parameters",
+  "properties": {
+    "max_hops": {
+      "type": "number",
+      "description": "Block when traced exposure is at or within this many hops. 3 blocks any exposure the screening can find, 2 lets a three-hop wallet through, 1 blocks only direct dealings. 0 blocks only known Lazarus addresses themselves.",
+      "minimum": 0,
+      "maximum": 3
+    }
+  },
+  "required": ["max_hops"]
+}
