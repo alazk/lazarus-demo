@@ -37,7 +37,7 @@ def main():
     picks = {"direct": seeds[0] if seeds else "", "one": d1[0] if d1 else "",
              "two": d2[0] if d2 else "", "three": "", "clean": ""}
 
-    for node in d2[:20]:
+    for node in d2[:400]:
         cps, _ = counterparties(node)
         for other in sorted(cps, key=lambda k: -cps[k]["weight"]):
             if other in seed_set or other in halo or other in services:
@@ -47,6 +47,9 @@ def main():
             break
         if picks["three"]:
             break
+    if d2 and not picks["three"]:
+        print(f"  scanned {min(len(d2),400)} d=2 nodes, every counterparty "
+              "already in the graph")
 
     for c in CLEAN_CANDIDATES:
         if c in seed_set or c in halo:
