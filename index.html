@@ -233,7 +233,11 @@
   }
 
   /* ── Rules disclosure ─────────────────────────────────────── */
-  .rules { margin-top:8px; border-top:1px solid var(--hairline); }
+  .policy-card .rules { margin-top:auto; border-top:1px solid var(--control); }
+  .policy-card .rules summary { padding:14px 0 0; }
+  .policy-card .rule-item { padding:12px 0 0; }
+  .policy-card .rule-meta { border-top-color:var(--control); }
+  .rules { border-top:1px solid var(--hairline); }
   .verdict .rules { margin-top:28px; border-top-color:rgba(27,27,27,.18); }
   .rules summary {
     list-style:none; cursor:pointer; padding:16px 0;
@@ -243,7 +247,7 @@
   .rules summary::-webkit-details-marker { display:none; }
   .rules summary::after { content:'+'; font-size:18px; font-weight:400; opacity:.55; }
   .rules[open] summary::after { content:'–'; }
-  .rule-item { padding:0 0 16px; max-width:62ch; }
+  .rule-item { padding:0 0 14px; max-width:62ch; }
   .rule-title { font-size:14px; font-weight:500; }
   .rule-detail { font-size:14px; line-height:20px; color:rgba(27,27,27,.68); margin-top:4px; }
   .rule-meta {
