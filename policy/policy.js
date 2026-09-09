@@ -33,10 +33,23 @@ function fail(reason) {
   });
 }
 
+
+// wasm_args arrives as hex-encoded UTF-8 JSON with a 0x prefix, not raw JSON.
+function decodeArgs(raw) {
+  const text = String(raw || "");
+  if (!text.startsWith("0x")) return text;
+  const hex = text.slice(2);
+  let out = "";
+  for (let i = 0; i < hex.length; i += 2) {
+    out += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+  }
+  return decodeURIComponent(escape(out));
+}
+
 export function run(wasm_args) {
   let args;
   try {
-    args = JSON.parse(wasm_args);
+    args = JSON.parse(decodeArgs(wasm_args));
   } catch (e) {
     return fail("wasm_args is not valid JSON");
   }
@@ -53,20 +66,33 @@ export function run(wasm_args) {
     body: null,
   });
 
-  if (result.tag === "err") {
-    return fail(`screening service unreachable: ${result.val}`);
+  // This jco build returns the response directly rather than the tagged
+  // result the Newton guide shows, so result.val is undefined and reading
+  // .status off it traps. Accept both shapes.
+  const response = (result && result.tag !== undefined) ? result.val : result;
+  if (!response) {
+    return fail("screening service unreachable");
   }
-
-  const response = result.val;
   if (response.status !== 200) {
     return fail(`screening service returned status ${response.status}`);
   }
 
+  // TextDecoder is not reliably present in the componentized runtime, and
+  // fromCharCode.apply blows the stack on a body this size, so decode the
+  // bytes one at a time. The response is ASCII JSON.
+  let text;
+  try {
+    text = new TextDecoder().decode(new Uint8Array(response.body));
+  } catch (e) {
+    return fail("could not decode response body");
+  }
+  if (!text) return fail("empty response body");
+
   let body;
   try {
-    body = JSON.parse(new TextDecoder().decode(new Uint8Array(response.body)));
+    body = JSON.parse(text);
   } catch (e) {
-    return fail("screening service returned unparseable JSON");
+    return fail("unparseable JSON: " + text.slice(0, 100));
   }
 
   // The service fails closed on its own side too. Carry that through rather
