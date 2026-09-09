@@ -15,7 +15,7 @@
 
 import { fetch as httpFetch } from "newton:provider/http@0.2.0";
 
-const ENDPOINT = "https://REPLACE-WITH-YOUR-DEPLOYMENT.vercel.app/api/screen";
+const ENDPOINT = "https://lazarus-exposure-demo-git-main-k-93d6.vercel.app/api/screen";
 
 // Sentinel for "no exposure found". Rego comparisons against null are awkward,
 // and a number larger than any reachable distance is unambiguous.
