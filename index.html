@@ -78,7 +78,7 @@
 
   /* ── Console ──────────────────────────────────────────────── */
   .console {
-    display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1fr);
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     align-items:start; gap:40px;
     padding:40px var(--inset); max-width:1060px; width:100%;
   }
@@ -233,7 +233,8 @@
   }
 
   /* ── Rules disclosure ─────────────────────────────────────── */
-  .rules { margin-top:28px; border-top:1px solid rgba(27,27,27,.18); }
+  .rules { margin-top:8px; border-top:1px solid var(--hairline); }
+  .verdict .rules { margin-top:28px; border-top-color:rgba(27,27,27,.18); }
   .rules summary {
     list-style:none; cursor:pointer; padding:16px 0;
     font-size:14px; font-weight:500; display:flex;
@@ -267,14 +268,14 @@
   </div>
   <div class="networks">
     <span class="status"><span class="dot"></span><span class="label">Ethereum, traced live</span></span>
-    <span class="status"><span class="dot idle" id="attest-dot"></span><span class="label">Sepolia, attested</span></span>
+    <span class="status" id="attest-pill" hidden><span class="dot"></span><span class="label">Sepolia, attested</span></span>
   </div>
 </div>
 
 <div class="stage" id="stage" aria-live="polite"></div>
 
 <p class="footnote">
-  Attribution from Arkham Intelligence, transaction graph from Etherscan. Illustrative, and not a
+  Transaction graph from Etherscan, traced at the time of the check. Illustrative, and not a
   regulatory or legal determination.
 </p>
 
@@ -312,7 +313,7 @@ let inFlight = false;
 const PREVIEW_RULES = {
   ready: true,
   dataset: {
-    seeds: 3597, seed_source: "Arkham Intelligence", services: 52659,
+    seeds: 3597, services: 52659,
     graph_source: "Etherscan, queried at the time of the check",
     coverage: { level1_nodes_found: 2600, level1_nodes_expanded: 2600 },
   },
@@ -379,7 +380,7 @@ function renderLadder(hop) {
   const index = hop === null || hop === undefined ? 4 : hop;
   const rungs = BANDS.map((b, i) => `
     <span class="rung ${i === index ? "hit" : ""}">
-      <span class="rung-n">${b.n || "—"}</span>
+      ${b.n ? `<span class="rung-n">${b.n}</span>` : ""}
       <span class="rung-l">${esc(b.label)}</span>
     </span>`).join("");
   return `<div class="ladder-label">Distance to the nearest Lazarus address</div>
@@ -409,7 +410,7 @@ function renderRules(data) {
 
   const d = data.dataset || {};
   const meta = [
-    d.seeds ? `${d.seeds} Lazarus addresses from ${esc(d.seed_source)}` : null,
+    d.seeds ? `${d.seeds} Lazarus addresses in the seed set` : null,
     d.services ? `${d.services} service addresses treated as terminal` : null,
     d.graph_source ? esc(d.graph_source) : null,
     d.coverage?.level1_nodes_found
@@ -440,13 +441,11 @@ function renderConsole(prefill = "", error = "") {
             Blocks a wallet that reaches a known Lazarus Group address within three hops,
             counting the wallet itself as zero.
           </div>
-          <div class="policy-meta">
-            Evaluated by an operator quorum, and the decision is attested onchain.
-          </div>
         </div>
+        <div id="console-rules"></div>
       </div>
       <div class="col">
-        <div class="head">Check a wallet</div>
+        <div class="head">Wallet</div>
         ${ready.length ? `<div class="examples" id="presets"></div>
         <div class="or">
           <span class="or-line"></span>
@@ -480,6 +479,11 @@ function renderConsole(prefill = "", error = "") {
       wrap.appendChild(b);
     });
   }
+
+  loadRules().then((data) => {
+    const slot = document.getElementById("console-rules");
+    if (slot && data) slot.innerHTML = renderRules(data);
+  });
 
   input.oninput = () => { selected = null; input.classList.remove("invalid"); };
   input.onkeydown = (e) => { if (e.key === "Enter") go.click(); };
@@ -594,8 +598,8 @@ function renderPath(result) {
 }
 
 function renderVerdict(r) {
-  document.getElementById("attest-dot").className =
-    "dot" + (r.attestation?.status === "ATTESTED" ? "" : " idle");
+  document.getElementById("attest-pill").hidden =
+    r.attestation?.status !== "ATTESTED";
 
   const screeningFailed = r.status === "SCREENING_FAILED";
   // A screening that succeeded but could not be attested is neither a pass nor
@@ -660,10 +664,6 @@ function renderVerdict(r) {
           <span class="party-label">Decided</span>
           <span class="small">${esc(when(r.evaluated_at))}</span>
         </div>
-        ${r.dataset?.seeds ? `<div class="party">
-          <span class="party-label">Seed set</span>
-          <span class="small">${esc(r.dataset.seeds)} Lazarus addresses</span>
-        </div>` : ""}
       </div>
       <div id="verdict-rules"></div>
     </div>`;

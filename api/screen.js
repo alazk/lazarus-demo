@@ -255,7 +255,6 @@ export default async function handler(req, res) {
     dataset: {
       seeds: SEEDS_FILE.count,
       seeds_pulled_at: SEEDS_FILE.pulled_at,
-      seed_source: "Arkham Intelligence",
       graph_source: "Etherscan, queried live",
       halo_built_at: HALO_FILE.built_at,
       max_depth: CFG.max_depth,

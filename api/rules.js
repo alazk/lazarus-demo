@@ -48,7 +48,6 @@ export default function handler(req, res) {
     dataset: {
       seeds: seeds?.count ?? null,
       seeds_pulled_at: seeds?.pulled_at ?? null,
-      seed_source: "Arkham Intelligence",
       services: services?.count ?? null,
       graph_source: "Etherscan, queried at the time of the check",
       halo_built_at: halo?.built_at ?? null,
