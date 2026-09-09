@@ -23,6 +23,28 @@ CLEAN_CANDIDATES = [
     "0x00000000219ab540356cbb839cbe05303d7705fa",
 ]
 
+
+def screen_distance(addr, seed_set, halo, services):
+    """What api/screen.js would return for this address, or None."""
+    addr = addr.lower()
+    if addr in seed_set:
+        return 0
+    cps, _ = counterparties(addr)
+    best = None
+    for other in cps:
+        if other in seed_set:
+            return 1
+        if other in services:
+            continue
+        entry = halo.get(other)
+        if not entry:
+            continue
+        hop = entry["d"] + 1
+        if hop <= 3 and (best is None or hop < best):
+            best = hop
+    return best
+
+
 def main():
     seeds = [r["address"].lower()
              for r in json.loads((DATA / "seeds.json").read_text())["addresses"]]
@@ -42,14 +64,14 @@ def main():
         for other in sorted(cps, key=lambda k: -cps[k]["weight"]):
             if other in seed_set or other in halo or other in services:
                 continue
-            picks["three"] = other
-            print(f"  3-hop wallet found via {node[:10]}...")
-            break
+            d = screen_distance(other, seed_set, halo, services)
+            if d == 3:
+                picks["three"] = other
+                print(f"  3-hop wallet verified: {other[:10]}...")
+                break
+            print(f"  {other[:10]}... screens at {d}, not 3")
         if picks["three"]:
             break
-    if d2 and not picks["three"]:
-        print(f"  scanned {min(len(d2),400)} d=2 nodes, every counterparty "
-              "already in the graph")
 
     for c in CLEAN_CANDIDATES:
         if c in seed_set or c in halo:
