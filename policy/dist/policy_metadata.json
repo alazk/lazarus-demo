@@ -1,7 +1,0 @@
-{
-  "name": "Lazarus Exposure Policy",
-  "version": "0.0.1",
-  "author": "Magic Newton Foundation",
-  "link": "",
-  "description": "Denies a transaction when the counterparty wallet reaches a known Lazarus Group address within a configurable number of hops. Fails closed when screening cannot complete."
-}
