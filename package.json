@@ -2,5 +2,11 @@
   "name": "lazarus-exposure-demo",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@bytecodealliance/componentize-js": "^0.22.0",
+    "@bytecodealliance/jco": "^1.33.0"
+  }
 }

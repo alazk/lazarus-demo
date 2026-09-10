@@ -38,10 +38,6 @@ export default function handler(req, res) {
   const services = readJson("services.json");
   const halo = haloHeader();
 
-  const tokens = Object.entries(cfg.token_floors || {})
-    .map(([symbol, floor]) => `${floor} ${symbol}`)
-    .join(", ");
-
   res.setHeader("Cache-Control", "public, max-age=300");
   res.status(200).json({
     ready: Boolean(halo),
@@ -70,17 +66,25 @@ export default function handler(req, res) {
           "which catches the hubs no attribution source has named.",
       },
       {
-        title: "Small transfers are ignored",
+        title: "Every transfer is valued in dollars",
         detail:
-          `Edges below ${cfg.min_eth ?? "n"} ETH${tokens ? `, or ${tokens},` : ""} ` +
-          "do not count. Without a floor, anyone could taint any wallet by " +
-          "sending it dust, which is an attack that happens rather than a theory.",
+          "At the price on the day it happened, not today's. Stablecoins count " +
+          "one-to-one; ETH and BTC pegged assets use daily closes. A token with " +
+          "no price is ignored entirely, which is what keeps spam tokens out.",
       },
       {
-        title: "Only major tokens count",
+        title: "Small transfers are ignored",
         detail:
-          "Transfers of tokens outside the list above are ignored entirely, " +
-          "because spam tokens are the main way dust reaches a wallet.",
+          `Edges below $${cfg.min_edge_usd ?? "n"} do not count. Without a floor, ` +
+          "anyone could taint any wallet by sending it dust, which is an attack " +
+          "that happens rather than a theory.",
+      },
+      {
+        title: "Exposure is worth its weakest link",
+        detail:
+          "The value of an exposure is the smallest transfer along the path. A " +
+          "wallet that received $500,000 from an intermediary that received $30 " +
+          "from a Lazarus address is exposed to $30, not $500,000.",
       },
       {
         title: "Distance is measured to three hops",

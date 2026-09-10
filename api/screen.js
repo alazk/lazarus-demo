@@ -59,17 +59,45 @@ async function etherscan(params) {
   throw new Error("etherscan unavailable");
 }
 
-function passesNative(value) {
-  const eth = Number(BigInt(value || "0")) / 1e18;
-  return eth >= CFG.min_eth;
+const PRICES = (() => {
+  try { return read("prices.json").prices; } catch { return {}; }
+})();
+
+const STABLES = new Set(["USDT", "USDC", "DAI", "BUSD", "TUSD", "USDP", "FRAX"]);
+const ETH_PEGGED = new Set(["WETH", "STETH", "WSTETH", "RETH", "CBETH"]);
+const BTC_PEGGED = new Set(["WBTC", "TBTC"]);
+
+/** Dollar value at the price on the day of the transfer, or null.
+ *  Null means the asset cannot be valued, and an unvaluable edge is dropped
+ *  rather than counted as zero. That is what keeps spam tokens out. */
+function usdValue(symbol, amount, timestamp) {
+  const day = new Date(Number(timestamp) * 1000).toISOString().slice(0, 10);
+  const s = String(symbol || "").toUpperCase();
+  if (STABLES.has(s)) return amount;
+  if (ETH_PEGGED.has(s) || s === "ETH") {
+    const p = PRICES.ETH?.[day];
+    return p ? amount * p : null;
+  }
+  if (BTC_PEGGED.has(s)) {
+    const p = PRICES.BTC?.[day];
+    return p ? amount * p : null;
+  }
+  return null;
 }
 
-function passesToken(row) {
-  const floor = CFG.token_floors[row.tokenSymbol];
-  if (floor === undefined) return false; // unlisted tokens are the dust vector
-  const decimals = Number(row.tokenDecimal || 18);
-  const amount = Number(BigInt(row.value || "0")) / 10 ** decimals;
-  return amount >= floor;
+/** USD value of one transfer row, or null if it does not qualify. */
+function edgeUsd(row, action) {
+  try {
+    if (action === "tokentx") {
+      const decimals = Number(row.tokenDecimal || 18);
+      const amount = Number(BigInt(row.value || "0")) / 10 ** decimals;
+      return usdValue(row.tokenSymbol, amount, row.timeStamp || 0);
+    }
+    const amount = Number(BigInt(row.value || "0")) / 1e18;
+    return usdValue("ETH", amount, row.timeStamp || 0);
+  } catch {
+    return null;
+  }
 }
 
 /** Counterparties of one address, filtered and ranked. */
@@ -94,14 +122,8 @@ async function counterparties(address) {
     for (const row of rows) {
       if (row.isError === "1") continue;
 
-      let weight;
-      if (action === "tokentx") {
-        if (!passesToken(row)) continue;
-        weight = 1;
-      } else {
-        if (!passesNative(row.value)) continue;
-        weight = Number(BigInt(row.value)) / 1e18;
-      }
+      const usd = edgeUsd(row, action);
+      if (usd === null || usd < CFG.min_edge_usd) continue;
 
       const from = (row.from || "").toLowerCase();
       const to = (row.to || "").toLowerCase();
@@ -109,9 +131,9 @@ async function counterparties(address) {
       if (!other || other === address || !other.startsWith("0x")) continue;
 
       const prior = found.get(other);
-      if (!prior || weight > prior.weight) {
+      if (!prior || usd > prior.usd) {
         found.set(other, {
-          weight,
+          usd,
           tx: row.hash,
           ts: Number(row.timeStamp || 0),
           direction: from === address ? "out" : "in",
@@ -124,7 +146,7 @@ async function counterparties(address) {
   // API call, so this cap is generous on purpose. Tightening it would discard
   // detections for no saving.
   const ranked = [...found.entries()]
-    .sort((a, b) => b[1].weight - a[1].weight)
+    .sort((a, b) => b[1].usd - a[1].usd)
     .slice(0, CFG.max_fanout_query);
 
   return {
@@ -151,6 +173,7 @@ function screen(address, cps) {
       hop_count: 0,
       matched_wallet: address,
       path: [address],
+      exposure_usd: null,   // the wallet is the entity; no edge to value
       edges: [],
     };
   }
@@ -177,12 +200,22 @@ function screen(address, cps) {
     if (hop === null || hop > CFG.max_depth) continue;
     if (best && best.hop_count <= hop) continue;
 
+    // Exposure value is the weakest link, not the largest. A wallet that
+    // received $500,000 from an intermediary that received $30 from a Lazarus
+    // address is exposed to $30.
+    const tailMin = HALO[other]?.min_usd;
+    const exposureUsd = tailMin === undefined
+      ? edge.usd
+      : Math.min(edge.usd, tailMin);
+
     best = {
       direct_match: false,
       exposure: true,
       hop_count: hop,
       matched_wallet: tail[tail.length - 1],
       path: [address, ...tail],
+      exposure_usd: Math.round(exposureUsd),
+      first_edge_usd: Math.round(edge.usd),
       edges: [{ from: address, to: other, tx: edge.tx, ts: edge.ts,
                 direction: edge.direction }],
     };
@@ -195,6 +228,7 @@ function screen(address, cps) {
       hop_count: null,
       matched_wallet: null,
       path: [],
+      exposure_usd: null,
       edges: [],
     }
   );
@@ -258,6 +292,7 @@ export default async function handler(req, res) {
       graph_source: "Etherscan, queried live",
       halo_built_at: HALO_FILE.built_at,
       max_depth: CFG.max_depth,
+      min_edge_usd: CFG.min_edge_usd,
     },
   });
 }

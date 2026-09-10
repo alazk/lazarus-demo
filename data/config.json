@@ -1,31 +1,19 @@
 {
   "_comment": "Read by scripts/build_halo.py and api/screen.js. Value floors must match on both sides or a path's verdict depends on which half an edge falls in. Fanout differs on purpose: see _rules.",
-
   "chain_id": 1,
   "max_depth": 3,
-
-  "min_eth": 0.1,
-  "token_floors": {
-    "USDT": 1000,
-    "USDC": 1000,
-    "DAI": 1000,
-    "WETH": 0.1,
-    "WBTC": 0.01,
-    "stETH": 0.1,
-    "wstETH": 0.1
-  },
-
   "max_fanout_build": 12,
   "max_fanout_query": 200,
   "high_degree_tx_count": 5000,
   "max_api_calls": 80000,
-
   "_rules": [
-    "Edges below the floors above are ignored, on both sides of every path. This is what stops address-poisoning dust from tainting an arbitrary wallet.",
-    "Tokens outside token_floors are ignored entirely. Spam tokens are the main dust vector.",
+    "Edges below min_edge_usd are ignored, on both sides of every path. This is what stops address-poisoning dust from tainting an arbitrary wallet.",
+    "Every edge is valued in dollars at the price on the day it happened. Stablecoins are one-to-one; ETH and BTC pegged assets use daily closes from data/prices.json. A token that cannot be valued is ignored entirely, which is what keeps spam tokens out.",
+    "A single USD floor replaced the earlier per-asset unit floors. Under those, every qualifying token transfer weighed the same regardless of size, so a $1,000 and a $50,000,000 USDC transfer were indistinguishable, and thresholds in ETH were blind to the stablecoin flows that carry most laundering volume.",
     "Failed transactions are ignored.",
     "Service nodes (exchanges, bridges, mixers, from data/services.json), contracts, and nodes above high_degree_tx_count are terminal: they can be a match but never an intermediary. Without this rule every address that has ever used Binance is three hops from Lazarus.",
-    "max_fanout_build is a compute budget, not a rule about exposure. Building the halo costs three Etherscan calls per node, so the build keeps each node's highest-value counterparties and reports its coverage. At query time the same check is a dictionary lookup and costs nothing, so max_fanout_query is set far higher: capping it would discard detections for no saving.",
-    "max_api_calls stops the build cleanly below Etherscan's 100k daily cap rather than failing mid-crawl."
-  ]
+    "max_fanout_build is a compute budget, not a rule about exposure. At query time the same check is a dictionary lookup and costs nothing, so max_fanout_query is set far higher.",
+    "Exposure value is the smallest edge along the path, not the largest. A wallet that received $500,000 from an intermediary that received $30 from a Lazarus address is exposed to $30, not $500,000."
+  ],
+  "min_edge_usd": 300
 }

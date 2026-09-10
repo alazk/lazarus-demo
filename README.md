@@ -8,11 +8,11 @@ allows or blocks.
 
 Two layers, deliberately separated.
 
-**Identity comes from Arkham, pulled once.** The Lazarus seed set and the
-service-entity address lists are resolved through the Arkham API and committed
-as small JSON files. Attribution is the part Arkham is uniquely good at and the
-part that barely changes, so it is worth freezing. Nothing else in the project
-calls Arkham, and the demo keeps working after the key expires.
+**Identity is pulled once and committed.** The Lazarus seed set and the
+service-entity address lists are resolved through a vendor attribution API and
+frozen as small JSON files. Attribution barely changes, so it is worth freezing,
+and nothing else in the project calls that API. `scripts/pull_arkham.py` is the
+only file that does, and it is not needed to run the demo.
 
 **The graph comes from Etherscan, live.** Transaction edges are public data
 with no window and nothing proprietary to redistribute, so the trace runs at
@@ -148,11 +148,39 @@ It fails closed. If Etherscan is unreachable the response is
 `SCREENING_FAILED` with `decision: DENY`, which the UI must render distinctly
 from `NON_COMPLIANT`. A failure to screen is not evidence of exposure.
 
+## The built graph
+
+| | |
+| --- | --- |
+| Seeds (Ethereum) | 3,597 |
+| Distance 1 | 3,643 |
+| Distance 2 | 3,954 |
+| Terminal nodes | 119 |
+| Coverage | 3,643 of 3,643 first-hop nodes expanded |
+| Etherscan calls | 21,837 of an 80,000 budget |
+
+Coverage is complete: nothing was truncated, so results hold under the stated
+rules without a caveat about partial expansion.
+
+Worth knowing what that means in practice. Both `vitalik.eth` and
+`0xab5801a7…` screen as exposed within three hops. That is not a defect in the
+data, it is what a three-hop rule means on a graph this dense, and it is the
+clearest argument for why the traversal cuts exist.
+
+## Demo wallets
+
+`scripts/pick_demo_wallets.py` chooses one wallet per band from the built graph.
+It verifies each candidate by running the same check the server runs, rather
+than reasoning about what a candidate should be. That distinction matters: an
+address three hops out along one path is often two hops along another, and
+screening reports the shortest. Picking by construction produced wallets
+labelled 3-hop that screened at 2.
+
 ## Still to build
 
-- `index.html`, in the sanctions case study design.
-- Newton policy definition and the Sepolia attestation call.
-- Curated demo addresses for each scenario, chosen once the halo exists.
+- Sepolia deployment of the policy, blocked on newton-cli 0.5.3 (see
+  `policy/README.md`).
+- Task submission wired to a deployed policy client.
 
 ## Note on scope
 
@@ -163,3 +191,42 @@ the sanctions case study used with the OFAC list. The copy should not imply the
 trace happened on testnet.
 
 The demo is illustrative and is not a regulatory or legal determination.
+
+## Environment
+
+| Variable | Needed for | Notes |
+| --- | --- | --- |
+| `ETHERSCAN_API_KEY` | screening | required; without it every trace silently returns empty |
+| `NEWTON_API_KEY` | attestation | gateway key |
+| `NEWTON_POLICY_CLIENT` | attestation | from `policy deploy` |
+| `DEMO_PRIVATE_KEY` | attestation | funded Sepolia key, throwaway only |
+| `SEPOLIA_RPC_URL` | attestation | optional |
+| `NEWTON_EXPLORER_BASE` | attestation | optional; confirm the real path on a first task |
+| `ARKHAM_API_KEY` | rebuilding seeds | not needed to run the demo |
+
+With the three attestation variables unset the app screens as normal and marks
+the result `NOT_CONFIGURED`, so it is usable at every stage of the build.
+
+Set them on Vercel from a shell that already has the value, which avoids the
+CLI's interactive prompt:
+
+```bash
+printf '%s' "$ETHERSCAN_API_KEY" | npx vercel env add ETHERSCAN_API_KEY production
+npx vercel --prod
+```
+
+Environment variables only apply to deployments created after they are set, so
+the redeploy is not optional.
+
+## Two things that will waste your time
+
+**Deployment protection.** Vercel gates deployments by default, returning a 302
+to an SSO page. A signed-in browser passes and everything looks fine, while
+anonymous callers, which is what Newton operators are, get HTML instead of JSON.
+Test with `curl`, never with a browser, and note that disabling protection only
+affects deployments made afterwards.
+
+**A missing Etherscan key is silent.** `call()` returns an empty list on a
+rejected key, so a build with a placeholder key runs for an hour and maps
+nothing. If the first progress line of a halo build shows zero level-one hits,
+stop: the key is wrong.

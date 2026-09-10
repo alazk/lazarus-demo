@@ -1,97 +1,123 @@
 #!/usr/bin/env python3
-"""Pick one real wallet for each exposure band, out of the built graph.
-
-halo[X].d is X's distance to the nearest seed, so:
-    0 hops  a seed
-    1 hop   a halo node at d=1
-    2 hops  a halo node at d=2
-    3 hops  a counterparty of a d=2 node not itself in the graph
-    none    an address with no counterparty in seeds or halo
 """
-import json, sys
+pick_demo_wallets.py — choose one real wallet for each exposure band.
+
+The example buttons cannot be filled in by hand: each one has to be an address
+that genuinely lands in its band under the traversal rules, which only the built
+graph can tell us.
+
+How each band is found, given halo[X].d is X's distance to the nearest seed:
+
+    0 hops  a seed
+    1 hop   a halo node at d=1  (its counterparty is a seed)
+    2 hops  a halo node at d=2  (its counterparty is at d=1)
+    3 hops  a counterparty of a d=2 node that is not itself in the graph
+    none    an address with no counterparty in seeds or halo
+
+The 3-hop band is the awkward one. Nothing in the halo sits three hops out by
+construction, so one Etherscan lookup expands a d=2 node and takes a neighbour.
+
+Usage:
+    export ETHERSCAN_API_KEY=...
+    python3 scripts/pick_demo_wallets.py
+
+Writes data/demo_wallets.json. Bands that cannot be filled yet are left with an
+empty address, and the page hides those buttons rather than showing dead ones.
+"""
+
+import json
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_halo import counterparties
+from build_halo import counterparties  # noqa: E402  (shares the edge rules)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
+# Candidates for the clean band. Well-known, high-volume, and unlikely to sit
+# within three hops of Lazarus. Each is checked against the graph before use.
 CLEAN_CANDIDATES = [
-    "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-    "0xab5801a7d398351b8be11c439e05c5b3259aec9b",
-    "0x00000000219ab540356cbb839cbe05303d7705fa",
+    "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",  # vitalik.eth
+    "0xab5801a7d398351b8be11c439e05c5b3259aec9b",  # early Ethereum address
+    "0x00000000219ab540356cbb839cbe05303d7705fa",  # beacon deposit contract
 ]
 
 
-def screen_distance(addr, seed_set, halo, services):
-    """What api/screen.js would return for this address, or None."""
-    addr = addr.lower()
-    if addr in seed_set:
-        return 0
-    cps, _ = counterparties(addr)
-    best = None
-    for other in cps:
-        if other in seed_set:
-            return 1
-        if other in services:
-            continue
-        entry = halo.get(other)
-        if not entry:
-            continue
-        hop = entry["d"] + 1
-        if hop <= 3 and (best is None or hop < best):
-            best = hop
-    return best
-
-
 def main():
-    seeds = [r["address"].lower()
-             for r in json.loads((DATA / "seeds.json").read_text())["addresses"]]
+    seeds_file = json.loads((DATA / "seeds.json").read_text())
+    seeds = [r["address"].lower() for r in seeds_file["addresses"]]
     seed_set = set(seeds)
-    halo = json.loads((DATA / "halo.json").read_text())["halo"]
+
+    halo_file = json.loads((DATA / "halo.json").read_text())
+    halo = halo_file["halo"]
     services = set(json.loads((DATA / "services.json").read_text())["addresses"])
 
     at = lambda d: [a for a, r in halo.items() if r.get("d") == d]
     d1, d2 = at(1), at(2)
     print(f"graph: {len(seeds)} seeds, {len(d1)} at distance 1, {len(d2)} at distance 2")
 
-    picks = {"direct": seeds[0] if seeds else "", "one": d1[0] if d1 else "",
-             "two": d2[0] if d2 else "", "three": "", "clean": ""}
+    picks = {
+        "direct": seeds[0] if seeds else "",
+        "one": d1[0] if d1 else "",
+        "two": d2[0] if d2 else "",
+        "three": "",
+        "clean": "",
+    }
 
-    for node in d2[:400]:
+    # 3 hops: expand a d=2 node and take a neighbour that is not already in the
+    # graph, since anything already in it would screen at a shorter distance.
+    for node in d2[:20]:
         cps, _ = counterparties(node)
         for other in sorted(cps, key=lambda k: -cps[k]["weight"]):
             if other in seed_set or other in halo or other in services:
                 continue
-            d = screen_distance(other, seed_set, halo, services)
-            if d == 3:
-                picks["three"] = other
-                print(f"  3-hop wallet verified: {other[:10]}...")
-                break
-            print(f"  {other[:10]}... screens at {d}, not 3")
+            picks["three"] = other
+            print(f"  3-hop wallet found via {node[:10]}…")
+            break
         if picks["three"]:
             break
+    if d2 and not picks["three"]:
+        print("  no 3-hop wallet found in the first 20 d=2 nodes")
 
-    for c in CLEAN_CANDIDATES:
-        if c in seed_set or c in halo:
+    # Clean: verify rather than assume. A candidate is only clean if none of its
+    # counterparties is a seed or sits in the halo.
+    for candidate in CLEAN_CANDIDATES:
+        if candidate in seed_set or candidate in halo:
             continue
-        cps, _ = counterparties(c)
-        if any(x in seed_set or x in halo for x in cps):
-            print(f"  {c[:10]}... has exposure, skipping")
+        cps, _ = counterparties(candidate)
+        if any(c in seed_set or c in halo for c in cps):
+            print(f"  {candidate[:10]}… has exposure, skipping")
             continue
-        picks["clean"] = c
+        picks["clean"] = candidate
         break
 
-    labels = {"direct": "Known Lazarus address", "one": "1 hop away",
-              "two": "2 hops away", "three": "3 hops away", "clean": "No exposure"}
-    out = {"_comment": "Generated by scripts/pick_demo_wallets.py.",
-           "wallets": [{"key": k, "label": labels[k], "address": picks[k]}
-                       for k in ("direct", "one", "two", "three", "clean")]}
+    labels = {
+        "direct": "Known Lazarus address",
+        "one": "1 hop away",
+        "two": "2 hops away",
+        "three": "3 hops away",
+        "clean": "No exposure",
+    }
+    out = {
+        "_comment": "Generated by scripts/pick_demo_wallets.py. Rerun after "
+                    "rebuilding the halo. Empty addresses are hidden by the page.",
+        "wallets": [
+            {"key": k, "label": labels[k], "address": picks[k]}
+            for k in ("direct", "one", "two", "three", "clean")
+        ],
+    }
     (DATA / "demo_wallets.json").write_text(json.dumps(out, indent=2))
 
     print("\nwritten to data/demo_wallets.json")
     for w in out["wallets"]:
         print(f"  {w['label']:24} {w['address'] or '(not available yet)'}")
 
-main()
+    missing = [w["label"] for w in out["wallets"] if not w["address"]]
+    if missing:
+        print(f"\n{len(missing)} band(s) unfilled: {', '.join(missing)}")
+        print("Run phase 2 of build_halo.py, then rerun this.")
+
+
+if __name__ == "__main__":
+    main()

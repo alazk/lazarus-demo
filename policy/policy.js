@@ -29,21 +29,20 @@ function fail(reason) {
     exposure: false,
     hop_count: NO_EXPOSURE,
     matched_wallet: "",
+    exposure_usd: 0,
     error: reason,
   });
 }
 
-
-// wasm_args arrives as hex-encoded UTF-8 JSON with a 0x prefix, not raw JSON.
 function decodeArgs(raw) {
-  const text = String(raw || "");
-  if (!text.startsWith("0x")) return text;
-  const hex = text.slice(2);
-  let out = "";
+  const t = String(raw || "");
+  if (!t.startsWith("0x")) return t;
+  const hex = t.slice(2);
+  let o = "";
   for (let i = 0; i < hex.length; i += 2) {
-    out += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    o += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
   }
-  return decodeURIComponent(escape(out));
+  return o;
 }
 
 export function run(wasm_args) {
@@ -66,33 +65,17 @@ export function run(wasm_args) {
     body: null,
   });
 
-  // This jco build returns the response directly rather than the tagged
-  // result the Newton guide shows, so result.val is undefined and reading
-  // .status off it traps. Accept both shapes.
   const response = (result && result.tag !== undefined) ? result.val : result;
-  if (!response) {
-    return fail("screening service unreachable");
-  }
+  if (!response) return fail("screening service unreachable");
   if (response.status !== 200) {
     return fail(`screening service returned status ${response.status}`);
   }
 
-  // TextDecoder is not reliably present in the componentized runtime, and
-  // fromCharCode.apply blows the stack on a body this size, so decode the
-  // bytes one at a time. The response is ASCII JSON.
-  let text;
-  try {
-    text = new TextDecoder().decode(new Uint8Array(response.body));
-  } catch (e) {
-    return fail("could not decode response body");
-  }
-  if (!text) return fail("empty response body");
-
   let body;
   try {
-    body = JSON.parse(text);
+    body = JSON.parse(new TextDecoder().decode(new Uint8Array(response.body)));
   } catch (e) {
-    return fail("unparseable JSON: " + text.slice(0, 100));
+    return fail("screening service returned unparseable JSON");
   }
 
   // The service fails closed on its own side too. Carry that through rather
@@ -108,5 +91,7 @@ export function run(wasm_args) {
     exposure: body.exposure === true,
     hop_count: typeof body.hop_count === "number" ? body.hop_count : NO_EXPOSURE,
     matched_wallet: String(body.matched_wallet || ""),
+    // Weakest edge along the path, which is what the value dial compares.
+    exposure_usd: typeof body.exposure_usd === "number" ? body.exposure_usd : 0,
   });
 }

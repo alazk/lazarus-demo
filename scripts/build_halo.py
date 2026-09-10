@@ -96,22 +96,44 @@ def call(params: dict) -> list:
 # Edge extraction. Must stay in step with the same logic in api/screen.js.
 # ---------------------------------------------------------------------------
 
-def _passes_native(value_wei: str) -> bool:
-    try:
-        return int(value_wei) / 1e18 >= CFG["min_eth"]
-    except (TypeError, ValueError):
-        return False
+PRICES = json.loads((DATA / "prices.json").read_text())["prices"] \
+    if (DATA / "prices.json").exists() else {}
+
+STABLES = {"USDT", "USDC", "DAI", "BUSD", "TUSD", "USDP", "FRAX"}
+ETH_PEGGED = {"WETH", "STETH", "WSTETH", "RETH", "CBETH"}
+BTC_PEGGED = {"WBTC", "TBTC"}
 
 
-def _passes_token(row: dict) -> bool:
-    floor = CFG["token_floors"].get(row.get("tokenSymbol"))
-    if floor is None:
-        return False        # unlisted tokens are the dust-poisoning vector
+def usd_value(symbol, amount, timestamp):
+    """Dollar value at the price on the day of the transfer, or None.
+
+    None means the asset cannot be valued, and an unvaluable edge is dropped
+    rather than counted as zero. That is what keeps spam tokens out of the
+    graph: they have no price, so they never form an edge.
+    """
+    day = datetime.fromtimestamp(int(timestamp), timezone.utc).strftime("%Y-%m-%d")
+    s = (symbol or "").upper()
+    if s in STABLES:
+        return amount
+    if s in ETH_PEGGED or s == "ETH":
+        price = PRICES.get("ETH", {}).get(day)
+        return amount * price if price else None
+    if s in BTC_PEGGED:
+        price = PRICES.get("BTC", {}).get(day)
+        return amount * price if price else None
+    return None
+
+
+def edge_usd(row, action):
+    """USD value of one transfer row, or None if it does not qualify."""
     try:
-        amount = int(row["value"]) / (10 ** int(row["tokenDecimal"]))
+        if action == "tokentx":
+            amount = int(row["value"]) / (10 ** int(row["tokenDecimal"]))
+            return usd_value(row.get("tokenSymbol"), amount, row.get("timeStamp", 0))
+        amount = int(row.get("value", 0)) / 1e18
+        return usd_value("ETH", amount, row.get("timeStamp", 0))
     except (KeyError, TypeError, ValueError, ZeroDivisionError):
-        return False
-    return amount >= floor
+        return None
 
 
 def counterparties(address: str) -> tuple[dict, bool]:
@@ -129,14 +151,10 @@ def counterparties(address: str) -> tuple[dict, bool]:
         for row in rows:
             if row.get("isError") == "1":
                 continue
-            if action == "tokentx":
-                if not _passes_token(row):
-                    continue
-                weight = 1.0
-            else:
-                if not _passes_native(row.get("value", "0")):
-                    continue
-                weight = int(row["value"]) / 1e18
+
+            usd = edge_usd(row, action)
+            if usd is None or usd < CFG["min_edge_usd"]:
+                continue
 
             frm = (row.get("from") or "").lower()
             to = (row.get("to") or "").lower()
@@ -145,8 +163,8 @@ def counterparties(address: str) -> tuple[dict, bool]:
                 continue
 
             prior = out.get(other)
-            if prior is None or weight > prior["weight"]:
-                out[other] = {"weight": weight, "tx": row.get("hash"),
+            if prior is None or usd > prior["usd"]:
+                out[other] = {"usd": usd, "tx": row.get("hash"),
                               "ts": int(row.get("timeStamp", 0))}
 
     return out, total_rows >= CFG["high_degree_tx_count"]
@@ -173,7 +191,7 @@ def expand(address, depth, seed, st, seed_set, services):
         st["terminals"][address] = "high degree"
         return []
 
-    ranked = sorted(cps.items(), key=lambda kv: kv[1]["weight"],
+    ranked = sorted(cps.items(), key=lambda kv: kv[1]["usd"],
                     reverse=True)[:CFG["max_fanout_build"]]
 
     added = []
@@ -191,9 +209,14 @@ def expand(address, depth, seed, st, seed_set, services):
         if prior and prior["d"] <= distance:
             continue
 
+        parent_min = st["halo"][address].get("min_usd") if depth > 0 else None
+        min_usd = edge["usd"] if parent_min is None else min(parent_min, edge["usd"])
+
         st["halo"][other] = {"d": distance, "seed": seed,
-                             "via": [other] + parent_via, "tx": edge["tx"]}
-        added.append([other, distance, seed, edge["weight"]])
+                             "via": [other] + parent_via, "tx": edge["tx"],
+                             "usd": round(edge["usd"], 2),
+                             "min_usd": round(min_usd, 2)}
+        added.append([other, distance, seed, edge["usd"]])
 
     return added
 
@@ -221,8 +244,7 @@ def emit(st, seeds):
                      "first. Any not expanded contribute no third hop."),
         },
         "rules": {k: CFG[k] for k in
-                  ("min_eth", "token_floors", "max_fanout_build",
-                   "high_degree_tx_count")},
+                  ("min_edge_usd", "max_fanout_build", "high_degree_tx_count")},
         "halo": st["halo"],
     }
     (DATA / "halo.json").write_text(json.dumps(out))
