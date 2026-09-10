@@ -5,3 +5,9 @@ node_modules/
 
 .env
 .env.local
+
+policy/dist/
+data/halo.backup.json
+
+policy/dist/
+data/halo.backup.json
