@@ -69,7 +69,7 @@ def main():
     # graph, since anything already in it would screen at a shorter distance.
     for node in d2[:20]:
         cps, _ = counterparties(node)
-        for other in sorted(cps, key=lambda k: -cps[k]["weight"]):
+        for other in sorted(cps, key=lambda k: -cps[k]["usd"]):
             if other in seed_set or other in halo or other in services:
                 continue
             picks["three"] = other
