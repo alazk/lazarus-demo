@@ -82,7 +82,7 @@
     align-items:stretch; gap:24px 40px;
     padding:40px var(--inset); max-width:1060px; width:100%;
   }
-  @media (min-width:821px) { .console { grid-auto-rows:600px; } }
+  @media (min-width:821px) { .card { max-height:620px; } }
   @media (max-width:820px) { .console { grid-template-columns:1fr; gap:32px; } }
   .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
   .card {
@@ -99,7 +99,7 @@
 
   .policy-card { background:var(--field); border:1px solid var(--ink); }
   .check-card  { background:var(--surface); border:1px solid var(--hairline); }
-  .check-card .card-scroll { gap:16px; }
+  .check-card .card-scroll { gap:16px; flex:0 1 auto; }
   .policy-title { font-size:24px; font-weight:600; letter-spacing:-.01em; }
   .policy-body { font-size:16px; line-height:24px; color:var(--body); margin-top:12px; max-width:44ch; }
   .policy-rules {
@@ -139,7 +139,7 @@
   .or-text { font-size:13px; color:var(--muted); }
 
   .action {
-    margin-top:16px; height:64px; flex-shrink:0; width:100%; border-radius:var(--pill);
+    margin-top:16px; height:64px; flex-shrink:0; align-self:stretch; width:100%; border-radius:var(--pill);
     background:var(--accent); color:#fff; border:none; cursor:pointer;
     font-family:var(--sans); font-size:14px; font-weight:500;
   }
