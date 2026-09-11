@@ -11,3 +11,4 @@ data/halo.backup.json
 
 policy/dist/
 data/halo.backup.json
+.env*
