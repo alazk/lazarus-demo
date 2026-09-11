@@ -8,5 +8,9 @@
   "devDependencies": {
     "@bytecodealliance/componentize-js": "^0.22.0",
     "@bytecodealliance/jco": "^1.33.0"
+  },
+  "dependencies": {
+    "@newton-xyz/sdk": "^1.1.1",
+    "viem": "^2.21.0"
   }
 }
