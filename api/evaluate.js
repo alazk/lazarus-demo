@@ -116,7 +116,7 @@ export default async function handler(req, res) {
       status: "ATTESTATION_FAILED",
       decision: "DENY",
       reason: "Screened, but the policy evaluation could not be attested",
-      attestation: { status: "FAILED", detail: String(err.message || err) },
+      attestation: { status: "FAILED", detail: JSON.stringify(err, Object.getOwnPropertyNames(err)).slice(0, 600) },
     });
   }
 
