@@ -80,7 +80,8 @@ async function submitToNewton(walletAddress) {
           chain_id: "0x" + SEPOLIA_CHAIN_ID.toString(16),
           function_signature: "",
         },
-        wasm_args: "0x",
+        wasm_args: "0x" + Buffer.from(
+          JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
         timeout: 60,
       },
     }),
@@ -153,10 +154,17 @@ export default async function handler(req, res) {
   const localAllow = screening.decision === "ALLOW";
   const disagreement = localAllow !== attestation.allowed;
 
+  // An attestation can confirm a deny but never overturn one. The attested
+  // policy screens membership of a bounded list, so it returns allow for any
+  // wallet outside that list, including wallets the graph shows are exposed.
+  // Letting it win would show a green verdict for a wallet three hops from
+  // Lazarus, which is the one output this demo must never produce.
+  const allowed = attestation.allowed && localAllow;
+
   res.status(200).json({
     ...screening,
-    decision: attestation.allowed ? "ALLOW" : "DENY",
-    status: attestation.allowed ? "COMPLIANT" : "NON_COMPLIANT",
+    decision: allowed ? "ALLOW" : "DENY",
+    status: allowed ? "COMPLIANT" : "NON_COMPLIANT",
     explorer_url: attestation.explorer_url,
     attestation: {
       status: "ATTESTED",
@@ -166,7 +174,9 @@ export default async function handler(req, res) {
       network: "Ethereum Sepolia",
     },
     ...(disagreement && {
-      warning: "The attested decision differs from the local screening result",
+      warning: "The attested policy covers a bounded address list and did not "
+             + "see this exposure; the screening result stands",
+      attested_decision: attestation.allowed ? "ALLOW" : "DENY",
       local_decision: screening.decision,
     }),
   });
