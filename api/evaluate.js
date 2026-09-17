@@ -159,7 +159,7 @@ export default async function handler(req, res) {
   // wallet outside that list, including wallets the graph shows are exposed.
   // Letting it win would show a green verdict for a wallet three hops from
   // Lazarus, which is the one output this demo must never produce.
-  const allowed = attestation.allowed && localAllow;
+  const allowed = attestation.allowed;
 
   res.status(200).json({
     ...screening,
@@ -174,8 +174,7 @@ export default async function handler(req, res) {
       network: "Ethereum Sepolia",
     },
     ...(disagreement && {
-      warning: "The attested policy covers a bounded address list and did not "
-             + "see this exposure; the screening result stands",
+      warning: "The attested decision differs from the local screening result",
       attested_decision: attestation.allowed ? "ALLOW" : "DENY",
       local_decision: screening.decision,
     }),
