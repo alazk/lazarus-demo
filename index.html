@@ -100,32 +100,6 @@
     min-height:0; overflow-y:auto;
   }
   @media (max-width:860px) { .console { grid-template-columns:1fr; gap:var(--s-3); } }
-
-  /* ── Phones ─────────────────────────────────────────────────
-     Below this width the fixed-height page stops making sense: the
-     content is taller than any phone, so the page scrolls normally
-     and the panels stop competing for a fixed box. */
-  @media (max-width:620px) {
-    html,body { height:auto; overflow:visible; }
-    body { height:auto; min-height:100dvh; padding:var(--s-15); gap:var(--s-15); }
-    .stage { flex:none; }
-    .mast { padding:var(--s-15); gap:var(--s-15); }
-    .wordmark { height:20px; }
-    .console { padding:var(--s-3) var(--s-2); overflow:visible; }
-    .verdict { padding:var(--s-3) var(--s-2); overflow:visible; }
-    .stats { flex-direction:column; gap:var(--s-15); }
-    .how li { font-size:14px; }
-    .card { height:auto; }
-    .example { height:44px; }
-    .deployed { margin-top:var(--s-3); }
-    .fact { flex-wrap:wrap; gap:var(--s-05); }
-    .stat, .stat + .stat { border-left:none; padding:0; }
-    .stat + .stat { border-top:1px solid var(--on-22); padding-top:var(--s-15); }
-    .actions { gap:var(--s-1); }
-    .actions .line { display:none; }
-    .actions .btn { flex:1; min-width:140px; }
-    .thr { flex:1; min-width:96px; }
-  }
   @media (max-height:780px) {
     body { padding:var(--s-2); gap:var(--s-2); }
     .console { padding:var(--s-3) var(--inset); gap:var(--s-3); }
@@ -191,10 +165,11 @@
     border:none; border-radius:var(--pill); cursor:pointer;
     font-family:var(--sans); font-weight:600; text-decoration:none;
     display:inline-flex; align-items:center; justify-content:center; gap:var(--s-1);
+    text-align:center; line-height:20px;
     transition:background .12s, border-color .12s, opacity .12s;
   }
-  .btn-lg { height:48px; padding:0 var(--s-4); font-size:16px; }
-  .btn-md { height:44px; padding:0 var(--s-3); font-size:14px; }
+  .btn-lg { min-height:48px; padding:var(--s-15) var(--s-4); font-size:16px; }
+  .btn-md { min-height:44px; padding:var(--s-15) var(--s-3); font-size:14px; }
   .btn-primary { background:var(--ink-90); color:var(--paper); }
   .btn-primary:hover { background:var(--black); }
   .btn-primary[disabled] { background:var(--ink-50); cursor:default; }
@@ -350,6 +325,45 @@
   .fact-k { color:var(--ink-70); }
   .fact-v { font-weight:600; font-variant-numeric:tabular-nums; }
   .verdict .rules { margin-top:var(--s-5); }
+
+  /* ── Phones ─────────────────────────────────────────────────
+     Below this width the fixed-height page stops making sense: the
+     content is taller than any phone, so the page scrolls normally
+     and the panels stop competing for a fixed box. */
+  @media (max-width:620px) {
+    html,body { height:auto; overflow:visible; }
+    body { height:auto; min-height:100dvh; padding:var(--s-15); gap:var(--s-15); }
+    .stage { flex:none; }
+    .mast { padding:var(--s-15); gap:var(--s-15); }
+    .wordmark { height:20px; }
+    .console { padding:var(--s-3) var(--s-2); overflow:visible; }
+    .verdict { padding:var(--s-3) var(--s-2); overflow:visible; }
+    .stats { flex-direction:column; gap:var(--s-15); }
+    .how li { font-size:14px; }
+    .card { height:auto; }
+    .example { height:44px; }
+    .deployed { margin-top:var(--s-3); }
+    .fact { flex-wrap:wrap; gap:var(--s-05); }
+    .stat, .stat + .stat { border-left:none; padding:0; }
+    .stat + .stat { border-top:1px solid var(--on-22); padding-top:var(--s-15); }
+    .actions { gap:var(--s-1); }
+    .actions .line { display:none; }
+    .actions { flex-direction:column; align-items:stretch; }
+    .actions .btn { width:100%; }
+    .btn-long { display:none; }
+    .thr { flex:1; min-width:96px; }
+    /* The checking card was mostly empty space on a phone. */
+    .checking { padding:var(--s-4) var(--s-2); }
+    .checking .h3 { font-size:32px; }
+    .steps { max-width:none; }
+    /* Two threshold cells per row reads better than an orphan on the second. */
+    .thr { flex:1 1 calc(50% - var(--s-1)); min-width:0; }
+    .thr-row { gap:var(--s-1); }
+    /* The headline was taking four lines at the largest clamp. */
+    .h1 { font-size:34px; }
+    .reason { font-size:16px; line-height:24px; }
+
+  }
 </style>
 </head>
 <body>
@@ -719,7 +733,7 @@ function renderVerdict(r) {
         <span class="line"></span>
         <button class="btn btn-tertiary btn-md" id="again">New check</button>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-           target="_blank" rel="noopener">View attestation on the Newton explorer ↗</a>` : ""}
+           target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}
       </div>
     </div>`;
 
