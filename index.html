@@ -291,7 +291,8 @@
   /* ── Path ───────────────────────────────────────────────────── */
   .path {
     display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
-    margin-top:0; width:100%; max-width:360px;
+    margin-top:0; width:100%; max-width:360px;   /* replaced at runtime to
+       match the attestation button exactly; this is the fallback */
   }
   .node {
     display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
@@ -765,6 +766,31 @@ function renderPath(result) {
   return `<div class="path">${joined}</div>`;
 }
 
+
+/** The chain sits directly over the attestation button, so it should be the
+ *  same width. The button sizes to its own label, which changes with the
+ *  viewport, so the width is measured rather than guessed. */
+function matchPathToAction() {
+  const path = stage.querySelector(".path");
+  const action = stage.querySelector(".actions .btn-primary")
+    || stage.querySelector(".actions .btn");
+  if (!path || !action) return;
+  if (!window.matchMedia("(min-width: 861px)").matches) {
+    path.style.width = "";
+    return;
+  }
+  const apply = () => {
+    const w = action.getBoundingClientRect().width;
+    if (w > 0) path.style.width = `${Math.round(w)}px`;
+  };
+  apply();
+  // Re-measure when the label reflows at a different viewport width.
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(apply);
+    ro.observe(action);
+  }
+}
+
 function renderVerdict(r) {
   const attested = r.attestation?.status === "ATTESTED";
 
@@ -819,6 +845,7 @@ function renderVerdict(r) {
 
   document.getElementById("again").onclick = () => renderConsole(r.wallet);
   wireThresholds();
+  matchPathToAction();
 
 }
 
