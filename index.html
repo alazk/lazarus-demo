@@ -110,8 +110,6 @@
     margin-top:var(--s-3); padding-top:var(--s-2);
     border-top:1px solid var(--ink-30); display:flex; flex-direction:column; gap:var(--s-1);
   }
-  .rule-row { display:flex; gap:var(--s-2); font-size:14px; line-height:24px; color:var(--ink-70); }
-  .rule-row b { font-weight:600; color:var(--ink-90); font-variant-numeric:tabular-nums; min-width:12px; }
 
   /* ── Controls ───────────────────────────────────────────────── */
   .label { font-size:14px; font-weight:500; color:var(--ink-70); }
@@ -174,13 +172,19 @@
   }
   .step.active { color:var(--ink-90); border-color:var(--ink-90); }
   .step.active .step-dot { background:var(--ink-90); animation:pulse 1s ease-in-out infinite; }
-  .step.found { color:var(--ink-90); border-color:var(--ink-90); background:var(--ink-90); }
-  .step.found, .step.found .step-label { color:var(--paper); }
-  .step.found .step-dot { background:var(--paper); animation:none; }
-  .step.cleared { opacity:0; }
+  /* A step that came back clean goes green; the one that found the path goes
+     red and the search stops there. */
+  .step.clear {
+    color:var(--leaf-90); border-color:var(--leaf-50); background:rgba(0,204,143,.1);
+  }
+  .step.clear .step-dot { background:var(--leaf-50); animation:none; }
+  .step.hit {
+    color:var(--ruby-90); border-color:var(--ruby-50); background:rgba(252,92,54,.12);
+  }
+  .step.hit .step-dot { background:var(--ruby-50); animation:none; }
+  .step.idle { opacity:.35; }
   .step-label { flex:1; }
-  .step-note { font-size:13px; color:var(--ink-50); }
-  .step.found .step-note { color:rgba(255,255,255,.7); }
+  .step-note { font-size:13px; font-weight:600; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 
   /* ── Verdict ────────────────────────────────────────────────── */
@@ -334,10 +338,6 @@
 
 <div class="stage" id="stage" aria-live="polite"></div>
 
-<p class="foot">
-  Illustrative, and not a regulatory or legal determination.
-</p>
-
 <script>
 const stage = document.getElementById("stage");
 const short = (a) => a ? a.slice(0, 6) + "…" + a.slice(-4) : "";
@@ -459,22 +459,15 @@ function renderConsole(prefill = "", error = "") {
             <p class="p-std muted" style="margin:var(--s-15) 0 0;max-width:44ch">
               Blocks a wallet that reaches a known Lazarus Group address within three hops.
             </p>
-            <div class="policy-rules">
-              <span class="rule-row"><b>0</b><span>the wallet is itself a known address</span></span>
-              <span class="rule-row"><b>1</b><span>it dealt with one directly</span></span>
-              <span class="rule-row"><b>2</b><span>one wallet sits in between</span></span>
-              <span class="rule-row"><b>3</b><span>two wallets sit in between</span></span>
-            </div>
             <div class="facts">
-              <div class="fact"><span class="fact-k">Distance</span><span class="fact-v">3 hops</span></div>
-              <div class="fact"><span class="fact-k">Value</span><span class="fact-v">any amount</span></div>
-              <div class="fact"><span class="fact-k">Edge floor</span><span class="fact-v">$300</span></div>
-              <div class="fact"><span class="fact-k">Seed set</span><span class="fact-v">3,597 addresses</span></div>
+              <div class="fact"><span class="fact-k">Blocks within</span><span class="fact-v">3 hops</span></div>
+              <div class="fact"><span class="fact-k">On exposure of</span><span class="fact-v">any amount</span></div>
+              <div class="fact"><span class="fact-k">Against</span><span class="fact-v">3,597 addresses</span></div>
             </div>
             <p class="p-sm muted" style="margin:var(--s-3) 0 0">
               Traversal stops at exchanges, bridges, mixers and contracts, so shared use
-              of a service is not exposure. Transfers are valued in dollars at the price
-              on the day. An exposure is worth its smallest transfer.
+              of a service is not exposure. Transfers below $300 are ignored, and an
+              exposure is worth its smallest transfer.
             </p>
           </div>
         </div>
@@ -542,7 +535,7 @@ function renderChecking(address) {
       <div class="h3">Checking</div>
       <div class="mono p-std" style="word-break:break-all">${esc(address)}</div>
       <div class="steps">
-        ${STEPS.map((st) => `<div class="step" data-step="${st.key}">
+        ${STEPS.map((st, n) => `<div class="step ${n === 0 ? "active" : "idle"}" data-step="${st.key}">
           <span class="step-dot"></span>
           <span class="step-label">${esc(st.label)}</span>
           <span class="step-note"></span>
@@ -550,39 +543,38 @@ function renderChecking(address) {
       </div>
     </div>`;
 
-  let i = 0;
-  const tick = setInterval(() => {
-    const rows = stage.querySelectorAll(".step");
-    if (!rows.length) return clearInterval(tick);
-    rows.forEach((r, n) => r.classList.toggle("active", n === i % rows.length));
-    i += 1;
-  }, 700);
+  const rows = () => [...stage.querySelectorAll(".step")];
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   return {
-    stop() { clearInterval(tick); },
-    /** Mark where the path was found and clear the rest. */
-    settle(hop) {
-      clearInterval(tick);
-      const rows = [...stage.querySelectorAll(".step")];
-      if (!rows.length) return Promise.resolve();
-      rows.forEach((r) => r.classList.remove("active"));
-      const hit = hop === null || hop === undefined ? -1 : hop;
-      rows.forEach((r) => {
-        const n = Number(r.dataset.step);
+    stop() {},
+    /** Walk outward one step at a time. Each step that comes back clean turns
+     *  green; the step that finds the path turns red and the walk stops. */
+    async settle(hop) {
+      const list = rows();
+      if (!list.length) return;
+      const hit = (hop === null || hop === undefined) ? list.length : hop;
+
+      for (let n = 0; n < list.length; n++) {
+        const row = list[n];
+        row.classList.remove("idle");
+        row.classList.add("active");
+        await wait(430);
+        row.classList.remove("active");
+
         if (n === hit) {
-          r.classList.add("found");
-          r.querySelector(".step-note").textContent = "found";
-        } else {
-          r.classList.add("cleared");
+          row.classList.add("hit");
+          row.querySelector(".step-note").textContent = "exposure found";
+          // Anything further out is never reached, so it is not shown as checked.
+          list.slice(n + 1).forEach((r) => r.classList.add("idle"));
+          await wait(850);
+          return;
         }
-      });
-      if (hit === -1) {
-        const last = rows[rows.length - 1];
-        last.classList.remove("cleared");
-        last.classList.add("found");
-        last.querySelector(".step-label").textContent = "No exposure within three hops";
+
+        row.classList.add("clear");
+        row.querySelector(".step-note").textContent = "clear";
       }
-      return new Promise((r) => setTimeout(r, 1100));
+      await wait(650);
     },
   };
 }
