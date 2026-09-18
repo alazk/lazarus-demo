@@ -26,6 +26,7 @@
 
     /* Spacing: 1 unit = 8px */
     --s-05:4px; --s-1:8px; --s-15:12px; --s-2:16px; --s-3:24px;
+    --box-pad:16px;   /* horizontal padding inside node, threshold and example boxes */
     --s-4:32px; --s-5:40px; --s-6:48px;
 
     /* Verdict surfaces, sampled from the sanctions panels */
@@ -142,9 +143,10 @@
   .card-check .card-body > div:first-child { flex:1; }
   .card-check .examples { flex:1; }
   .example { flex:1; min-height:40px; }
+  .examples { margin-left:calc(var(--box-pad) * -1); width:calc(100% + var(--box-pad)); }
   .example {
     display:flex; align-items:center; justify-content:space-between; gap:var(--s-2);
-    width:100%; height:40px; padding:0 var(--s-15); text-align:left;
+    width:100%; height:40px; padding:0 var(--box-pad); text-align:left;
     border:1px solid var(--ink-30); background:var(--paper);
     border-radius:var(--r-sm); font-family:var(--sans); color:var(--ink-90);
     cursor:pointer; transition:border-color .12s, background .12s;
@@ -255,10 +257,13 @@
     .rung { flex-direction:row; align-items:center; gap:var(--s-15); }
   }
 
-  .thr-row { display:flex; align-items:center; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
+  .thr-row {
+    display:flex; align-items:center; gap:var(--s-1);
+    margin-top:var(--s-1); margin-left:calc(var(--box-pad) * -1); flex-wrap:wrap;
+  }
   .thr {
     display:flex; flex-direction:column; gap:var(--s-05);
-    padding:var(--s-1) var(--s-2);
+    padding:var(--s-1) var(--box-pad);
     border:1px solid var(--on-35); border-radius:var(--pill);
     background:var(--veil-strong);
     font-family:var(--sans); cursor:pointer; text-align:left;
@@ -274,10 +279,13 @@
   .thr-live { border-color:var(--ink-90); border-width:2px; }
 
   /* ── Path ───────────────────────────────────────────────────── */
-  .path { display:flex; align-items:stretch; gap:var(--s-15); margin-top:var(--s-3); flex-wrap:wrap; }
+  .path {
+    display:flex; align-items:stretch; gap:var(--s-15);
+    margin-top:var(--s-3); margin-left:calc(var(--box-pad) * -1); flex-wrap:wrap;
+  }
   .node {
     display:flex; flex-direction:column; gap:var(--s-05);
-    padding:var(--s-15) var(--s-2);
+    padding:var(--s-15) var(--box-pad);
     border:1px solid var(--on-22); border-radius:var(--r-sm);
     background:var(--veil); min-width:0;
   }
@@ -378,6 +386,8 @@
     .steps { max-width:none; }
     /* Two threshold cells per row reads better than an orphan on the second. */
     .thr { flex:1 1 calc(50% - var(--s-1)); min-width:0; }
+    .path, .thr-row { margin-left:0; }
+    .examples { margin-left:0; width:100%; }
     .thr-row { gap:var(--s-1); }
     /* The headline was taking four lines at the largest clamp. */
     .h1 { font-size:34px; }
