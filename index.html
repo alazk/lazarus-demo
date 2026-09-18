@@ -256,57 +256,6 @@
   .copy:hover { color:var(--magic-90); }
 
   
-/* ── Exposure threshold ──────────────────────────────────────────
-   The enforced threshold is a policy parameter held on-chain, and the page
-   cannot move it. What it can do is show what the same evidence decides at
-   other settings, which is the point without pretending the browser is in
-   charge. Selecting one is a comparison, not a change. */
-const THRESHOLDS = [0, 1e3, 1e5, 1e6, 1e7];
-
-function thrLabel(t) { return t === 0 ? "any amount" : money(t); }
-
-function renderThresholds(r) {
-  if (typeof r.exposure_usd !== "number" || r.direct_match) return "";
-  const live = typeof r.dataset?.min_exposure_usd === "number"
-    ? r.dataset.min_exposure_usd : 0;
-  const cells = THRESHOLDS.map((t) => {
-    const blocked = r.exposure_usd >= t;
-    return `<button class="thr ${t === live ? "thr-live" : ""}" type="button"
-      data-thr="${t}" data-blocked="${blocked}">
-      <span class="thr-k">${thrLabel(t)}</span>
-      <span class="thr-v ${blocked ? "thr-block" : "thr-allow"}">${blocked ? "Blocked" : "Allowed"}</span>
-    </button>`;
-  }).join("");
-  return `<div class="ladder-label p-sm">Decision by value threshold</div>
-    <div class="thr-row">${cells}</div>
-    <p class="p-sm muted" style="margin:var(--s-15) 0 0" id="thr-note">
-      Outlined is the threshold enforced on-chain, at ${esc(thrLabel(live))}. The
-      others show what this same path decides if the policy is set differently.
-    </p>`;
-}
-
-function wireThresholds(r) {
-  const note = document.getElementById("thr-note");
-  const live = typeof r.dataset?.min_exposure_usd === "number"
-    ? r.dataset.min_exposure_usd : 0;
-  stage.querySelectorAll(".thr").forEach((b) => {
-    b.onclick = () => {
-      stage.querySelectorAll(".thr").forEach((x) => x.classList.remove("thr-sel"));
-      const t = Number(b.dataset.thr);
-      const blocked = b.dataset.blocked === "true";
-      if (t === live) {
-        note.textContent = `At ${thrLabel(t)}, the threshold enforced on-chain, `
-          + `this wallet is ${blocked ? "blocked" : "allowed"}.`;
-        return;
-      }
-      b.classList.add("thr-sel");
-      note.textContent = `At ${thrLabel(t)} this wallet would be `
-        + `${blocked ? "blocked" : "allowed"}. The enforced threshold is still `
-        + `${thrLabel(live)}, so the decision above stands.`;
-    };
-  });
-}
-
 /* ── Rules disclosure ───────────────────────────────────────── */
   .rules { padding-top:var(--s-1); border-top:1px solid var(--ink-30); }
   .facts {
@@ -411,6 +360,57 @@ function renderValue(r) {
       <span class="value-amount">${esc(amount)}</span>
       <span class="p-sm muted">smallest transfer along the path</span>
     </div>`;
+}
+
+/* ── Exposure threshold ──────────────────────────────────────────
+   The enforced threshold is a policy parameter held on-chain, and the page
+   cannot move it. What it can do is show what the same evidence decides at
+   other settings, which is the point without pretending the browser is in
+   charge. Selecting one is a comparison, not a change. */
+const THRESHOLDS = [0, 1e3, 1e5, 1e6, 1e7];
+
+function thrLabel(t) { return t === 0 ? "any amount" : money(t); }
+
+function renderThresholds(r) {
+  if (typeof r.exposure_usd !== "number" || r.direct_match) return "";
+  const live = typeof r.dataset?.min_exposure_usd === "number"
+    ? r.dataset.min_exposure_usd : 0;
+  const cells = THRESHOLDS.map((t) => {
+    const blocked = r.exposure_usd >= t;
+    return `<button class="thr ${t === live ? "thr-live" : ""}" type="button"
+      data-thr="${t}" data-blocked="${blocked}">
+      <span class="thr-k">${thrLabel(t)}</span>
+      <span class="thr-v ${blocked ? "thr-block" : "thr-allow"}">${blocked ? "Blocked" : "Allowed"}</span>
+    </button>`;
+  }).join("");
+  return `<div class="ladder-label p-sm">Decision by value threshold</div>
+    <div class="thr-row">${cells}</div>
+    <p class="p-sm muted" style="margin:var(--s-15) 0 0" id="thr-note">
+      Outlined is the threshold enforced on-chain, at ${esc(thrLabel(live))}. The
+      others show what this same path decides if the policy is set differently.
+    </p>`;
+}
+
+function wireThresholds(r) {
+  const note = document.getElementById("thr-note");
+  const live = typeof r.dataset?.min_exposure_usd === "number"
+    ? r.dataset.min_exposure_usd : 0;
+  stage.querySelectorAll(".thr").forEach((b) => {
+    b.onclick = () => {
+      stage.querySelectorAll(".thr").forEach((x) => x.classList.remove("thr-sel"));
+      const t = Number(b.dataset.thr);
+      const blocked = b.dataset.blocked === "true";
+      if (t === live) {
+        note.textContent = `At ${thrLabel(t)}, the threshold enforced on-chain, `
+          + `this wallet is ${blocked ? "blocked" : "allowed"}.`;
+        return;
+      }
+      b.classList.add("thr-sel");
+      note.textContent = `At ${thrLabel(t)} this wallet would be `
+        + `${blocked ? "blocked" : "allowed"}. The enforced threshold is still `
+        + `${thrLabel(live)}, so the decision above stands.`;
+    };
+  });
 }
 
 /* ── Rules ───────────────────────────────────────────────────── */
