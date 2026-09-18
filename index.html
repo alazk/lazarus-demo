@@ -212,7 +212,7 @@
 
   /* ── Verdict ────────────────────────────────────────────────── */
   .verdict {
-    padding:var(--s-4) var(--inset); width:100%; max-width:1400px; margin:0 auto;
+    padding:var(--s-4) var(--inset); width:100%; max-width:1200px; margin:0 auto;
     display:flex; flex-direction:column; justify-content:center;
     min-height:0; overflow-y:auto;
   }
@@ -221,10 +221,14 @@
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
   .verdict .h1 { color:var(--ink-90); }
   .reason { margin-top:var(--s-2); max-width:46ch; color:var(--ink-90); }
-  .stats { display:flex; gap:var(--s-1); margin-top:var(--s-4); flex-wrap:wrap; }
+  .stats {
+    display:grid; grid-template-columns:repeat(3, minmax(0, 200px));
+    margin-top:var(--s-4); max-width:640px;
+  }
   .stats + .path { margin-top:var(--s-2); }
-  .stat { flex:1; min-width:150px; padding:0 var(--s-3) 0 0; }
-  .stat + .stat { border-left:1px solid var(--on-22); padding-left:var(--s-3); }
+  .stat { padding:0 var(--s-3); }
+  .stat:first-child { padding-left:0; }
+  .stat + .stat { border-left:1px solid var(--on-22); }
   .stat-k { font-size:14px; color:var(--on-62); }
   .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
   .detail {
@@ -273,6 +277,11 @@
   .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); }
   .node.match .node-role { color:var(--ink-90); }
   .arrow { align-self:center; color:var(--ink-50); font-size:18px; }
+  .arrow-tx {
+    text-decoration:none; color:var(--on-62); cursor:pointer;
+    transition:color .12s, transform .12s;
+  }
+  .arrow-tx:hover { color:var(--ink-90); transform:scale(1.15); }
   .arrow::after { content:'→'; }
   @media (max-width:768px) {
     .path { flex-direction:column; align-items:stretch; }
@@ -680,6 +689,15 @@ function renderPath(result) {
     ? result.nodes
     : (result.path || []).map((a) => ({ address: a, role: "wallet" }));
   if (nodes.length < 2) return "";
+
+  // Each hop corresponds to a transfer. Where the screening reported the
+  // transaction, the arrow links to it, so the claim can be checked rather
+  // than taken on trust.
+  const txFor = (i) => {
+    const edge = (result.edges || [])[i];
+    return edge?.tx || null;
+  };
+
   const parts = nodes.map((n, i) => {
     const cls = i === 0 ? "origin" : (n.role === "lazarus" ? "match" : "");
     return `<div class="node ${cls}">
@@ -688,7 +706,17 @@ function renderPath(result) {
       <span class="node-role">${esc(roleLabel(n, i))}</span>
     </div>`;
   });
-  return `<div class="path">${parts.join('<span class="arrow" aria-hidden="true"></span>')}</div>`;
+
+  const joined = parts.reduce((acc, part, i) => {
+    if (i === 0) return part;
+    const tx = txFor(i - 1);
+    const arrow = tx
+      ? `<a class="arrow arrow-tx" href="https://etherscan.io/tx/${esc(tx)}"
+           target="_blank" rel="noopener" title="View this transfer on Etherscan"></a>`
+      : '<span class="arrow" aria-hidden="true"></span>';
+    return acc + arrow + part;
+  }, "");
+  return `<div class="path">${joined}</div>`;
 }
 
 function renderVerdict(r) {
