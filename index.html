@@ -20,15 +20,14 @@
     --ink-90:#1B171A; --ink-70:#77767A; --ink-50:#B0B4BA;
     --ink-30:#E0E0E3; --ink-10:#F0F0FA; --paper:#FFFFFF;
     /* Brand and semantics */
-    --magic-50:#6859FF; --magic-30:#A790FF; --magic-10:#EEEBFF; --magic-90:#3512B2;
+    --magic-10:#EEEBFF;
     --leaf-50:#00CC8F; --leaf-10:#A3FAF3; --leaf-90:#005047;
     --ruby-50:#FC5C36; --ruby-10:#FFE3DC; --ruby-90:#932303;
     --black:#000000;
-    --gold-50:#DBA550; --gold-10:#F7ECD9;
 
     /* Spacing: 1 unit = 8px */
     --s-05:4px; --s-1:8px; --s-15:12px; --s-2:16px; --s-3:24px;
-    --s-4:32px; --s-5:40px; --s-6:48px; --s-8:64px; --s-10:80px;
+    --s-4:32px; --s-5:40px; --s-6:48px;
 
     /* Verdict surfaces, sampled from the sanctions panels */
     --pass-a:#DFFDCF; --pass-b:#B4DCB8;
@@ -62,7 +61,7 @@
   .h3 { font-size:clamp(32px,4vw,48px); line-height:1.16; font-weight:700; letter-spacing:-.01em; }
   .h4 { font-size:20px; line-height:32px; font-weight:700; }
   .h6 { font-size:12px; line-height:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
-  .p-lg { font-size:18px; line-height:28px; }
+  .p-lg { font-size:18px; line-height:24px; }
   .p-std { font-size:16px; line-height:24px; }
   .p-sm { font-size:14px; line-height:24px; }
   .mono { font-family:var(--mono); }
@@ -115,14 +114,14 @@
     border-radius:var(--r-md); padding:var(--s-2); overflow:hidden;
   }
 
-  .card-policy { background:var(--ink-10); border:1px solid var(--ink-90); }
+  .card-policy { background:var(--paper); border:1px solid var(--ink-30); }
   .card-check  { background:var(--paper); border:1px solid var(--ink-30); }
   .card-body {
     flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column;
     scrollbar-width:thin; scrollbar-color:var(--ink-30) transparent;
   }
-  .card-body::-webkit-scrollbar { width:6px; }
-  .card-body::-webkit-scrollbar-thumb { background:var(--ink-30); border-radius:3px; }
+  .card-body::-webkit-scrollbar { width:var(--s-05); }
+  .card-body::-webkit-scrollbar-thumb { background:var(--ink-30); border-radius:var(--r-sm); }
   .card-check .card-body { gap:var(--s-2); }
 
   .policy-rules {
@@ -135,7 +134,7 @@
   .field {
     width:100%; height:48px; border:1px solid var(--ink-50);
     border-radius:var(--r-sm); background:var(--paper);
-    padding:0 var(--s-2); font-family:var(--mono); font-size:15px; color:var(--ink-90);
+    padding:0 var(--s-2); font-family:var(--mono); font-size:16px; color:var(--ink-90);
   }
   .field::placeholder { color:var(--ink-50); }
   .field:focus { border-color:var(--magic-50); outline:none; box-shadow:0 0 0 3px var(--magic-10); }
@@ -157,7 +156,7 @@
 
   .divide { display:flex; align-items:center; gap:var(--s-2); margin:var(--s-05) 0; }
   .divide span:first-child, .divide span:last-child { flex:1; height:1px; background:var(--ink-30); }
-  .divide-text { font-size:13px; color:var(--ink-70); }
+  .divide-text { font-size:14px; color:var(--ink-70); }
 
   .btn {
     border:none; border-radius:var(--pill); cursor:pointer;
@@ -183,7 +182,7 @@
   .step {
     display:flex; align-items:center; gap:var(--s-15); height:44px;
     padding:0 var(--s-2); border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    font-size:15px; color:var(--ink-50); background:var(--paper);
+    font-size:16px; color:var(--ink-50); background:var(--paper);
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
   }
   .step-dot {
@@ -204,7 +203,7 @@
   .step.hit .step-dot { background:var(--ruby-50); animation:none; }
   .step.idle { opacity:.35; }
   .step-label { flex:1; }
-  .step-note { font-size:13px; font-weight:600; }
+  .step-note { font-size:14px; font-weight:600; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 
   /* ── Verdict ────────────────────────────────────────────────── */
@@ -224,15 +223,13 @@
   }
   .v-meta { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; padding-top:var(--s-1); }
   .stats { display:flex; gap:var(--s-1); margin-top:var(--s-4); flex-wrap:wrap; }
-  .stat {
-    flex:1; min-width:150px; padding:var(--s-2);
-    border:1px solid var(--on-22); border-radius:var(--r-sm);
-    background:var(--veil);
-  }
-  .stat-k { font-size:13px; color:var(--on-62); }
+  .stats + .path { margin-top:var(--s-2); }
+  .stat { flex:1; min-width:150px; padding:0 var(--s-3) 0 0; }
+  .stat + .stat { border-left:1px solid var(--on-22); padding-left:var(--s-3); }
+  .stat-k { font-size:14px; color:var(--on-62); }
   .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
   .detail {
-    font-family:var(--mono); font-size:13px; line-height:20px;
+    font-family:var(--mono); font-size:14px; line-height:20px;
     color:var(--ink-70); margin-top:var(--s-15); max-width:64ch; word-break:break-word;
   }
 
@@ -249,19 +246,22 @@
   .rung.hit { background:var(--ink-90); border-color:var(--ink-90); }
   .rung.hit .rung-n { color:var(--ink-50); }
   .rung.hit .rung-l { color:var(--paper); }
-  @media (max-width:760px) {
+  @media (max-width:768px) {
     .ladder { flex-direction:column; }
     .rung { flex-direction:row; align-items:center; gap:var(--s-15); }
   }
 
-  .thr-row { display:flex; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
+  .thr-row { display:flex; align-items:center; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
+  .thr-note-inline { font-size:14px; color:var(--on-75); margin-left:var(--s-1); }
   .thr {
-    display:flex; flex-direction:column; gap:2px; padding:var(--s-1) var(--s-15);
-    border:1px solid var(--on-22); border-radius:var(--r-sm);
-    background:var(--veil);
+    display:flex; flex-direction:column; gap:var(--s-05);
+    padding:var(--s-1) var(--s-2);
+    border:1px solid var(--on-35); border-radius:var(--pill);
+    background:var(--veil-strong);
     font-family:var(--sans); cursor:pointer; text-align:left;
-    transition:border-color .12s, opacity .12s;
+    transition:border-color .12s, background .12s, transform .12s;
   }
+  .thr:hover { border-color:var(--ink-90); transform:translateY(-1px); }
   .thr:hover { border-color:var(--ink-90); }
   .thr-live { border-color:var(--ink-90); border-width:2px; }
   .thr-sel { border-color:var(--ink-90); background:var(--ink-10); }
@@ -271,7 +271,7 @@
   .thr-v.thr-allow { color:var(--leaf-90); }
   .thr-live { border-color:var(--ink-90); border-width:2px; }
   .value-row { display:flex; align-items:baseline; gap:var(--s-2); margin-top:var(--s-1); flex-wrap:wrap; }
-  .value-amount { font-size:26px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .value-amount { font-size:24px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
 
   /* ── Path ───────────────────────────────────────────────────── */
   .path { display:flex; align-items:stretch; gap:var(--s-15); margin-top:var(--s-3); flex-wrap:wrap; }
@@ -285,11 +285,11 @@
   .node.match  { border-color:var(--ink-90); background:var(--veil-strong); }
   .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; }
   .node-addr:hover { text-decoration:underline; }
-  .node-role { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); }
+  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); }
   .node.match .node-role { color:var(--ink-90); }
   .arrow { align-self:center; color:var(--ink-50); font-size:18px; }
   .arrow::after { content:'→'; }
-  @media (max-width:760px) {
+  @media (max-width:768px) {
     .path { flex-direction:column; align-items:stretch; }
     .arrow { align-self:flex-start; padding-left:var(--s-3); }
     .arrow::after { content:'↓'; }
@@ -302,19 +302,15 @@
   .actions .line { flex:1; min-width:var(--s-4); height:1px; background:var(--on-22); }
   .parties { display:flex; gap:var(--s-5); flex-wrap:wrap; }
   .party { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; }
-  .party-addr { font-family:var(--mono); font-size:15px; word-break:break-all; }
+  .party-addr { font-family:var(--mono); font-size:16px; word-break:break-all; }
   .parties { margin-top:var(--s-1); }
   .tag {
     font-size:12px; font-weight:600; border-radius:var(--pill);
     padding:2px var(--s-15); margin-left:var(--s-1); display:inline-block;
   }
   .tag { background:var(--on-10); color:var(--on-75); }
-  .copy {
-    border:1px solid var(--on-35); background:transparent; cursor:pointer;
-    border-radius:var(--pill); padding:2px var(--s-15); margin-left:var(--s-1);
-    font-family:var(--sans); font-size:13px; font-weight:500; color:var(--ink-90);
-  }
-  .copy:hover { border-color:var(--ink-90); }
+  .btn-sm { height:var(--s-4); padding:0 var(--s-2); font-size:14px; }
+  .copy { margin-left:var(--s-1); }
 
   
 /* ── Rules disclosure ───────────────────────────────────────── */
@@ -339,10 +335,10 @@
   .rule-title { font-size:14px; font-weight:600; }
   .rule-detail { font-size:14px; line-height:24px; color:var(--ink-70); margin-top:var(--s-05); }
   .rule-meta {
-    font-size:13px; line-height:20px; color:var(--ink-70);
+    font-size:14px; line-height:20px; color:var(--ink-70);
     padding:var(--s-15) 0; border-top:1px solid var(--ink-30);
   }
-  .foot { font-size:13px; line-height:20px; color:var(--ink-70); max-width:80ch; padding:0 var(--inset); }
+  .foot { font-size:14px; line-height:20px; color:var(--ink-70); max-width:80ch; padding:0 var(--inset); }
 </style>
 </head>
 <body>
@@ -427,10 +423,8 @@ function renderThresholds(r) {
     </button>`;
   }).join("");
   return `<div class="ladder-label p-sm">If the value threshold were set to</div>
-    <div class="thr-row">${cells}</div>
-    <p class="p-sm muted" style="margin:var(--s-1) 0 0" id="thr-note">
-      Outlined is the one enforced on-chain.
-    </p>`;
+    <div class="thr-row">${cells}<span class="thr-note-inline" id="thr-note">
+      outlined is enforced on-chain</span></div>`;
 }
 
 function wireThresholds(r) {
@@ -512,16 +506,24 @@ function renderConsole(prefill = "", error = "") {
   const go = document.getElementById("go");
   // Picking an example fills the field rather than running immediately, so the
   // address is visible before the check and both inputs stay one flow.
+  // Filling the field and waiting for a second click reads as a dead control,
+  // so an example runs immediately; the address is still shown while it checks.
   stage.querySelectorAll(".example").forEach((b) => {
     b.onclick = () => {
       input.value = b.dataset.addr;
-      input.classList.remove("invalid");
-      document.getElementById("err").textContent = "";
+      submit(b.dataset.addr);
     };
   });
-  input.oninput = () => input.classList.remove("invalid");
-  input.onkeydown = (e) => { if (e.key === "Enter") go.click(); };
-  go.onclick = () => submit(input.value.trim());
+  const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
+  const sync = () => { go.disabled = !valid(input.value); };
+  input.oninput = () => {
+    input.classList.remove("invalid");
+    document.getElementById("err").textContent = "";
+    sync();
+  };
+  input.onkeydown = (e) => { if (e.key === "Enter" && !go.disabled) go.click(); };
+  go.onclick = () => submit(String(input.value ?? "").trim());
+  sync();
   if (window.matchMedia("(min-width: 861px)").matches) input.focus();
 }
 
@@ -690,7 +692,7 @@ function renderVerdict(r) {
           ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
         </div>
         <div class="v-meta">
-          <span class="p-sm muted">Wallet ${tag}<button class="copy" id="copy">Copy</button></span>
+          <span class="p-sm muted">Wallet ${tag}<button class="btn btn-tertiary btn-sm copy" id="copy">Copy</button></span>
           <span class="party-addr">${esc(r.wallet)}</span>
           <span class="p-sm muted" style="margin-top:var(--s-1)">Decided ${esc(when(r.evaluated_at))}</span>
         </div>
@@ -704,7 +706,7 @@ function renderVerdict(r) {
       </div>
     </div>`;
 
-  document.getElementById("again").onclick = () => renderConsole();
+  document.getElementById("again").onclick = () => renderConsole(r.wallet);
   const copy = document.getElementById("copy");
   copy.onclick = async () => {
     try {
