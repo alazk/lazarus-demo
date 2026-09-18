@@ -235,6 +235,13 @@
   .stat + .stat { border-left:1px solid var(--on-22); }
   .stat-k { font-size:14px; color:var(--on-62); }
   .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
+  .stat-link {
+    display:inline-flex; align-items:baseline; gap:var(--s-05);
+    color:var(--ink-90); text-decoration:none;
+    border-bottom:1px solid var(--on-35);
+  }
+  .stat-link:hover { border-color:var(--ink-90); }
+  .stat-ext { font-size:14px; font-weight:500; color:var(--on-62); }
   .detail {
     font-family:var(--mono); font-size:14px; line-height:20px;
     color:var(--ink-70); margin-top:var(--s-15); max-width:64ch; word-break:break-word;
@@ -428,10 +435,25 @@ function renderStats(r) {
   const value = r.direct_match ? "—"
     : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
   const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
+
+  // The exposure figure is the smallest transfer on the path. Where that is
+  // the wallet's own transfer, the screening reports its hash and the figure
+  // can link to it. Where the smallest transfer is further along the path,
+  // inside the precomputed neighbourhood, no hash was returned and the figure
+  // stays plain rather than linking to the wrong transaction.
+  const tx = (r.edges || [])[0]?.tx;
+  const isFirstEdge = typeof r.first_edge_usd === "number"
+    && r.first_edge_usd === r.exposure_usd;
+  const valueCell = (tx && isFirstEdge)
+    ? `<a class="stat-v stat-link" href="https://etherscan.io/tx/${esc(tx)}"
+         target="_blank" rel="noopener"
+         title="The transfer this figure comes from">${esc(value)} <span class="stat-ext">↗</span></a>`
+    : `<div class="stat-v">${esc(value)}</div>`;
+
   return `<div class="stats">
     <div class="stat"><div class="stat-k">Distance</div><div class="stat-v">${esc(distance)}</div></div>
     <div class="stat" title="The smallest transfer along the path">
-      <div class="stat-k">Exposure</div><div class="stat-v">${esc(value)}</div></div>
+      <div class="stat-k">Exposure</div>${valueCell}</div>
     <div class="stat"><div class="stat-k">Decision</div><div class="stat-v">${esc(decision)}</div></div>
   </div>`;
 }
