@@ -170,26 +170,26 @@
     padding:var(--s-6) var(--inset); width:100%;
     display:flex; flex-direction:column; justify-content:center;
   }
-  .verdict.pass  { background:var(--leaf-10); }
-  .verdict.block { background:var(--ruby-10); }
-  .verdict.fail  { background:var(--gold-10); }
+  .verdict.pass  { background:linear-gradient(135deg,#E9F7DC,#B9E3A0); }
+  .verdict.block { background:linear-gradient(135deg,#F9E9D6,#E9C79B); }
+  .verdict.fail  { background:linear-gradient(135deg,#EFEDEA,#DBD7D2); }
   .verdict .h1 { color:var(--ink-90); }
-  .reason { margin-top:var(--s-2); max-width:52ch; color:var(--ink-90); }
+  .reason { margin-top:var(--s-3); max-width:52ch; color:var(--ink-90); }
   .detail {
     font-family:var(--mono); font-size:13px; line-height:20px;
     color:var(--ink-70); margin-top:var(--s-15); max-width:64ch; word-break:break-word;
   }
 
   /* ── Hop ladder ─────────────────────────────────────────────── */
-  .ladder-label { margin-top:var(--s-4); color:var(--ink-70); }
+  .ladder-label { margin-top:var(--s-4); color:rgba(27,23,26,.65); }
   .ladder { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
   .rung {
     flex:1; display:flex; flex-direction:column; gap:var(--s-05); min-width:0;
-    border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    padding:var(--s-15); background:rgba(255,255,255,.5);
+    border:1px solid rgba(27,23,26,.22); border-radius:var(--r-sm);
+    padding:var(--s-15); background:rgba(255,255,255,.45);
   }
-  .rung-n { font-size:12px; font-weight:600; color:var(--ink-50); font-variant-numeric:tabular-nums; }
-  .rung-l { font-size:14px; font-weight:500; color:var(--ink-70); }
+  .rung-n { font-size:12px; font-weight:600; color:rgba(27,23,26,.5); font-variant-numeric:tabular-nums; }
+  .rung-l { font-size:14px; font-weight:500; color:rgba(27,23,26,.7); }
   .rung.hit { background:var(--ink-90); border-color:var(--ink-90); }
   .rung.hit .rung-n { color:var(--ink-50); }
   .rung.hit .rung-l { color:var(--paper); }
@@ -201,14 +201,15 @@
   .thr-row { display:flex; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
   .thr {
     display:flex; flex-direction:column; gap:2px; padding:var(--s-1) var(--s-15);
-    border:1px solid var(--ink-30); border-radius:var(--r-sm); background:var(--paper);
+    border:1px solid rgba(27,23,26,.22); border-radius:var(--r-sm);
+    background:rgba(255,255,255,.55);
     font-family:var(--sans); cursor:pointer; text-align:left;
     transition:border-color .12s, opacity .12s;
   }
   .thr:hover { border-color:var(--ink-90); }
   .thr-live { border-color:var(--ink-90); border-width:2px; }
   .thr-sel { border-color:var(--ink-90); background:var(--ink-10); }
-  .thr-k { font-size:12px; color:var(--ink-70); font-variant-numeric:tabular-nums; }
+  .thr-k { font-size:12px; color:rgba(27,23,26,.6); font-variant-numeric:tabular-nums; }
   .thr-v { font-size:14px; font-weight:600; }
   .thr-v.thr-block { color:var(--ruby-90); }
   .thr-v.thr-allow { color:var(--leaf-90); }
@@ -221,15 +222,15 @@
   .node {
     display:flex; flex-direction:column; gap:var(--s-05);
     padding:var(--s-15) var(--s-2);
-    border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    background:var(--paper); min-width:0;
+    border:1px solid rgba(27,23,26,.22); border-radius:var(--r-sm);
+    background:rgba(255,255,255,.55); min-width:0;
   }
   .node.origin { border-color:var(--ink-90); }
-  .node.match  { border-color:var(--ruby-50); background:var(--paper); }
+  .node.match  { border-color:var(--ink-90); background:rgba(255,255,255,.85); }
   .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; }
   .node-addr:hover { text-decoration:underline; }
-  .node-role { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-70); }
-  .node.match .node-role { color:var(--ruby-90); }
+  .node-role { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:rgba(27,23,26,.6); }
+  .node.match .node-role { color:var(--ink-90); }
   .arrow { align-self:center; color:var(--ink-50); font-size:18px; }
   .arrow::after { content:'→'; }
   @media (max-width:760px) {
@@ -238,22 +239,26 @@
     .arrow::after { content:'↓'; }
   }
 
-  .actions { display:flex; gap:var(--s-15); margin:var(--s-5) 0 var(--s-3); flex-wrap:wrap; }
+  .actions {
+    display:flex; align-items:center; gap:var(--s-15);
+    margin:var(--s-6) 0 var(--s-4); flex-wrap:wrap;
+  }
+  .actions .line { flex:1; min-width:var(--s-4); height:1px; background:rgba(27,23,26,.2); }
   .parties { display:flex; gap:var(--s-5); flex-wrap:wrap; }
   .party { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; }
   .party-addr { font-family:var(--mono); font-size:15px; word-break:break-all; }
+  .parties { margin-top:var(--s-1); }
   .tag {
     font-size:12px; font-weight:600; border-radius:var(--pill);
     padding:2px var(--s-15); margin-left:var(--s-1); display:inline-block;
   }
-  .tag.clear { background:var(--leaf-50); color:var(--ink-90); }
-  .tag.exposed { background:var(--ruby-50); color:var(--paper); }
-  .tag.unknown { background:var(--gold-50); color:var(--ink-90); }
+  .tag { background:rgba(27,23,26,.09); color:rgba(27,23,26,.75); }
   .copy {
-    border:none; background:none; padding:0; margin-left:var(--s-1); cursor:pointer;
-    font-family:var(--sans); font-size:13px; font-weight:500; color:var(--magic-50);
+    border:1px solid rgba(27,23,26,.35); background:transparent; cursor:pointer;
+    border-radius:var(--pill); padding:2px var(--s-15); margin-left:var(--s-1);
+    font-family:var(--sans); font-size:13px; font-weight:500; color:var(--ink-90);
   }
-  .copy:hover { color:var(--magic-90); }
+  .copy:hover { border-color:var(--ink-90); }
 
   
 /* ── Rules disclosure ───────────────────────────────────────── */
@@ -620,9 +625,10 @@ function renderVerdict(r) {
       ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
       ${body}
       <div class="actions">
-        <button class="btn btn-tertiary btn-md" id="again">Screen another wallet</button>
+        <span class="line"></span>
+        <button class="btn btn-tertiary btn-md" id="again">New check</button>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-           target="_blank" rel="noopener">View the attestation</a>` : ""}
+           target="_blank" rel="noopener">View attestation on the Newton explorer ↗</a>` : ""}
       </div>
       <div class="parties">
         <div class="party">
