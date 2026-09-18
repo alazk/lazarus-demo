@@ -236,7 +236,7 @@
   }
   .v-grid.single { grid-template-columns:minmax(0,1fr); }
   .v-left, .v-right { min-width:0; }
-  .v-right { padding-top:var(--s-1); }
+  .v-right { padding-top:var(--s-1); display:flex; justify-content:flex-end; }
   .stats {
     display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
     margin-top:var(--s-4); max-width:520px;
@@ -290,10 +290,9 @@
 
   /* ── Path ───────────────────────────────────────────────────── */
   .path {
-    display:flex; flex-direction:column; align-items:flex-start; gap:var(--s-05);
-    margin-top:0; margin-left:calc(var(--box-pad) * -1);
+    display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
+    margin-top:0; width:100%; max-width:360px;
   }
-  .path .node { width:100%; max-width:320px; }
   .node {
     display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
     padding:var(--s-1) var(--box-pad);
@@ -395,7 +394,9 @@
     .steps { max-width:none; }
     /* Two threshold cells per row reads better than an orphan on the second. */
     .thr { flex:1 1 calc(50% - var(--s-1)); min-width:0; }
-    .path, .thr-row { margin-left:0; }
+    .thr-row { margin-left:0; }
+    .v-right { justify-content:flex-start; }
+    .path { max-width:none; }
     .examples { margin-left:0; width:100%; }
     .thr-row { gap:var(--s-1); }
     /* The headline was taking four lines at the largest clamp. */
