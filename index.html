@@ -226,12 +226,22 @@
   .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
   .verdict .h1 { color:var(--ink-90); }
-  .reason { margin-top:var(--s-2); max-width:46ch; color:var(--ink-90); }
-  .stats {
-    display:grid; grid-template-columns:repeat(3, minmax(0, 200px));
-    margin-top:var(--s-4); max-width:640px;
+  .reason { margin-top:var(--s-2); max-width:42ch; color:var(--ink-90); }
+
+  /* The decision reads down the left; the evidence for it sits alongside,
+     which is what fills the width rather than stretching either one. */
+  .v-grid {
+    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr);
+    gap:var(--s-6); align-items:start;
   }
-  .stats + .path { margin-top:var(--s-2); }
+  .v-grid.single { grid-template-columns:minmax(0,1fr); }
+  .v-left, .v-right { min-width:0; }
+  .v-right { padding-top:var(--s-1); }
+  .stats {
+    display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
+    margin-top:var(--s-4); max-width:520px;
+  }
+
   .stat { padding:0 var(--s-3); }
   .stat:first-child { padding-left:0; }
   .stat + .stat { border-left:1px solid var(--on-22); }
@@ -250,7 +260,7 @@
   }
 
   /* ── Hop ladder ─────────────────────────────────────────────── */
-  .ladder-label { margin-top:var(--s-3); color:var(--on-62); }
+  .ladder-label { margin-top:var(--s-4); color:var(--on-62); }
   .ladder { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
   @media (max-width:768px) {
     .ladder { flex-direction:column; }
@@ -281,7 +291,7 @@
   /* ── Path ───────────────────────────────────────────────────── */
   .path {
     display:flex; align-items:stretch; gap:var(--s-15);
-    margin-top:var(--s-3); margin-left:calc(var(--box-pad) * -1); flex-wrap:wrap;
+    margin-top:0; margin-left:calc(var(--box-pad) * -1); flex-wrap:wrap;
   }
   .node {
     display:flex; flex-direction:column; gap:var(--s-05);
@@ -366,7 +376,9 @@
     .wordmark { height:20px; }
     .console { padding:var(--s-3) var(--s-2); overflow:visible; }
     .verdict { padding-block:var(--s-3); padding-inline:var(--s-2); overflow:visible; }
-    .stats { flex-direction:column; gap:var(--s-15); }
+    .v-grid { grid-template-columns:minmax(0,1fr); gap:var(--s-4); }
+    .v-right { padding-top:0; }
+    .stats { grid-template-columns:minmax(0,1fr); gap:var(--s-15); }
     .how li { font-size:14px; }
     .card { height:auto; }
     .example { height:44px; }
@@ -760,7 +772,7 @@ function renderVerdict(r) {
 
   const failed = r.status === "SCREENING_FAILED";
   const unattested = r.status === "ATTESTATION_FAILED";
-  let tone, headline, reason, body = "";
+  let tone, headline, reason, body = { left: "", right: "" };
 
   if (failed) {
     tone = "fail"; headline = "Screening failed";
@@ -770,29 +782,34 @@ function renderVerdict(r) {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, so it "
            + "carries no proof and the policy denies by default.";
-    body = renderStats(r) + renderPath(r);
+    body = { left: renderStats(r), right: renderPath(r) };
   } else if (r.exposure) {
     tone = "block"; headline = "Non&nbsp;Compliant";
     reason = r.direct_match
       ? "This wallet is a known Lazarus Group address. The transfer is blocked."
       : `This wallet reaches a known Lazarus Group address in ${r.hop_count}`
         + ` ${r.hop_count === 1 ? "hop" : "hops"}. The transfer is blocked.`;
-    body = renderStats(r) + renderPath(r) + renderThresholds(r);
+    body = { left: renderStats(r), right: renderPath(r) + renderThresholds(r) };
   } else {
     tone = "pass"; headline = "Compliant";
     reason = "No path to a known Lazarus Group address was found within three hops. "
            + "The transfer may proceed.";
-    body = renderStats(r);
+    body = { left: renderStats(r), right: "" };
   }
 
   const detail = r.detail || r.attestation?.detail;
   stage.className = "stage";
   stage.innerHTML = `
     <div class="verdict ${tone}">
-        <div class="h1">${headline}</div>
-        <p class="reason p-lg">${esc(reason)}</p>
-        ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-      ${body}
+      <div class="v-grid ${body.right ? "" : "single"}">
+        <div class="v-left">
+          <div class="h1">${headline}</div>
+          <p class="reason p-lg">${esc(reason)}</p>
+          ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
+          ${body.left}
+        </div>
+        ${body.right ? `<div class="v-right">${body.right}</div>` : ""}
+      </div>
       <div class="actions">
         <span class="line"></span>
         <button class="btn btn-tertiary btn-md" id="again">New check</button>
