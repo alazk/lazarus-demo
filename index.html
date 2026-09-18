@@ -75,14 +75,14 @@
   .brand { display:flex; align-items:center; gap:var(--s-2); }
   .wordmark { height:22px; width:auto; color:var(--ink-90); display:block; }
   .badge {
-    background:var(--ink-90); color:var(--paper); border-radius:var(--pill);
+    background:var(--ink-90); color:var(--paper); border-radius:var(--r-sm);
     padding:var(--s-1) var(--s-2); font-size:12px; font-weight:600;
     letter-spacing:.06em; text-transform:uppercase;
   }
   .pills { display:flex; gap:var(--s-1); flex-wrap:wrap; }
   .pill {
     display:flex; align-items:center; gap:var(--s-1); height:40px;
-    border:1px solid var(--ink-30); border-radius:var(--pill);
+    border:1px solid var(--ink-30); border-radius:var(--r-sm);
     padding:0 var(--s-2); background:var(--ink-10);
     font-size:14px; font-weight:500; white-space:nowrap;
   }
@@ -260,7 +260,7 @@
   }
 
   /* ── Hop ladder ─────────────────────────────────────────────── */
-  .ladder-label { margin-top:var(--s-4); color:var(--on-62); }
+  .ladder-label { margin-top:var(--s-2); color:var(--on-62); }
   .ladder { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
   @media (max-width:768px) {
     .ladder { flex-direction:column; }
@@ -274,7 +274,7 @@
   .thr {
     display:flex; flex-direction:column; gap:var(--s-05);
     padding:var(--s-1) var(--box-pad);
-    border:1px solid var(--on-35); border-radius:var(--pill);
+    border:1px solid var(--on-35); border-radius:var(--r-sm);
     background:var(--veil-strong);
     font-family:var(--sans); cursor:pointer; text-align:left;
     transition:border-color .12s, background .12s, transform .12s;
@@ -290,33 +290,30 @@
 
   /* ── Path ───────────────────────────────────────────────────── */
   .path {
-    display:flex; align-items:stretch; gap:var(--s-15);
-    margin-top:0; margin-left:calc(var(--box-pad) * -1); flex-wrap:wrap;
+    display:flex; flex-direction:column; align-items:flex-start; gap:var(--s-05);
+    margin-top:0; margin-left:calc(var(--box-pad) * -1);
   }
+  .path .node { width:100%; max-width:320px; }
   .node {
-    display:flex; flex-direction:column; gap:var(--s-05);
-    padding:var(--s-15) var(--box-pad);
+    display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
+    padding:var(--s-1) var(--box-pad);
     border:1px solid var(--on-22); border-radius:var(--r-sm);
     background:var(--veil); min-width:0;
   }
   .node.origin { border-color:var(--ink-90); }
   .node.match  { border-color:var(--ink-90); background:var(--veil-strong); }
-  .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; }
+  .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; flex-shrink:0; }
   .node-addr:hover { text-decoration:underline; }
-  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); }
+  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); white-space:nowrap; }
   .node.match .node-role { color:var(--ink-90); }
-  .arrow { align-self:center; color:var(--ink-50); font-size:18px; }
+  .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; }
   .arrow-tx {
     text-decoration:none; color:var(--on-62); cursor:pointer;
     transition:color .12s, transform .12s;
   }
   .arrow-tx:hover { color:var(--ink-90); transform:scale(1.15); }
-  .arrow::after { content:'→'; }
-  @media (max-width:768px) {
-    .path { flex-direction:column; align-items:stretch; }
-    .arrow { align-self:flex-start; padding-left:var(--s-3); }
-    .arrow::after { content:'↓'; }
-  }
+  .arrow::after { content:'↓'; }
+
 
   .actions {
     display:flex; align-items:center; gap:var(--s-15);
@@ -772,7 +769,7 @@ function renderVerdict(r) {
 
   const failed = r.status === "SCREENING_FAILED";
   const unattested = r.status === "ATTESTATION_FAILED";
-  let tone, headline, reason, body = { left: "", right: "" };
+  let tone, headline, reason, body = { left: "", right: "", foot: "" };
 
   if (failed) {
     tone = "fail"; headline = "Screening failed";
@@ -782,19 +779,19 @@ function renderVerdict(r) {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, so it "
            + "carries no proof and the policy denies by default.";
-    body = { left: renderStats(r), right: renderPath(r) };
+    body = { left: renderStats(r), right: renderPath(r), foot: "" };
   } else if (r.exposure) {
     tone = "block"; headline = "Non&nbsp;Compliant";
     reason = r.direct_match
       ? "This wallet is a known Lazarus Group address. The transfer is blocked."
       : `This wallet reaches a known Lazarus Group address in ${r.hop_count}`
         + ` ${r.hop_count === 1 ? "hop" : "hops"}. The transfer is blocked.`;
-    body = { left: renderStats(r), right: renderPath(r) + renderThresholds(r) };
+    body = { left: renderStats(r), right: renderPath(r), foot: renderThresholds(r) };
   } else {
     tone = "pass"; headline = "Compliant";
     reason = "No path to a known Lazarus Group address was found within three hops. "
            + "The transfer may proceed.";
-    body = { left: renderStats(r), right: "" };
+    body = { left: renderStats(r), right: "", foot: "" };
   }
 
   const detail = r.detail || r.attestation?.detail;
@@ -816,6 +813,7 @@ function renderVerdict(r) {
         ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
            target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}
       </div>
+      ${body.foot}
     </div>`;
 
   document.getElementById("again").onclick = () => renderConsole(r.wallet);
