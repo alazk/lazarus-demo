@@ -95,7 +95,7 @@
   }
   .console {
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    align-items:start; gap:var(--s-4); align-content:center;
+    align-items:stretch; gap:var(--s-4); align-content:center;
     padding:var(--s-4) var(--inset); max-width:1120px; width:100%;
     min-height:0; overflow-y:auto;
   }
@@ -113,10 +113,10 @@
     .wordmark { height:20px; }
     .console { padding:var(--s-3) var(--s-2); overflow:visible; }
     .verdict { padding:var(--s-3) var(--s-2); overflow:visible; }
-    .v-head { gap:var(--s-3); }
-    .v-meta { padding-top:0; }
-    .party-addr { font-size:14px; }
     .stats { flex-direction:column; gap:var(--s-15); }
+    .how li { font-size:14px; }
+    .card { height:auto; }
+    .example { height:44px; }
     .stat, .stat + .stat { border-left:none; padding:0; }
     .stat + .stat { border-top:1px solid var(--on-22); padding-top:var(--s-15); }
     .actions { gap:var(--s-1); }
@@ -132,9 +132,11 @@
   }
   .col { display:flex; flex-direction:column; gap:var(--s-2); min-width:0; }
   .card {
-    display:flex; flex-direction:column; min-height:0;
+    display:flex; flex-direction:column; min-height:0; height:100%;
     border-radius:var(--r-md); padding:var(--s-2);
   }
+  /* The action sits on the card's bottom edge so both columns end level. */
+  .card-check .card-body { flex:1; }
 
   .card-policy { background:var(--paper); border:1px solid var(--ink-30); }
   .card-check  { background:var(--paper); border:1px solid var(--ink-30); }
@@ -169,6 +171,10 @@
     cursor:pointer; transition:border-color .12s, background .12s;
   }
   .example:hover { border-color:var(--ink-90); background:var(--ink-10); }
+  .example.chosen {
+    border-color:var(--ink-90); background:var(--ink-90); color:var(--paper);
+  }
+  .example.chosen .example-addr { color:var(--ink-50); }
   .example-name { font-size:14px; font-weight:500; }
   .example-addr { font-family:var(--mono); font-size:12px; color:var(--ink-70); }
 
@@ -235,11 +241,6 @@
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
   .verdict .h1 { color:var(--ink-90); }
   .reason { margin-top:var(--s-2); max-width:46ch; color:var(--ink-90); }
-  .v-head {
-    display:flex; justify-content:space-between; align-items:flex-start;
-    gap:var(--s-5); flex-wrap:wrap;
-  }
-  .v-meta { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; padding-top:var(--s-1); }
   .stats { display:flex; gap:var(--s-1); margin-top:var(--s-4); flex-wrap:wrap; }
   .stats + .path { margin-top:var(--s-2); }
   .stat { flex:1; min-width:150px; padding:0 var(--s-3) 0 0; }
@@ -305,10 +306,26 @@
   }
   .actions .line { flex:1; min-width:var(--s-4); height:1px; background:var(--on-22); }
   .party { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; }
-  .party-addr { font-family:var(--mono); font-size:16px; word-break:break-all; }
 
   
 /* ── Rules disclosure ───────────────────────────────────────── */
+  .how {
+    margin:var(--s-3) 0 0; padding:0; list-style:none;
+    counter-reset:how; display:flex; flex-direction:column; gap:var(--s-15);
+  }
+  .how li {
+    counter-increment:how; position:relative; padding-left:var(--s-4);
+    font-size:14px; line-height:20px; color:var(--ink-70);
+  }
+  .how li::before {
+    content:counter(how); position:absolute; left:0; top:0;
+    width:20px; height:20px; border-radius:var(--pill);
+    background:var(--ink-90); color:var(--paper);
+    font-size:12px; font-weight:600; display:flex;
+    align-items:center; justify-content:center;
+  }
+  .how b { font-weight:600; color:var(--ink-90); }
+
   .facts {
     margin-top:var(--s-2); padding-top:var(--s-2);
     border-top:1px solid var(--ink-30); display:flex; flex-direction:column; gap:var(--s-1);
@@ -339,11 +356,6 @@ const short = (a) => a ? a.slice(0, 6) + "…" + a.slice(-4) : "";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-function when(iso) {
-  const d = new Date(iso || Date.now());
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
-    + ", " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
-}
 
 function money(n) {
   if (typeof n !== "number") return null;
@@ -425,16 +437,27 @@ function renderConsole(prefill = "", error = "") {
           <div class="card-body">
             <div class="h4">Lazarus Exposure</div>
             <p class="p-std muted" style="margin:var(--s-15) 0 0;max-width:44ch">
-              Blocks a wallet that reaches a known Lazarus Group address within three hops.
+              Blocks a wallet that reaches a known Lazarus Group address within
+              three hops.
             </p>
             <div class="facts">
               <div class="fact"><span class="fact-k">Blocks within</span><span class="fact-v">3 hops</span></div>
               <div class="fact"><span class="fact-k">On exposure of</span><span class="fact-v">any amount</span></div>
               <div class="fact"><span class="fact-k">Against</span><span class="fact-v">3,597 addresses</span></div>
             </div>
+            <ol class="how">
+              <li><b>The graph is read live.</b> Your wallet's counterparties come
+                from Etherscan at the moment you press the button.</li>
+              <li><b>Distance is measured.</b> Those counterparties are matched
+                against the neighbourhood two hops out from the seed set, which
+                was walked in advance so a check costs three calls, not hundreds.</li>
+              <li><b>Newton decides.</b> The result goes to a policy running as a
+                WebAssembly oracle. Operators run it independently, reach a quorum
+                and sign the outcome. This page reports what they returned.</li>
+            </ol>
             <p class="p-sm muted" style="margin:var(--s-2) 0 0">
               Traversal stops at exchanges, bridges and mixers, so shared use of a
-              service is not exposure.
+              service is not exposure. If the graph cannot be read, the policy denies.
             </p>
           </div>
         </div>
@@ -470,13 +493,21 @@ function renderConsole(prefill = "", error = "") {
   const go = document.getElementById("go");
   // Picking an example fills the field rather than running immediately, so the
   // address is visible before the check and both inputs stay one flow.
-  // Filling the field and waiting for a second click reads as a dead control,
-  // so an example runs immediately; the address is still shown while it checks.
   stage.querySelectorAll(".example").forEach((b) => {
     b.onclick = () => {
+      stage.querySelectorAll(".example").forEach((x) => x.classList.remove("chosen"));
+      b.classList.add("chosen");
       input.value = b.dataset.addr;
-      submit(b.dataset.addr);
+      input.classList.remove("invalid");
+      document.getElementById("err").textContent = "";
+      sync();
     };
+  });
+  // Typing an address clears the chosen example, so the two never disagree.
+  input.addEventListener("input", () => {
+    stage.querySelectorAll(".example").forEach((x) => {
+      x.classList.toggle("chosen", x.dataset.addr === input.value.trim());
+    });
   });
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
   const sync = () => { go.disabled = !valid(input.value); };
@@ -645,17 +676,9 @@ function renderVerdict(r) {
   stage.className = "stage";
   stage.innerHTML = `
     <div class="verdict ${tone}">
-      <div class="v-head">
-        <div>
-          <div class="h1">${headline}</div>
-          <p class="reason p-lg">${esc(reason)}</p>
-          ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-        </div>
-        <div class="v-meta">
-          <span class="party-addr">${esc(r.wallet)}</span>
-          <span class="p-sm muted">Decided ${esc(when(r.evaluated_at))}</span>
-        </div>
-      </div>
+        <div class="h1">${headline}</div>
+        <p class="reason p-lg">${esc(reason)}</p>
+        ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
       ${body}
       <div class="actions">
         <span class="line"></span>
@@ -671,17 +694,18 @@ function renderVerdict(r) {
 }
 
 /* ── Boot ────────────────────────────────────────────────────── */
-renderConsole();
-fetch("data/demo_wallets.json")
-  .then((r) => (r.ok ? r.json() : null))
-  .then((d) => {
-    const loaded = d?.wallets;
-    if (Array.isArray(loaded) && loaded.some((w) => w.address)) {
-      presets = loaded;
-      renderConsole();
-    }
-  })
-  .catch(() => {});
+(async function boot() {
+  const wallets = fetch("data/demo_wallets.json")
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+  // Don't let a slow file hold the page hostage, but do avoid painting the
+  // console twice: once empty and once with examples.
+  const timeout = new Promise((r) => setTimeout(() => r(null), 1200));
+  const data = await Promise.race([wallets, timeout]);
+  const loaded = data?.wallets;
+  if (Array.isArray(loaded) && loaded.some((w) => w.address)) presets = loaded;
+  renderConsole();
+})();
 </script>
 </body>
 </html>
