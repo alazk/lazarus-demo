@@ -91,12 +91,12 @@
   .stage {
     background:var(--paper); border:1px solid var(--ink-30);
     border-radius:var(--r-xl); overflow:hidden; display:flex;
-    flex:1; min-height:0;
+    justify-content:center; flex:1; min-height:0;
   }
   .console {
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     align-items:stretch; gap:var(--s-4); align-content:center;
-    padding:var(--s-4) var(--inset); max-width:1120px; width:100%;
+    padding:var(--s-4) var(--inset); max-width:1400px; width:100%; margin:0 auto;
     min-height:0; overflow-y:auto;
   }
   @media (max-width:860px) { .console { grid-template-columns:1fr; gap:var(--s-3); } }
@@ -235,7 +235,7 @@
 
   /* ── Verdict ────────────────────────────────────────────────── */
   .verdict {
-    padding:var(--s-4) var(--inset); width:100%;
+    padding:var(--s-4) var(--inset); width:100%; max-width:1400px; margin:0 auto;
     display:flex; flex-direction:column; justify-content:center;
     min-height:0; overflow-y:auto;
   }
