@@ -124,7 +124,7 @@
     .actions .btn { flex:1; min-width:140px; }
     .thr { flex:1; min-width:96px; }
   }
-  @media (max-height:740px) {
+  @media (max-height:780px) {
     body { padding:var(--s-2); gap:var(--s-2); }
     .console { padding:var(--s-3) var(--inset); gap:var(--s-3); }
     .mast { padding:var(--s-1) var(--inset); }
@@ -133,7 +133,7 @@
   .col { display:flex; flex-direction:column; gap:var(--s-2); min-width:0; }
   .card {
     display:flex; flex-direction:column; min-height:0; height:100%;
-    border-radius:var(--r-md); padding:var(--s-2);
+    border-radius:var(--r-md); padding:var(--s-3);
   }
   /* The action sits on the card's bottom edge so both columns end level. */
   .card-check .card-body { flex:1; }
@@ -163,6 +163,9 @@
   .err:empty { display:none; }
 
   .examples { display:flex; flex-direction:column; gap:var(--s-1); }
+  .card-check .card-body > div:first-child { flex:1; }
+  .card-check .examples { flex:1; }
+  .example { flex:1; min-height:40px; }
   .example {
     display:flex; align-items:center; justify-content:space-between; gap:var(--s-2);
     width:100%; height:40px; padding:0 var(--s-15); text-align:left;
@@ -446,18 +449,16 @@ function renderConsole(prefill = "", error = "") {
               <div class="fact"><span class="fact-k">Against</span><span class="fact-v">3,597 addresses</span></div>
             </div>
             <ol class="how">
-              <li><b>The graph is read live.</b> Your wallet's counterparties come
-                from Etherscan at the moment you press the button.</li>
-              <li><b>Distance is measured.</b> Those counterparties are matched
-                against the neighbourhood two hops out from the seed set, which
-                was walked in advance so a check costs three calls, not hundreds.</li>
-              <li><b>Newton decides.</b> The result goes to a policy running as a
-                WebAssembly oracle. Operators run it independently, reach a quorum
-                and sign the outcome. This page reports what they returned.</li>
+              <li><b>Read live.</b> Counterparties come from Etherscan the moment
+                you press the button.</li>
+              <li><b>Matched.</b> Against a neighbourhood walked in advance, so a
+                check costs three calls.</li>
+              <li><b>Decided by Newton.</b> Operators run the policy, reach a
+                quorum and sign the result.</li>
             </ol>
             <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-              Traversal stops at exchanges, bridges and mixers, so shared use of a
-              service is not exposure. If the graph cannot be read, the policy denies.
+              Shared use of an exchange is not exposure. If the graph cannot be
+              read, the policy denies.
             </p>
           </div>
         </div>
