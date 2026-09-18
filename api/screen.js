@@ -249,6 +249,31 @@ function policy(result) {
 
 // ---------------------------------------------------------------------------
 
+
+/** The enforced threshold, read from the policy client's stored params. */
+async function liveThreshold() {
+  if (!process.env.NEWTON_POLICY_CLIENT) return 0;
+  try {
+    const { createPublicClient, http, hexToString } = await import("viem");
+    const { sepolia } = await import("viem/chains");
+    const pub = createPublicClient({
+      chain: sepolia,
+      transport: http(process.env.SEPOLIA_RPC_URL
+        || "https://ethereum-sepolia-rpc.publicnode.com"),
+    });
+    const raw = await pub.readContract({
+      address: process.env.NEWTON_POLICY_CLIENT,
+      abi: [{ type: "function", name: "policyParams", stateMutability: "view",
+              inputs: [], outputs: [{ type: "bytes" }] }],
+      functionName: "policyParams",
+    });
+    const parsed = JSON.parse(hexToString(raw));
+    return Number(parsed.min_exposure_usd ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
 export default async function handler(req, res) {
   const raw = (req.query?.address || req.body?.address || "").trim();
   const address = raw.toLowerCase();
@@ -293,6 +318,11 @@ export default async function handler(req, res) {
       halo_built_at: HALO_FILE.built_at,
       max_depth: CFG.max_depth,
       min_edge_usd: CFG.min_edge_usd,
+      // The live policy parameter, so the page can mark which
+      // threshold is the one actually enforced on-chain.
+      // Read from the chain rather than an env var, since the page can now
+      // change it and a stale env var would mislabel which one is enforced.
+      min_exposure_usd: await liveThreshold(),
     },
   });
 }

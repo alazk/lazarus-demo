@@ -80,6 +80,13 @@ export default function handler(req, res) {
           "that happens rather than a theory.",
       },
       {
+        title: "Any amount counts",
+        detail:
+          "The policy blocks on exposure of any size. Raising that threshold is " +
+          "a change to the policy, not to the evidence: the same path is found " +
+          "either way, and only the decision about it moves.",
+      },
+      {
         title: "Exposure is worth its weakest link",
         detail:
           "The value of an exposure is the smallest transfer along the path. A " +
