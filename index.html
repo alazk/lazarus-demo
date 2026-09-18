@@ -104,7 +104,7 @@
     body { padding:var(--s-2); gap:var(--s-2); }
     .console { padding:var(--s-3) var(--inset); gap:var(--s-3); }
     .mast { padding:var(--s-1) var(--inset); }
-    .verdict { padding:var(--s-3) var(--inset); }
+    .verdict { padding-block:var(--s-3); }
   }
   .col { display:flex; flex-direction:column; gap:var(--s-2); min-width:0; }
   .card {
@@ -212,9 +212,13 @@
 
   /* ── Verdict ────────────────────────────────────────────────── */
   .verdict {
-    padding:var(--s-4) var(--inset); width:100%; max-width:1200px; margin:0 auto;
-    display:flex; flex-direction:column; justify-content:center;
+    /* Full bleed so the gradient fills the stage, with the content still
+       capped: the padding centres it rather than a max-width that would
+       leave the panel's own background short of the edges. */
+    width:100%; display:flex; flex-direction:column; justify-content:center;
     min-height:0; overflow-y:auto;
+    padding-block:var(--s-4);
+    padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
   }
   .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
   .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
@@ -346,7 +350,7 @@
     .mast { padding:var(--s-15); gap:var(--s-15); }
     .wordmark { height:20px; }
     .console { padding:var(--s-3) var(--s-2); overflow:visible; }
-    .verdict { padding:var(--s-3) var(--s-2); overflow:visible; }
+    .verdict { padding-block:var(--s-3); padding-inline:var(--s-2); overflow:visible; }
     .stats { flex-direction:column; gap:var(--s-15); }
     .how li { font-size:14px; }
     .card { height:auto; }
