@@ -161,9 +161,27 @@
     width:100%; padding:var(--s-6) var(--inset);
     display:flex; flex-direction:column; justify-content:center; gap:var(--s-2);
   }
-  .bar { height:3px; background:var(--ink-30); border-radius:3px; overflow:hidden; max-width:320px; }
-  .bar span { display:block; height:100%; width:35%; background:var(--magic-50); animation:slide 1.4s ease-in-out infinite; }
-  @keyframes slide { 0% { transform:translateX(-100%);} 100% { transform:translateX(320%);} }
+  .steps { display:flex; flex-direction:column; gap:var(--s-1); margin-top:var(--s-2); max-width:420px; }
+  .step {
+    display:flex; align-items:center; gap:var(--s-15); height:44px;
+    padding:0 var(--s-2); border:1px solid var(--ink-30); border-radius:var(--r-sm);
+    font-size:15px; color:var(--ink-50); background:var(--paper);
+    transition:opacity .25s, border-color .2s, color .2s, background .2s;
+  }
+  .step-dot {
+    width:8px; height:8px; border-radius:50%; background:var(--ink-30); flex-shrink:0;
+    transition:background .2s;
+  }
+  .step.active { color:var(--ink-90); border-color:var(--ink-90); }
+  .step.active .step-dot { background:var(--ink-90); animation:pulse 1s ease-in-out infinite; }
+  .step.found { color:var(--ink-90); border-color:var(--ink-90); background:var(--ink-90); }
+  .step.found, .step.found .step-label { color:var(--paper); }
+  .step.found .step-dot { background:var(--paper); animation:none; }
+  .step.cleared { opacity:0; }
+  .step-label { flex:1; }
+  .step-note { font-size:13px; color:var(--ink-50); }
+  .step.found .step-note { color:rgba(255,255,255,.7); }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 
   /* ── Verdict ────────────────────────────────────────────────── */
   .verdict {
@@ -174,7 +192,20 @@
   .verdict.block { background:linear-gradient(135deg,#FAE1C2,#E5BB8F); }
   .verdict.fail  { background:linear-gradient(135deg,#EFEDEA,#D6D2CD); }
   .verdict .h1 { color:var(--ink-90); }
-  .reason { margin-top:var(--s-2); max-width:52ch; color:var(--ink-90); }
+  .reason { margin-top:var(--s-2); max-width:46ch; color:var(--ink-90); }
+  .v-head {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:var(--s-5); flex-wrap:wrap;
+  }
+  .v-meta { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; padding-top:var(--s-1); }
+  .stats { display:flex; gap:var(--s-1); margin-top:var(--s-4); flex-wrap:wrap; }
+  .stat {
+    flex:1; min-width:150px; padding:var(--s-2);
+    border:1px solid rgba(27,23,26,.22); border-radius:var(--r-sm);
+    background:rgba(255,255,255,.5);
+  }
+  .stat-k { font-size:13px; color:rgba(27,23,26,.62); }
+  .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
   .detail {
     font-family:var(--mono); font-size:13px; line-height:20px;
     color:var(--ink-70); margin-top:var(--s-15); max-width:64ch; word-break:break-word;
@@ -337,41 +368,28 @@ let presets = DEFAULT_PRESETS;
 let inFlight = false;
 let rulesCache = null;
 
-/* ── Hop ladder ──────────────────────────────────────────────── */
-const BANDS = [
-  { n: "0", label: "Lazarus wallet" },
-  { n: "1", label: "1 hop" },
-  { n: "2", label: "2 hops" },
-  { n: "3", label: "3 hops" },
-  { n: "",  label: "Beyond 3" },
-];
-
-function renderLadder(hop) {
-  const index = (hop === null || hop === undefined) ? 4 : hop;
-  const rungs = BANDS.map((b, i) => `
-    <span class="rung ${i === index ? "hit" : ""}">
-      ${b.n ? `<span class="rung-n">${b.n}</span>` : ""}
-      <span class="rung-l">${esc(b.label)}</span>
-    </span>`).join("");
-  return `<div class="ladder-label p-sm">Distance to the nearest Lazarus address</div>
-          <div class="ladder">${rungs}</div>`;
+/* ── Decision summary ────────────────────────────────────────────
+   Distance, value and outcome as three figures. The ladder these replace
+   spent a full row rendering a number between zero and three, and the path
+   below says the same thing with evidence attached. */
+function renderStats(r) {
+  const distance = r.direct_match ? "Known address"
+    : r.exposure ? `${r.hop_count} ${r.hop_count === 1 ? "hop" : "hops"}`
+    : "None within 3";
+  const value = r.direct_match ? "—"
+    : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
+  const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
+  return `<div class="stats">
+    <div class="stat"><div class="stat-k">Distance</div><div class="stat-v">${esc(distance)}</div></div>
+    <div class="stat" title="The smallest transfer along the path">
+      <div class="stat-k">Exposure</div><div class="stat-v">${esc(value)}</div></div>
+    <div class="stat"><div class="stat-k">Decision</div><div class="stat-v">${esc(decision)}</div></div>
+  </div>`;
 }
 
-function renderValue(r) {
-  const amount = money(r.exposure_usd);
-  if (!amount) return "";
-  return `<div class="ladder-label p-sm">Value of the exposure</div>
-    <div class="value-row">
-      <span class="value-amount">${esc(amount)}</span>
-      <span class="p-sm muted">smallest transfer along the path</span>
-    </div>`;
-}
-
-/* ── Exposure threshold ──────────────────────────────────────────
-   The enforced threshold is a policy parameter held on-chain, and the page
-   cannot move it. What it can do is show what the same evidence decides at
-   other settings, which is the point without pretending the browser is in
-   charge. Selecting one is a comparison, not a change. */
+/* ── Value threshold ─────────────────────────────────────────────
+   The enforced threshold is a policy parameter held on-chain and the page
+   cannot move it. Selecting one here is a comparison, not a change. */
 const THRESHOLDS = [0, 1e3, 1e5, 1e6, 1e7];
 
 function thrLabel(t) { return t === 0 ? "any amount" : money(t); }
@@ -388,16 +406,16 @@ function renderThresholds(r) {
       <span class="thr-v ${blocked ? "thr-block" : "thr-allow"}">${blocked ? "Blocked" : "Allowed"}</span>
     </button>`;
   }).join("");
-  return `<div class="ladder-label p-sm">Decision by value threshold</div>
+  return `<div class="ladder-label p-sm">If the value threshold were set to</div>
     <div class="thr-row">${cells}</div>
-    <p class="p-sm muted" style="margin:var(--s-15) 0 0" id="thr-note">
-      Outlined is the threshold enforced on-chain, at ${esc(thrLabel(live))}. The
-      others show what this same path decides if the policy is set differently.
+    <p class="p-sm muted" style="margin:var(--s-1) 0 0" id="thr-note">
+      Outlined is the one enforced on-chain.
     </p>`;
 }
 
 function wireThresholds(r) {
   const note = document.getElementById("thr-note");
+  if (!note) return;
   const live = typeof r.dataset?.min_exposure_usd === "number"
     ? r.dataset.min_exposure_usd : 0;
   stage.querySelectorAll(".thr").forEach((b) => {
@@ -406,13 +424,12 @@ function wireThresholds(r) {
       const t = Number(b.dataset.thr);
       const blocked = b.dataset.blocked === "true";
       if (t === live) {
-        note.textContent = `At ${thrLabel(t)}, the threshold enforced on-chain, `
-          + `this wallet is ${blocked ? "blocked" : "allowed"}.`;
+        note.textContent = "Outlined is the one enforced on-chain.";
         return;
       }
       b.classList.add("thr-sel");
       note.textContent = `At ${thrLabel(t)} this wallet would be `
-        + `${blocked ? "blocked" : "allowed"}. The enforced threshold is still `
+        + `${blocked ? "blocked" : "allowed"}. The enforced threshold is `
         + `${thrLabel(live)}, so the decision above stands.`;
     };
   });
@@ -506,26 +523,68 @@ function renderConsole(prefill = "", error = "") {
   if (window.matchMedia("(min-width: 861px)").matches) input.focus();
 }
 
-/* ── Checking ────────────────────────────────────────────────── */
+/* ── Checking ────────────────────────────────────────────────────
+   The screening genuinely works outward from the wallet, so the steps track
+   real stages rather than decorating a wait. When the answer arrives the
+   matching step is marked and the rest clear, which makes the result legible
+   before the verdict panel replaces it. */
+const STEPS = [
+  { key: 0, label: "Checking the wallet itself" },
+  { key: 1, label: "Looking one hop out" },
+  { key: 2, label: "Looking two hops out" },
+  { key: 3, label: "Looking three hops out" },
+];
+
 function renderChecking(address) {
   stage.className = "stage";
   stage.innerHTML = `
     <div class="checking">
       <div class="h3">Checking</div>
       <div class="mono p-std" style="word-break:break-all">${esc(address)}</div>
-      <div class="bar"><span></span></div>
-      <p class="p-std muted" style="max-width:48ch;margin:0">
-        Tracing the graph, then waiting on an operator quorum.
-      </p>
-      <div class="p-sm muted" id="elapsed" style="font-variant-numeric:tabular-nums">0s</div>
+      <div class="steps">
+        ${STEPS.map((st) => `<div class="step" data-step="${st.key}">
+          <span class="step-dot"></span>
+          <span class="step-label">${esc(st.label)}</span>
+          <span class="step-note"></span>
+        </div>`).join("")}
+      </div>
     </div>`;
-  const started = Date.now();
+
+  let i = 0;
   const tick = setInterval(() => {
-    const el = document.getElementById("elapsed");
-    if (!el) return clearInterval(tick);
-    el.textContent = Math.round((Date.now() - started) / 1000) + "s";
-  }, 1000);
-  return () => clearInterval(tick);
+    const rows = stage.querySelectorAll(".step");
+    if (!rows.length) return clearInterval(tick);
+    rows.forEach((r, n) => r.classList.toggle("active", n === i % rows.length));
+    i += 1;
+  }, 700);
+
+  return {
+    stop() { clearInterval(tick); },
+    /** Mark where the path was found and clear the rest. */
+    settle(hop) {
+      clearInterval(tick);
+      const rows = [...stage.querySelectorAll(".step")];
+      if (!rows.length) return Promise.resolve();
+      rows.forEach((r) => r.classList.remove("active"));
+      const hit = hop === null || hop === undefined ? -1 : hop;
+      rows.forEach((r) => {
+        const n = Number(r.dataset.step);
+        if (n === hit) {
+          r.classList.add("found");
+          r.querySelector(".step-note").textContent = "found";
+        } else {
+          r.classList.add("cleared");
+        }
+      });
+      if (hit === -1) {
+        const last = rows[rows.length - 1];
+        last.classList.remove("cleared");
+        last.classList.add("found");
+        last.querySelector(".step-label").textContent = "No exposure within three hops";
+      }
+      return new Promise((r) => setTimeout(r, 1100));
+    },
+  };
 }
 
 /* ── Submit ──────────────────────────────────────────────────── */
@@ -541,15 +600,18 @@ async function submit(address) {
     return;
   }
   inFlight = true;
-  const stop = renderChecking(address);
+  const search = renderChecking(address);
   try {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address));
     const result = await resp.json();
-    stop();
-    if (result.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
+    if (result.status === "INVALID_ADDRESS") {
+      search.stop();
+      return renderConsole(address, result.reason);
+    }
+    await search.settle(result.exposure ? result.hop_count : null);
     renderVerdict(result);
   } catch (e) {
-    stop();
+    search.stop();
     renderVerdict({
       wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
       reason: "Unable to complete exposure check",
@@ -598,7 +660,7 @@ function renderVerdict(r) {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, so it "
            + "carries no proof and the policy denies by default.";
-    body = renderLadder(r.hop_count) + renderValue(r) + renderPath(r);
+    body = renderStats(r) + renderPath(r);
     tag = '<span class="tag unknown">Unattested</span>';
   } else if (r.exposure) {
     tone = "block"; headline = "Non&nbsp;Compliant";
@@ -606,13 +668,13 @@ function renderVerdict(r) {
       ? "This wallet is a known Lazarus Group address. The transfer is blocked."
       : `This wallet reaches a known Lazarus Group address in ${r.hop_count}`
         + ` ${r.hop_count === 1 ? "hop" : "hops"}. The transfer is blocked.`;
-    body = renderLadder(r.hop_count) + renderValue(r) + renderThresholds(r) + renderPath(r);
+    body = renderStats(r) + renderPath(r) + renderThresholds(r);
     tag = '<span class="tag exposed">Exposed</span>';
   } else {
     tone = "pass"; headline = "Compliant";
     reason = "No path to a known Lazarus Group address was found within three hops. "
            + "The transfer may proceed.";
-    body = renderLadder(null);
+    body = renderStats(r);
     tag = '<span class="tag clear">Clear</span>';
   }
 
@@ -620,9 +682,18 @@ function renderVerdict(r) {
   stage.className = "stage";
   stage.innerHTML = `
     <div class="verdict ${tone}">
-      <div class="h1">${headline}</div>
-      <p class="reason p-lg">${esc(reason)}</p>
-      ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
+      <div class="v-head">
+        <div>
+          <div class="h1">${headline}</div>
+          <p class="reason p-lg">${esc(reason)}</p>
+          ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
+        </div>
+        <div class="v-meta">
+          <span class="p-sm muted">Wallet ${tag}<button class="copy" id="copy">Copy</button></span>
+          <span class="party-addr">${esc(r.wallet)}</span>
+          <span class="p-sm muted" style="margin-top:var(--s-1)">Decided ${esc(when(r.evaluated_at))}</span>
+        </div>
+      </div>
       ${body}
       <div class="actions">
         <span class="line"></span>
@@ -630,17 +701,6 @@ function renderVerdict(r) {
         ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
            target="_blank" rel="noopener">View attestation on the Newton explorer ↗</a>` : ""}
       </div>
-      <div class="parties">
-        <div class="party">
-          <span class="p-sm muted">Wallet ${tag}<button class="copy" id="copy">Copy</button></span>
-          <span class="party-addr">${esc(r.wallet)}</span>
-        </div>
-        <div class="party">
-          <span class="p-sm muted">Decided</span>
-          <span class="p-sm">${esc(when(r.evaluated_at))}</span>
-        </div>
-      </div>
-      <div id="verdict-rules"></div>
     </div>`;
 
   document.getElementById("again").onclick = () => renderConsole();
@@ -654,10 +714,6 @@ function renderVerdict(r) {
   };
   wireThresholds(r);
 
-  loadRules().then((data) => {
-    const slot = document.getElementById("verdict-rules");
-    if (slot && data) slot.innerHTML = renderRules(data);
-  });
 }
 
 /* ── Boot ────────────────────────────────────────────────────── */
