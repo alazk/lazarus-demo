@@ -118,33 +118,42 @@ async function submitToNewton(walletAddress, policy) {
   };
 }
 
-// Each threshold is a separate policy client bound to the same policy with a
-// different min_exposure_usd. Selecting one selects which contract the task is
-// submitted to, so the rule is still fixed on-chain before the evidence is
-// evaluated — the caller picks a policy, it does not supply one.
-const CLIENTS = {
-  0:       process.env.NEWTON_POLICY_CLIENT,
-  100000:  process.env.NEWTON_POLICY_CLIENT_100K,
-  1000000: process.env.NEWTON_POLICY_CLIENT_1M,
-};
+// Each combination of parameters is a separate policy client bound to the
+// same policy. Selecting one selects which contract the task is submitted to,
+// so the rule is still fixed on-chain before the evidence is evaluated — the
+// caller picks a policy, it does not supply one.
+const CLIENTS = [
+  { hops: 3, usd: 0,       env: "NEWTON_POLICY_CLIENT" },
+  { hops: 3, usd: 100000,  env: "NEWTON_POLICY_CLIENT_H3V100K" },
+  { hops: 3, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H3V1M" },
+  { hops: 2, usd: 0,       env: "NEWTON_POLICY_CLIENT_H2V0" },
+  // 2 hops at $100k has no client; the page will not offer it.
+  { hops: 2, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H2V1M" },
+  { hops: 1, usd: 0,       env: "NEWTON_POLICY_CLIENT_H1V0" },
+  { hops: 1, usd: 100000,  env: "NEWTON_POLICY_CLIENT_H1V100K" },
+  { hops: 1, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H1V1M" },
+];
 
-/** The client for a requested threshold, or the default when unrecognised. */
-function clientFor(raw) {
-  const wanted = Number(raw);
-  const available = Object.entries(CLIENTS)
-    .filter(([, addr]) => Boolean(addr))
-    .map(([usd, addr]) => ({ usd: Number(usd), addr }));
-  const hit = available.find((c) => c.usd === wanted);
-  const chosen = hit || available.find((c) => c.usd === 0) || available[0];
-  return chosen ? { address: chosen.addr, min_exposure_usd: chosen.usd } : null;
+function configured() {
+  return CLIENTS
+    .map((c) => ({ ...c, address: process.env[c.env] }))
+    .filter((c) => Boolean(c.address));
 }
 
-/** The thresholds actually configured, for the page to offer. */
-export function availableThresholds() {
-  return Object.entries(CLIENTS)
-    .filter(([, addr]) => Boolean(addr))
-    .map(([usd]) => Number(usd))
-    .sort((a, b) => a - b);
+/** The client for a requested rule, falling back to the default. */
+function clientFor(rawHops, rawUsd) {
+  const available = configured();
+  if (available.length === 0) return null;
+  const hops = Number(rawHops);
+  const usd = Number(rawUsd);
+  return available.find((c) => c.hops === hops && c.usd === usd)
+    || available.find((c) => c.hops === 3 && c.usd === 0)
+    || available[0];
+}
+
+/** The rules actually deployed, so the page offers only what exists. */
+export function availableRules() {
+  return configured().map(({ hops, usd }) => ({ hops, usd }));
 }
 
 export default async function handler(req, res) {
@@ -163,7 +172,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const policy = clientFor(req.query?.min_usd);
+  const policy = clientFor(req.query?.max_hops, req.query?.min_usd);
   if (!policy) {
     return res.status(200).json({
       ...screening,
@@ -180,8 +189,9 @@ export default async function handler(req, res) {
     // policy itself behaves when it cannot reach a conclusion.
     return res.status(200).json({
       ...screening,
-      dataset: { ...screening.dataset, min_exposure_usd: policy.min_exposure_usd },
-      thresholds: availableThresholds(),
+      dataset: { ...screening.dataset, max_hops: policy.hops,
+                 min_exposure_usd: policy.usd },
+      rules: availableRules(),
       status: "ATTESTATION_FAILED",
       decision: "DENY",
       reason: "Screened, but the policy evaluation could not be attested",
@@ -197,8 +207,9 @@ export default async function handler(req, res) {
 
   res.status(200).json({
     ...screening,
-    dataset: { ...screening.dataset, min_exposure_usd: policy.min_exposure_usd },
-    thresholds: availableThresholds(),
+    dataset: { ...screening.dataset, max_hops: policy.hops,
+               min_exposure_usd: policy.usd },
+    rules: availableRules(),
     decision: attestation.allowed ? "ALLOW" : "DENY",
     status: attestation.allowed ? "COMPLIANT" : "NON_COMPLIANT",
     explorer_url: attestation.explorer_url,

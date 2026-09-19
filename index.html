@@ -329,7 +329,7 @@
   .deployed {
     margin-top:auto; padding-top:var(--s-2);
     border-top:1px solid var(--ink-30);
-    display:flex; flex-direction:column; gap:var(--s-1);
+    display:flex; align-items:center; gap:var(--s-1); flex-wrap:wrap;
   }
   .fact-link {
     font-family:var(--mono); font-size:14px; font-weight:500;
@@ -343,12 +343,21 @@
     display:flex; align-items:center; justify-content:center;
     height:var(--s-4); padding:0 var(--s-15); flex-shrink:0;
     border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    background:var(--paper);
+    background:var(--paper); font-family:var(--sans);
   }
-  .hop-n { font-size:12px; font-weight:600; color:var(--ink-70); }
+  .hop-n { font-size:12px; font-weight:600; color:var(--ink-50); }
+  /* Reach is shown by which hops are lit, so the diagram is the control. */
+  .hop.on { border-color:var(--ink-90); }
+  .hop.on .hop-n { color:var(--ink-90); }
+  .hop-pick { cursor:pointer; transition:border-color .12s, background .12s; }
+  .hop-pick:hover:not(:disabled) { border-color:var(--ink-90); background:var(--ink-10); }
+  .hop-pick:disabled { cursor:default; opacity:.4; }
+  .hop-pick.sel { background:var(--ink-90); border-color:var(--ink-90); }
+  .hop-pick.sel .hop-n { color:var(--paper); }
   .hop-end { border-color:var(--ink-90); background:var(--ink-90); }
   .hop-end .hop-n { color:var(--paper); }
   .hop-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
+  .hop-link.on { background:var(--ink-90); }
 
   .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
 
@@ -363,6 +372,19 @@
   }
   .choice:hover { border-color:var(--ink-90); color:var(--ink-90); }
   .choice.on { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
+
+  .rule {
+    margin:var(--s-2) 0 0; max-width:34ch;
+    font-size:20px; line-height:36px; color:var(--ink-90);
+  }
+  .pick {
+    display:inline; padding:2px var(--s-1); margin:0 2px;
+    border:none; border-bottom:2px solid var(--ink-30); border-radius:0;
+    background:none; cursor:pointer;
+    font-family:var(--sans); font-size:20px; font-weight:600; color:var(--ink-90);
+    transition:border-color .12s, background .12s;
+  }
+  .pick:hover { border-color:var(--ink-90); background:var(--ink-10); }
 
   .facts {
     margin-top:var(--s-2); padding-top:var(--s-2);
@@ -453,12 +475,59 @@ let presets = DEFAULT_PRESETS;
 let inFlight = false;
 // Thresholds are separate policy clients, so choosing one chooses which
 // contract the check is submitted to. Picked before screening, never after.
-const THRESHOLDS = [
-  { usd: 0,       label: "Any amount" },
-  { usd: 100000,  label: "Over $100k" },
-  { usd: 1000000, label: "Over $1m" },
+// The deployed combinations. Each is a policy client; cycling a parameter
+// moves to the next rule that exists rather than one that might not.
+const RULES = [
+  { hops: 3, usd: 0 }, { hops: 3, usd: 100000 }, { hops: 3, usd: 1000000 },
+  { hops: 2, usd: 0 },                           { hops: 2, usd: 1000000 },
+  { hops: 1, usd: 0 }, { hops: 1, usd: 100000 }, { hops: 1, usd: 1000000 },
 ];
-let threshold = 0;
+let hops = 3;
+let usd = 0;
+const usdLabel = (v) => (v === 0 ? "any amount" : "over " + money(v));
+
+const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
+
+/** Move to a deployed rule. A combination with no client is not offered. */
+function setRule(nextHops, nextUsd) {
+  let value = nextUsd;
+  if (!RULES.some((r) => r.hops === nextHops && r.usd === value)) {
+    // Not every combination is deployed. Fall to the nearest value that is,
+    // rather than refusing the click and appearing broken.
+    const atHops = RULES.filter((r) => r.hops === nextHops).map((r) => r.usd);
+    if (atHops.length === 0) return;
+    value = atHops.reduce((best, v) =>
+      Math.abs(v - nextUsd) < Math.abs(best - nextUsd) ? v : best);
+  }
+  hops = nextHops;
+  usd = value;
+  renderConsole(document.getElementById("addr")?.value || "");
+}
+
+/** Cycle the value to its next setting that exists at this distance. */
+function cycle() {
+  const values = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
+  for (let i = 1; i <= values.length; i++) {
+    const next = values[(values.indexOf(usd) + i) % values.length];
+    if (RULES.some((r) => r.hops === hops && r.usd === next)) {
+      setRule(hops, next);
+      return;
+    }
+  }
+}
+
+/** The scan, shown settled, for a result that has no path to draw. */
+function renderClearedSteps(maxHops) {
+  const shown = STEPS.filter((st) => st.key <= maxHops);
+  return `<div class="steps">
+    ${shown.map((st, n) => `
+      ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
+      <div class="step clear">
+        <span class="step-label">${esc(st.label)}</span>
+        <span class="step-note">clear</span>
+      </div>`).join("")}
+  </div>`;
+}
 
 /* ── Decision summary ────────────────────────────────────────────
    Distance, value and outcome as three figures. The ladder these replace
@@ -508,47 +577,40 @@ function renderConsole(prefill = "", error = "") {
         <div class="card card-policy">
           <div class="card-body">
             <div class="h4">Lazarus Scan</div>
-            <p class="p-std muted" style="margin:var(--s-15) 0 0;max-width:46ch">
-              Blocks a wallet that reaches a known Lazarus Group address within a
-              set number of hops, carrying at least a set amount.
+            <p class="rule">
+              Block a wallet within <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
+              of a known Lazarus address, on transfers of
+              <button class="pick" id="pick-usd" type="button">${usdLabel(usd)}</button>.
+            </p>
+            <p class="p-sm muted" style="margin:var(--s-2) 0 0;max-width:46ch">
+              Both parameters are held on-chain. Changing either selects a
+              different deployed policy, so the rule is fixed before the wallet
+              is screened. The address list is fixed at 7 Sept 2026; the
+              transaction graph is read live.
             </p>
 
-            <div class="hops">
-              <span class="hop"><span class="hop-n">You</span></span>
-              <span class="hop-link"></span>
-              <span class="hop"><span class="hop-n">1</span></span>
-              <span class="hop-link"></span>
-              <span class="hop"><span class="hop-n">2</span></span>
-              <span class="hop-link"></span>
-              <span class="hop"><span class="hop-n">3</span></span>
-              <span class="hop-link"></span>
+            <div class="hops" id="hops">
+              <span class="hop hop-you"><span class="hop-n">You</span></span>
+              ${[1, 2, 3].map((n) => `
+                <span class="hop-link ${n <= hops ? "on" : ""}"></span>
+                <button class="hop hop-pick ${n === hops ? "sel" : ""} ${n <= hops ? "on" : ""}"
+                  type="button" data-hops="${n}"
+                  ${HOP_CHOICES.includes(n) ? "" : "disabled"}>
+                  <span class="hop-n">${n}</span>
+                </button>`).join("")}
+              <span class="hop-link ${hops >= 3 ? "on" : ""}"></span>
               <span class="hop hop-end"><span class="hop-n">Lazarus</span></span>
             </div>
-            <div class="facts">
-              <div class="fact"><span class="fact-k">Blocks within</span><span class="fact-v">3 hops</span></div>
-              <div class="fact"><span class="fact-k">Against</span><span class="fact-v">3,597 addresses</span></div>
-            </div>
-
-            <div class="label" style="margin-top:var(--s-3)">Block on transfers of</div>
-            <div class="choices">
-              ${THRESHOLDS.map((t) => `<button class="choice ${t.usd === threshold ? "on" : ""}"
-                type="button" data-usd="${t.usd}">${esc(t.label)}</button>`).join("")}
-            </div>
-            <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-              Thresholds live on-chain. Address list fixed 7 Sept 2026; graph read live.
+            <p class="p-sm muted" style="margin:var(--s-1) 0 0">
+              Click a hop to set how far the scan reaches.
             </p>
           </div>
           <div class="deployed">
-            <div class="fact">
-              <span class="fact-k">Policy</span>
-              <a class="fact-link" href="https://sepolia.etherscan.io/address/${POLICY_ADDRESS}"
-                 target="_blank" rel="noopener">${short(POLICY_ADDRESS)}</a>
-            </div>
-            <div class="fact">
-              <span class="fact-k">Policy client</span>
-              <a class="fact-link" href="https://sepolia.etherscan.io/address/${POLICY_CLIENT}"
-                 target="_blank" rel="noopener">${short(POLICY_CLIENT)}</a>
-            </div>
+            <span class="p-sm muted">Policy</span>
+            <a class="fact-link" href="https://sepolia.etherscan.io/address/${POLICY_ADDRESS}"
+               target="_blank" rel="noopener">${short(POLICY_ADDRESS)}</a>
+            <span class="p-sm muted">·</span>
+            <span class="p-sm muted">Against 3,597 addresses</span>
           </div>
         </div>
       </div>
@@ -574,10 +636,6 @@ function renderConsole(prefill = "", error = "") {
               <p class="err" id="err">${esc(error)}</p>
             </div>
           </div>
-          <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-            Stolen funds pass through intermediaries before they reach an app.
-            Screening by distance and value refuses them at your own threshold.
-          </p>
           <button class="btn btn-primary btn-lg btn-block" id="go">Run the check</button>
         </div>
       </div>
@@ -603,13 +661,11 @@ function renderConsole(prefill = "", error = "") {
       x.classList.toggle("chosen", x.dataset.addr === input.value.trim());
     });
   });
-  stage.querySelectorAll(".choice").forEach((b) => {
-    b.onclick = () => {
-      threshold = Number(b.dataset.usd);
-      stage.querySelectorAll(".choice").forEach((x) =>
-        x.classList.toggle("on", Number(x.dataset.usd) === threshold));
-    };
+  stage.querySelectorAll(".hop-pick").forEach((b) => {
+    b.onclick = () => setRule(Number(b.dataset.hops), usd);
   });
+  const pickUsd = document.getElementById("pick-usd");
+  if (pickUsd) pickUsd.onclick = () => cycle();
 
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
   const sync = () => { go.disabled = !valid(input.value); };
@@ -648,7 +704,7 @@ function renderChecking(address) {
       <div class="v-grid">
         <div class="v-left">
           <div class="steps">
-            ${STEPS.map((st, n) => `
+            ${STEPS.filter((st) => st.key <= hops).map((st, n) => `
               ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
               <div class="step ${n === 0 ? "active" : "idle"}" data-step="${st.key}">
                 <span class="step-label">${esc(st.label)}</span>
@@ -717,7 +773,7 @@ async function submit(address) {
   const search = renderChecking(address);
   try {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
-      + "&min_usd=" + threshold);
+      + "&max_hops=" + hops + "&min_usd=" + usd);
     const result = await resp.json();
     if (result.status === "INVALID_ADDRESS") {
       search.stop();
@@ -806,7 +862,8 @@ function renderVerdict(r) {
     tone = "pass"; headline = "Compliant";
     reason = "No path to a known Lazarus Group address was found within three hops. "
            + "The transfer may proceed.";
-    body = { left: "", right: renderStats(r), foot: "" };
+    body = { left: renderClearedSteps(r.dataset?.max_hops ?? 3),
+             right: renderStats(r), foot: "" };
   }
 
   const detail = r.detail || r.attestation?.detail;
