@@ -96,8 +96,8 @@
   }
   .console {
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    align-items:stretch; gap:var(--s-5); align-content:center;
-    padding:var(--s-5) var(--inset); max-width:1400px; width:100%; margin:0 auto;
+    align-items:stretch; gap:var(--s-4); align-content:center;
+    padding:var(--s-3) var(--inset); max-width:1400px; width:100%; margin:0 auto;
     min-height:0; overflow-y:auto;
   }
   @media (max-width:860px) { .console { grid-template-columns:1fr; gap:var(--s-3); } }
@@ -111,7 +111,7 @@
   .col { display:flex; flex-direction:column; gap:var(--s-15); min-width:0; }
   .card {
     display:flex; flex-direction:column; min-height:0; height:100%;
-    border-radius:var(--r-md); padding:var(--s-4);
+    border-radius:var(--r-md); padding:var(--s-3);
   }
   /* The action sits on the card's bottom edge so both columns end level. */
   .card-check .card-body { flex:1; }
@@ -181,9 +181,12 @@
   .btn-block { width:100%; margin-top:var(--s-2); flex-shrink:0; }
 
   /* ── Checking ───────────────────────────────────────────────── */
+  /* Matches the height of the verdict's actions row, so both panels
+     centre their grid at the same point. */
+  .checking::after { content:''; display:block; height:100px; flex-shrink:0; }
   .checking {
-    width:100%; display:flex; flex-direction:column; justify-content:flex-start;
-    padding-block:var(--s-6);
+    width:100%; display:flex; flex-direction:column; justify-content:center;
+    padding-block:var(--s-5);
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
   }
   .steps, .path {
@@ -225,9 +228,9 @@
        leave the panel's own background short of the edges.
        Top-anchored, not centred, so the chain lands exactly where the scan
        steps were. */
-    width:100%; display:flex; flex-direction:column; justify-content:flex-start;
+    width:100%; display:flex; flex-direction:column; justify-content:center;
     min-height:0; overflow-y:auto;
-    padding-block:var(--s-6);
+    padding-block:var(--s-5);
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
   }
   .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
@@ -335,7 +338,7 @@
   .fact-link:hover { border-color:var(--ink-90); }
 
   /* A hop is one transfer; the diagram says so faster than a sentence. */
-  .hops { display:flex; align-items:center; margin-top:var(--s-3); }
+  .hops { display:flex; align-items:center; margin-top:var(--s-2); }
   .hop {
     display:flex; align-items:center; justify-content:center;
     height:var(--s-4); padding:0 var(--s-15); flex-shrink:0;
@@ -350,6 +353,7 @@
   .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
 
   .choices { display:flex; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
+  .choice { height:var(--s-4); }
   .choice {
     flex:1; min-width:96px; height:var(--s-5); padding:0 var(--s-15);
     border:1px solid var(--ink-30); border-radius:var(--r-sm);
@@ -531,9 +535,7 @@ function renderConsole(prefill = "", error = "") {
                 type="button" data-usd="${t.usd}">${esc(t.label)}</button>`).join("")}
             </div>
             <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-              Both thresholds live on-chain, so the same evidence decides
-              differently when they move. The address list is fixed at 7 September
-              2026; the graph is read live.
+              Thresholds live on-chain. Address list fixed 7 Sept 2026; graph read live.
             </p>
           </div>
           <div class="deployed">
@@ -573,9 +575,8 @@ function renderConsole(prefill = "", error = "") {
             </div>
           </div>
           <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-            Stolen funds pass through intermediaries before they reach an
-            application. Screening by distance and value lets a protocol refuse
-            them at its own threshold rather than after the fact.
+            Stolen funds pass through intermediaries before they reach an app.
+            Screening by distance and value refuses them at your own threshold.
           </p>
           <button class="btn btn-primary btn-lg btn-block" id="go">Run the check</button>
         </div>
