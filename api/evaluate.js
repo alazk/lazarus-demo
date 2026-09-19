@@ -44,76 +44,78 @@ function newtonConfigured() {
   );
 }
 
-/** evaluation_result is a byte array: a trailing 1 allows, all zeros denies. */
-function decodeResult(bytes) {
-  if (!Array.isArray(bytes) || bytes.length === 0) return null;
-  return bytes[bytes.length - 1] === 1;
-}
+async function submitToNewton(walletAddress, policy) {
+  const { createWalletClient, http } = await import("viem");
+  const { privateKeyToAccount } = await import("viem/accounts");
+  const { sepolia } = await import("viem/chains");
+  const { newtonWalletClientActions } = await import("@newton-xyz/sdk");
 
-// The SDK's submitEvaluationRequest returns an empty body through this path,
-// surfacing as "Unexpected end of JSON input" with no status to go on. The
-// gateway's newt_createTask works directly, so this speaks to it instead.
-// Two shapes the SDK was hiding: gateway fields are snake_case, and chain_id
-// is a hex string rather than a number.
-async function submitToNewton(walletAddress) {
-  const gateway = process.env.NEWTON_GATEWAY_URL
-    || "https://gateway.testnet.newton.xyz/rpc";
+  const account = privateKeyToAccount(process.env.DEMO_PRIVATE_KEY);
 
-  const resp = await fetch(gateway, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${process.env.NEWTON_API_KEY}`,
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: crypto.randomUUID(),
-      method: "newt_createTask",
-      params: {
-        policy_client: process.env.NEWTON_POLICY_CLIENT,
-        intent: {
-          from: process.env.DEMO_FROM_ADDRESS
-            || "0x0000000000000000000000000000000000000000",
-          to: walletAddress,
-          value: "0x0",
-          data: "0x",
-          chain_id: "0x" + SEPOLIA_CHAIN_ID.toString(16),
-          function_signature: "",
-        },
-        wasm_args: "0x" + Buffer.from(
-          JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
-        timeout: 60,
+  const walletClient = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(process.env.SEPOLIA_RPC_URL ||
+                    "https://eth-sepolia.g.alchemy.com/v2/demo"),
+  }).extend(
+    newtonWalletClientActions({ apiKey: process.env.NEWTON_API_KEY })
+  );
+
+  // The policy denies unless the screened address matches the intent's `to`,
+  // so this has to be the wallet that was actually screened.
+  const { result, waitForTaskResponded } =
+    await walletClient.submitEvaluationRequest({
+      policyClient: policy.address,
+      intent: {
+        from: account.address,
+        to: walletAddress,
+        value: "0x0",
+        data: "0x",
+        chainId: SEPOLIA_CHAIN_ID,
+        functionSignature: "0x",
       },
-    }),
-  });
+      timeout: 60,
+    });
 
-  const text = await resp.text();
-  if (!text) throw new Error(`gateway returned an empty body (HTTP ${resp.status})`);
-
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch {
-    throw new Error(`gateway returned unparseable JSON: ${text.slice(0, 200)}`);
-  }
-  if (payload.error) throw new Error(`gateway error: ${JSON.stringify(payload.error)}`);
-
-  const result = payload.result;
-  if (!result || result.status !== "success") {
-    throw new Error(`task did not succeed: ${JSON.stringify(result?.error ?? result)}`);
-  }
-
-  const allowed = decodeResult(result.task_response?.evaluation_result);
-  if (allowed === null) throw new Error("task returned no evaluation result");
+  const response = await waitForTaskResponded({ timeoutMs: 120000 });
 
   return {
-    task_id: result.task_id,
-    tx_hash: null,
-    allowed,
-    expiration: result.expiration ?? null,
-    signers: result.bls_aggregation_result?.signers_count ?? null,
-    explorer_url: `${EXPLORER_BASE}/${result.task_id}`,
+    task_id: result.taskId,
+    tx_hash: result.txHash,
+    allowed: response.taskResponse.evaluationResult,
+    expiration: response.attestation?.expiration ?? null,
+    explorer_url: `${EXPLORER_BASE}/${result.taskId}`,
   };
+}
+
+
+// Each threshold is a separate policy client bound to the same policy with a
+// different min_exposure_usd. Selecting one selects which contract the task is
+// submitted to, so the rule is still fixed on-chain before the evidence is
+// evaluated — the caller picks a policy, it does not supply one.
+const CLIENTS = {
+  0:       process.env.NEWTON_POLICY_CLIENT,
+  100000:  process.env.NEWTON_POLICY_CLIENT_100K,
+  1000000: process.env.NEWTON_POLICY_CLIENT_1M,
+};
+
+/** The client for a requested threshold, or the default when unrecognised. */
+function clientFor(raw) {
+  const wanted = Number(raw);
+  const available = Object.entries(CLIENTS)
+    .filter(([, addr]) => Boolean(addr))
+    .map(([usd, addr]) => ({ usd: Number(usd), addr }));
+  const hit = available.find((c) => c.usd === wanted);
+  const chosen = hit || available.find((c) => c.usd === 0) || available[0];
+  return chosen ? { address: chosen.addr, min_exposure_usd: chosen.usd } : null;
+}
+
+/** The thresholds actually configured, for the page to offer. */
+export function availableThresholds() {
+  return Object.entries(CLIENTS)
+    .filter(([, addr]) => Boolean(addr))
+    .map(([usd]) => Number(usd))
+    .sort((a, b) => a - b);
 }
 
 export default async function handler(req, res) {
@@ -132,19 +134,29 @@ export default async function handler(req, res) {
     });
   }
 
+  const policy = clientFor(req.query?.min_usd);
+  if (!policy) {
+    return res.status(200).json({
+      ...screening,
+      attestation: { status: "NOT_CONFIGURED" },
+    });
+  }
+
   let attestation;
   try {
-    attestation = await submitToNewton(screening.wallet);
+    attestation = await submitToNewton(screening.wallet, policy);
   } catch (err) {
     // An attestation we could not obtain is not a pass. The screening result
     // is still reported, but the decision reverts to deny, the same way the
     // policy itself behaves when it cannot reach a conclusion.
     return res.status(200).json({
       ...screening,
+      dataset: { ...screening.dataset, min_exposure_usd: policy.min_exposure_usd },
+      thresholds: availableThresholds(),
       status: "ATTESTATION_FAILED",
       decision: "DENY",
       reason: "Screened, but the policy evaluation could not be attested",
-      attestation: { status: "FAILED", detail: JSON.stringify(err, Object.getOwnPropertyNames(err)).slice(0, 600) },
+      attestation: { status: "FAILED", detail: String(err.message || err) },
     });
   }
 
@@ -154,17 +166,12 @@ export default async function handler(req, res) {
   const localAllow = screening.decision === "ALLOW";
   const disagreement = localAllow !== attestation.allowed;
 
-  // An attestation can confirm a deny but never overturn one. The attested
-  // policy screens membership of a bounded list, so it returns allow for any
-  // wallet outside that list, including wallets the graph shows are exposed.
-  // Letting it win would show a green verdict for a wallet three hops from
-  // Lazarus, which is the one output this demo must never produce.
-  const allowed = attestation.allowed;
-
   res.status(200).json({
     ...screening,
-    decision: allowed ? "ALLOW" : "DENY",
-    status: allowed ? "COMPLIANT" : "NON_COMPLIANT",
+    dataset: { ...screening.dataset, min_exposure_usd: policy.min_exposure_usd },
+    thresholds: availableThresholds(),
+    decision: attestation.allowed ? "ALLOW" : "DENY",
+    status: attestation.allowed ? "COMPLIANT" : "NON_COMPLIANT",
     explorer_url: attestation.explorer_url,
     attestation: {
       status: "ATTESTED",
@@ -175,7 +182,6 @@ export default async function handler(req, res) {
     },
     ...(disagreement && {
       warning: "The attested decision differs from the local screening result",
-      attested_decision: attestation.allowed ? "ALLOW" : "DENY",
       local_decision: screening.decision,
     }),
   });

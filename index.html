@@ -96,21 +96,22 @@
   }
   .console {
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    align-items:stretch; gap:var(--s-4); align-content:center;
-    padding:var(--s-4) var(--inset); max-width:1400px; width:100%; margin:0 auto;
+    align-items:stretch; gap:var(--s-5); align-content:center;
+    padding:var(--s-5) var(--inset); max-width:1400px; width:100%; margin:0 auto;
     min-height:0; overflow-y:auto;
   }
   @media (max-width:860px) { .console { grid-template-columns:1fr; gap:var(--s-3); } }
-  @media (max-height:780px) {
+  @media (max-height:900px) {
     body { padding:var(--s-2); gap:var(--s-2); }
-    .console { padding:var(--s-3) var(--inset); gap:var(--s-3); }
+    .console { padding:var(--s-3) var(--inset); gap:var(--s-4); }
+    .card { padding:var(--s-3); }
     .mast { padding:var(--s-1) var(--inset); }
     .verdict { padding-block:var(--s-3); }
   }
-  .col { display:flex; flex-direction:column; gap:var(--s-2); min-width:0; }
+  .col { display:flex; flex-direction:column; gap:var(--s-15); min-width:0; }
   .card {
     display:flex; flex-direction:column; min-height:0; height:100%;
-    border-radius:var(--r-md); padding:var(--s-3);
+    border-radius:var(--r-md); padding:var(--s-4);
   }
   /* The action sits on the card's bottom edge so both columns end level. */
   .card-check .card-body { flex:1; }
@@ -181,35 +182,40 @@
 
   /* ── Checking ───────────────────────────────────────────────── */
   .checking {
-    width:100%; padding:var(--s-6) var(--inset);
-    display:flex; flex-direction:column; justify-content:center; gap:var(--s-2);
+    width:100%; display:flex; flex-direction:column; justify-content:center;
+    padding-block:var(--s-4);
+    padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
   }
-  .steps { display:flex; flex-direction:column; gap:var(--s-1); margin-top:var(--s-2); max-width:420px; }
+  .steps, .path {
+    display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
+    width:100%; max-width:380px; margin:0;
+  }
+  .step, .node {
+    display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
+    min-height:36px; padding:var(--s-1) var(--box-pad);
+    border:1px solid var(--on-22); border-radius:var(--r-sm);
+    background:var(--veil);
+  }
   .step {
-    display:flex; align-items:center; gap:var(--s-15); height:44px;
-    padding:0 var(--s-2); border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    font-size:16px; color:var(--ink-50); background:var(--paper);
+    font-size:16px; color:var(--ink-50); border-color:var(--ink-30);
+    background:var(--paper);
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
   }
-  .step-dot {
-    width:8px; height:8px; border-radius:50%; background:var(--ink-30); flex-shrink:0;
-    transition:background .2s;
-  }
   .step.active { color:var(--ink-90); border-color:var(--ink-90); }
-  .step.active .step-dot { background:var(--ink-90); animation:pulse 1s ease-in-out infinite; }
+  .step.active { animation:pulse 1.2s ease-in-out infinite; }
   /* A step that came back clean goes green; the one that found the path goes
      red and the search stops there. */
   .step.clear {
     color:var(--ink-90); border-color:var(--pass-b); background:var(--pass-a);
   }
-  .step.clear .step-dot { background:var(--pass-b); animation:none; }
+
   .step.hit {
     color:var(--ink-90); border-color:var(--block-b); background:var(--block-a);
   }
-  .step.hit .step-dot { background:var(--block-b); animation:none; }
+
   .step.idle { opacity:.35; }
-  .step-label { flex:1; }
-  .step-note { font-size:14px; font-weight:600; }
+  .step-label { flex:1; font-size:16px; }
+  .step-note { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 
   /* ── Verdict ────────────────────────────────────────────────── */
@@ -236,7 +242,7 @@
   }
   .v-grid.single { grid-template-columns:minmax(0,1fr); }
   .v-left, .v-right { min-width:0; }
-  .v-left { display:flex; }
+  .v-left { display:flex; align-items:flex-start; }
   .v-right { min-width:0; }
   .stats {
     display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -269,16 +275,8 @@
 
 
   /* ── Path ───────────────────────────────────────────────────── */
-  .path {
-    display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
-    margin-top:0; width:100%; max-width:380px;
-  }
-  .node {
-    display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
-    padding:var(--s-1) var(--box-pad);
-    border:1px solid var(--on-22); border-radius:var(--r-sm);
-    background:var(--veil); min-width:0;
-  }
+
+
   .node.origin { border-color:var(--ink-90); }
   .node.match  { border-color:var(--ink-90); background:var(--veil-strong); }
   .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; flex-shrink:0; }
@@ -345,6 +343,17 @@
   .hop-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
 
   .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
+
+  .choices { display:flex; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
+  .choice {
+    flex:1; min-width:96px; height:var(--s-5); padding:0 var(--s-15);
+    border:1px solid var(--ink-30); border-radius:var(--r-sm);
+    background:var(--paper); cursor:pointer;
+    font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink-70);
+    transition:border-color .12s, background .12s, color .12s;
+  }
+  .choice:hover { border-color:var(--ink-90); color:var(--ink-90); }
+  .choice.on { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
 
   .facts {
     margin-top:var(--s-2); padding-top:var(--s-2);
@@ -433,6 +442,14 @@ const DEFAULT_PRESETS = [
 ];
 let presets = DEFAULT_PRESETS;
 let inFlight = false;
+// Thresholds are separate policy clients, so choosing one chooses which
+// contract the check is submitted to. Picked before screening, never after.
+const THRESHOLDS = [
+  { usd: 0,       label: "Any amount" },
+  { usd: 100000,  label: "Over $100k" },
+  { usd: 1000000, label: "Over $1m" },
+];
+let threshold = 0;
 
 /* ── Decision summary ────────────────────────────────────────────
    Distance, value and outcome as three figures. The ladder these replace
@@ -498,24 +515,20 @@ function renderConsole(prefill = "", error = "") {
               <span class="hop-link"></span>
               <span class="hop hop-end"><span class="hop-n">Lazarus</span></span>
             </div>
-            <p class="p-sm muted" style="margin:var(--s-1) 0 0">
-              A hop is one transfer. Two hops means a wallet you dealt with dealt
-              with them.
-            </p>
-
             <div class="facts">
               <div class="fact"><span class="fact-k">Blocks within</span><span class="fact-v">3 hops</span></div>
-              <div class="fact"><span class="fact-k">On transfers of</span><span class="fact-v">any amount</span></div>
               <div class="fact"><span class="fact-k">Against</span><span class="fact-v">3,597 addresses</span></div>
             </div>
+
+            <div class="label" style="margin-top:var(--s-3)">Block on transfers of</div>
+            <div class="choices">
+              ${THRESHOLDS.map((t) => `<button class="choice ${t.usd === threshold ? "on" : ""}"
+                type="button" data-usd="${t.usd}">${esc(t.label)}</button>`).join("")}
+            </div>
             <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-              Both thresholds are policy parameters held on-chain, so the same
-              evidence produces a different decision when they move. Set them to
-              your own risk appetite rather than accepting these.
-            </p>
-            <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-              The address list was pulled on 7 September 2026 and is fixed for this
-              demo; the transaction graph is read live at the moment you check.
+              Both thresholds live on-chain, so the same evidence decides
+              differently when they move. The address list is fixed at 7 September
+              2026; the graph is read live.
             </p>
           </div>
           <div class="deployed">
@@ -555,10 +568,9 @@ function renderConsole(prefill = "", error = "") {
             </div>
           </div>
           <p class="p-sm muted" style="margin:var(--s-2) 0 0">
-            Stolen funds move through intermediaries before they reach an
-            application. Screening a wallet for how close it sits to a known
-            Lazarus address, and how much moved along that path, lets a protocol
-            refuse those funds at its own threshold rather than after the fact.
+            Stolen funds pass through intermediaries before they reach an
+            application. Screening by distance and value lets a protocol refuse
+            them at its own threshold rather than after the fact.
           </p>
           <button class="btn btn-primary btn-lg btn-block" id="go">Run the check</button>
         </div>
@@ -585,6 +597,14 @@ function renderConsole(prefill = "", error = "") {
       x.classList.toggle("chosen", x.dataset.addr === input.value.trim());
     });
   });
+  stage.querySelectorAll(".choice").forEach((b) => {
+    b.onclick = () => {
+      threshold = Number(b.dataset.usd);
+      stage.querySelectorAll(".choice").forEach((x) =>
+        x.classList.toggle("on", Number(x.dataset.usd) === threshold));
+    };
+  });
+
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
   const sync = () => { go.disabled = !valid(input.value); };
   input.oninput = () => {
@@ -622,11 +642,12 @@ function renderChecking(address) {
       <div class="v-grid">
         <div class="v-left">
           <div class="steps">
-        ${STEPS.map((st, n) => `<div class="step ${n === 0 ? "active" : "idle"}" data-step="${st.key}">
-          <span class="step-dot"></span>
-          <span class="step-label">${esc(st.label)}</span>
-          <span class="step-note"></span>
-          </div>`).join("")}
+            ${STEPS.map((st, n) => `
+              ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
+              <div class="step ${n === 0 ? "active" : "idle"}" data-step="${st.key}">
+                <span class="step-label">${esc(st.label)}</span>
+                <span class="step-note"></span>
+              </div>`).join("")}
           </div>
         </div>
         <div class="v-right">
@@ -689,7 +710,8 @@ async function submit(address) {
   inFlight = true;
   const search = renderChecking(address);
   try {
-    const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address));
+    const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
+      + "&min_usd=" + threshold);
     const result = await resp.json();
     if (result.status === "INVALID_ADDRESS") {
       search.stop();
