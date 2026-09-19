@@ -44,50 +44,79 @@ function newtonConfigured() {
   );
 }
 
-async function submitToNewton(walletAddress, policy) {
-  const { createWalletClient, http } = await import("viem");
-  const { privateKeyToAccount } = await import("viem/accounts");
-  const { sepolia } = await import("viem/chains");
-  const { newtonWalletClientActions } = await import("@newton-xyz/sdk");
-
-  const account = privateKeyToAccount(process.env.DEMO_PRIVATE_KEY);
-
-  const walletClient = createWalletClient({
-    account,
-    chain: sepolia,
-    transport: http(process.env.SEPOLIA_RPC_URL ||
-                    "https://eth-sepolia.g.alchemy.com/v2/demo"),
-  }).extend(
-    newtonWalletClientActions({ apiKey: process.env.NEWTON_API_KEY })
-  );
-
-  // The policy denies unless the screened address matches the intent's `to`,
-  // so this has to be the wallet that was actually screened.
-  const { result, waitForTaskResponded } =
-    await walletClient.submitEvaluationRequest({
-      policyClient: policy.address,
-      intent: {
-        from: account.address,
-        to: walletAddress,
-        value: "0x0",
-        data: "0x",
-        chainId: SEPOLIA_CHAIN_ID,
-        functionSignature: "0x",
-      },
-      timeout: 60,
-    });
-
-  const response = await waitForTaskResponded({ timeoutMs: 120000 });
-
-  return {
-    task_id: result.taskId,
-    tx_hash: result.txHash,
-    allowed: response.taskResponse.evaluationResult,
-    expiration: response.attestation?.expiration ?? null,
-    explorer_url: `${EXPLORER_BASE}/${result.taskId}`,
-  };
+/** evaluation_result is a byte array: a trailing 1 allows, all zeros denies. */
+function decodeResult(bytes) {
+  if (!Array.isArray(bytes) || bytes.length === 0) return null;
+  return bytes[bytes.length - 1] === 1;
 }
 
+// The SDK's submitEvaluationRequest returns an empty body through this path,
+// surfacing as "Unexpected end of JSON input" with no status to go on. The
+// gateway's newt_createTask works directly, so this speaks to it instead.
+// Gateway fields are snake_case, chain_id is a hex string, and wasm_args is
+// hex-encoded UTF-8 JSON — without it the oracle screens nothing and the
+// policy fails closed.
+async function submitToNewton(walletAddress, policy) {
+  const gateway = process.env.NEWTON_GATEWAY_URL
+    || "https://gateway.testnet.newton.xyz/rpc";
+
+  const resp = await fetch(gateway, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${process.env.NEWTON_API_KEY}`,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: crypto.randomUUID(),
+      method: "newt_createTask",
+      params: {
+        policy_client: policy.address,
+        intent: {
+          // The policy denies unless the screened address matches the
+          // intent's `to`, so this has to be the wallet screened.
+          from: process.env.DEMO_FROM_ADDRESS
+            || "0x0000000000000000000000000000000000000000",
+          to: walletAddress,
+          value: "0x0",
+          data: "0x",
+          chain_id: "0x" + SEPOLIA_CHAIN_ID.toString(16),
+          function_signature: "",
+        },
+        wasm_args: "0x" + Buffer.from(
+          JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
+        timeout: 60,
+      },
+    }),
+  });
+
+  const text = await resp.text();
+  if (!text) throw new Error(`gateway returned an empty body (HTTP ${resp.status})`);
+
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new Error(`gateway returned unparseable JSON: ${text.slice(0, 200)}`);
+  }
+  if (payload.error) throw new Error(`gateway error: ${JSON.stringify(payload.error)}`);
+
+  const result = payload.result;
+  if (!result || result.status !== "success") {
+    throw new Error(`task did not succeed: ${JSON.stringify(result?.error ?? result)}`);
+  }
+
+  const allowed = decodeResult(result.task_response?.evaluation_result);
+  if (allowed === null) throw new Error("task returned no evaluation result");
+
+  return {
+    task_id: result.task_id,
+    tx_hash: null,
+    allowed,
+    expiration: result.expiration ?? null,
+    explorer_url: `${EXPLORER_BASE}/${result.task_id}`,
+  };
+}
 
 // Each threshold is a separate policy client bound to the same policy with a
 // different min_exposure_usd. Selecting one selects which contract the task is
