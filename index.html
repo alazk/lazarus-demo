@@ -201,7 +201,15 @@
   .rule { margin:var(--s-2) 0 0; max-width:40ch; font-size:20px; line-height:30px; }
 
   /* The rail is the distance control: reach is shown by what is lit. */
-  .rail { display:flex; align-items:center; margin-top:var(--s-3); }
+  /* Built like the intro chain: a stop, and what that stop is. */
+  .rail { display:flex; align-items:flex-start; margin-top:var(--s-3); }
+  .rail-cell {
+    display:flex; flex-direction:column; align-items:center; gap:var(--s-05);
+    flex:0 0 auto; min-width:0;
+  }
+  .rail-cap {
+    font-size:11px; color:var(--ink-50); text-align:center; white-space:nowrap;
+  }
   .rail-node {
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     height:var(--s-4); padding:0 var(--s-15);
@@ -215,8 +223,12 @@
   button.rail-node { cursor:pointer; transition:border-color .12s, background .12s, color .12s; }
   span.rail-node { cursor:default; }
   button.rail-node:hover:not(.sel) { background:var(--ink-10); }
-  .rail-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
+  .rail-link {
+    flex:1 1 auto; height:1px; background:var(--ink-30);
+    min-width:var(--s-1); margin-top:var(--s-2);
+  }
   .rail-link.on { background:var(--ink-90); }
+  .rail-cell:has(.sel) .rail-cap { color:var(--ink-90); font-weight:600; }
 
   .label { font-size:14px; font-weight:500; color:var(--ink-70); }
   .vals { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
@@ -432,6 +444,7 @@
     .pk-cell { flex:1 1 calc(50% - var(--s-1)); }
     .pk { min-height:48px; font-size:13px; }
     .rail-node { padding:0 var(--s-1); font-size:11px; }
+    .rail-cap { font-size:10px; white-space:normal; }
     .rail-link { min-width:var(--s-05); }
     .vals { flex-direction:column; }
     .val { width:100%; }
@@ -689,20 +702,30 @@ function setRule(nextHops, nextUsd) {
 }
 
 /* The rail is the distance control: reach is what is lit. */
+/* The rail uses the same words as the intro chain, so a hop count means
+   something: 2 is a second-degree counterparty, not just the number two. */
+const RAIL_CAPTIONS = { 1: "direct", 2: "second degree", 3: "third degree" };
+
 function renderRail() {
-  const parts = [`<span class="rail-node">You</span>`];
+  const cell = (label, caption, extra = "", tag = "span", attrs = "") =>
+    `<div class="rail-cell">
+       <${tag} class="rail-node ${extra}" ${attrs}>${esc(label)}</${tag}>
+       <span class="rail-cap">${esc(caption)}</span>
+     </div>`;
+
+  const parts = [cell("You", "wallet you pay")];
   HOP_SHOWN.forEach((n) => {
     const on = n <= hops;
     const live = HOP_CHOICES.includes(n);
     parts.push(`<span class="rail-link ${on ? "on" : ""}"></span>`);
-    parts.push(live
-      ? `<button class="rail-node ${on ? "on" : ""} ${n === hops ? "sel" : ""}"
-           type="button" data-hops="${n}">${n}</button>`
-      : `<span class="rail-node ${on ? "on" : ""}">${n}</span>`);
+    parts.push(cell(String(n), RAIL_CAPTIONS[n] || "",
+      `${on ? "on" : ""} ${n === hops ? "sel" : ""}`,
+      live ? "button" : "span",
+      live ? `type="button" data-hops="${n}"` : ""));
   });
   const lit = hops >= Math.max(...HOP_SHOWN);
   parts.push(`<span class="rail-link ${lit ? "on" : ""}"></span>`);
-  parts.push(`<span class="rail-node end">Lazarus</span>`);
+  parts.push(cell("Lazarus", "on the list", "end"));
   return `<div class="rail">${parts.join("")}</div>`;
 }
 
@@ -718,8 +741,8 @@ function renderConsole(prefill = "", error = "") {
             <div class="h4">Lazarus Scan</div>
             <p class="rule">Block a wallet that reaches a known Lazarus address.</p>
             ${renderRail()}
-            <p class="p-sm muted" style="margin:var(--s-15) 0 0">
-              Each step is one transfer. Click a hop to change how far the scan reaches.
+            <p class="p-sm muted" style="margin:var(--s-2) 0 0">
+              Each step is one transfer. Click a hop to set how far the scan reaches.
             </p>
             <div class="label" style="margin-top:var(--s-3)">Minimum transfer on that path</div>
             <div class="vals">
