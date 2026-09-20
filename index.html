@@ -478,11 +478,11 @@ let inFlight = false;
 // The deployed combinations. Each is a policy client; cycling a parameter
 // moves to the next rule that exists rather than one that might not.
 const RULES = [
-  { hops: 3, usd: 0 }, { hops: 3, usd: 100000 }, { hops: 3, usd: 1000000 },
-  { hops: 2, usd: 0 },                           { hops: 2, usd: 1000000 },
-  { hops: 1, usd: 0 }, { hops: 1, usd: 100000 }, { hops: 1, usd: 1000000 },
+  { hops: 2, usd: 0 }, { hops: 2, usd: 1000000 },
+  { hops: 3, usd: 0 }, { hops: 3, usd: 1000000 },
 ];
-let hops = 3;
+
+let hops = 2;
 let usd = 0;
 const usdLabel = (v) => (v === 0 ? "any amount" : "over " + money(v));
 
@@ -591,7 +591,7 @@ function renderConsole(prefill = "", error = "") {
 
             <div class="hops" id="hops">
               <span class="hop hop-you"><span class="hop-n">You</span></span>
-              ${[1, 2, 3].map((n) => `
+              ${HOP_CHOICES.map((n) => `
                 <span class="hop-link ${n <= hops ? "on" : ""}"></span>
                 <button class="hop hop-pick ${n === hops ? "sel" : ""} ${n <= hops ? "on" : ""}"
                   type="button" data-hops="${n}"

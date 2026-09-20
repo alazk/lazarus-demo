@@ -124,14 +124,9 @@ async function submitToNewton(walletAddress, policy) {
 // caller picks a policy, it does not supply one.
 const CLIENTS = [
   { hops: 3, usd: 0,       env: "NEWTON_POLICY_CLIENT" },
-  { hops: 3, usd: 100000,  env: "NEWTON_POLICY_CLIENT_H3V100K" },
   { hops: 3, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H3V1M" },
   { hops: 2, usd: 0,       env: "NEWTON_POLICY_CLIENT_H2V0" },
-  // 2 hops at $100k has no client; the page will not offer it.
   { hops: 2, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H2V1M" },
-  { hops: 1, usd: 0,       env: "NEWTON_POLICY_CLIENT_H1V0" },
-  { hops: 1, usd: 100000,  env: "NEWTON_POLICY_CLIENT_H1V100K" },
-  { hops: 1, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H1V1M" },
 ];
 
 function configured() {
