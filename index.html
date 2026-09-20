@@ -278,10 +278,6 @@
     transition:max-height .5s ease, opacity .4s ease .1s;
   }
   #path-slot.on { max-height:520px; opacity:1; }
-  .path-label {
-    font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--on-62); margin-bottom:var(--s-1);
-  }
   /* The actions only exist once there is a decision to act on. */
   #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
   #actions-slot.on { margin:var(--s-4) 0 0; opacity:1; }
@@ -332,6 +328,10 @@
   .node-addr:hover { text-decoration:underline; }
   .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); white-space:nowrap; }
   .node.match { border-color:var(--ink-90); background:var(--veil-strong); }
+  /* The terminal box of a clean result: no address, because there is none. */
+  .node-none { justify-content:center; border-style:dashed; background:transparent; }
+  .node-none .node-role { color:var(--on-62); }
+  .arrow-end::after { content:'↓'; opacity:.5; }
   .node.match .node-role { color:var(--ink-90); }
   .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; text-decoration:none; }
   .arrow::after { content:'↓'; }
@@ -343,14 +343,13 @@
 
   .stats {
     display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
-    margin-top:var(--s-5); max-width:600px;
+    margin-top:var(--s-5); max-width:560px;
   }
   .stat { padding:0 var(--s-4); }
   .stat:first-child { padding-left:0; }
   .stat + .stat { border-left:1px solid var(--on-22); }
   .stat-k { font-size:14px; color:var(--on-62); }
   .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
-  .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
   .stat-link {
     display:inline-flex; align-items:baseline; gap:var(--s-05);
     color:var(--ink-90); text-decoration:none; border-bottom:1px solid var(--on-35);
@@ -358,7 +357,6 @@
   .stat-link:hover { border-color:var(--ink-90); }
   .stat-ext { font-size:14px; font-weight:500; color:var(--on-62); }
 
-  .quorum { margin-top:var(--s-4); font-size:14px; color:var(--on-62); }
   .actions { display:flex; align-items:center; gap:var(--s-15); margin:var(--s-4) 0 0; flex-wrap:wrap; }
   .actions .line { flex:1; min-width:var(--s-4); height:1px; background:var(--on-22); }
 
@@ -857,7 +855,22 @@ function renderPath(r) {
   const nodes = r.nodes?.length
     ? r.nodes
     : (r.path || []).map((a) => ({ address: a, role: "wallet" }));
-  if (nodes.length < 2) return "";
+
+  // No path means nothing was reached, but the wallet still gets shown, so a
+  // clean result reads as the same panel as a blocked one rather than an
+  // emptier version of it.
+  if (nodes.length < 2) {
+    const only = nodes[0]?.address || r.wallet;
+    if (!only) return "";
+    const role = r.direct_match ? "Lazarus Group" : "Submitted wallet";
+    return `<div class="path">
+      <div class="node ${r.direct_match ? "match" : ""}">
+        <a class="node-addr" href="https://etherscan.io/address/${esc(only)}"
+           target="_blank" rel="noopener" title="${esc(only)}">${esc(short(only))}</a>
+        <span class="node-role">${esc(role)}</span>
+      </div>
+    </div>`;
+  }
   const last = nodes.length - 1;
 
   const boxes = nodes.map((n, i) => `
@@ -895,9 +908,9 @@ function renderClearedSteps(maxHops) {
 
 function renderStats(r) {
   const max = r.dataset?.max_hops ?? hops;
-  const distance = r.direct_match ? "Known address"
+  const distance = r.direct_match ? "On the list"
     : r.exposure ? `${r.hop_count} ${r.hop_count === 1 ? "hop" : "hops"}`
-    : `None within ${max}`;
+    : "None";
   const value = r.direct_match ? "—"
     : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
   const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
@@ -916,13 +929,10 @@ function renderStats(r) {
 
   return `<div class="stats">
     <div class="stat"><div class="stat-k">Distance</div>
-      <div class="stat-v">${esc(distance)}</div>
-      <div class="stat-note">to a known address</div></div>
-    <div class="stat"><div class="stat-k">Smallest transfer</div>${valueCell}
-      <div class="stat-note">${r.exposure ? "on the path found" : "no path found"}</div></div>
+      <div class="stat-v">${esc(distance)}</div></div>
+    <div class="stat"><div class="stat-k">Smallest transfer</div>${valueCell}</div>
     <div class="stat"><div class="stat-k">Decision</div>
-      <div class="stat-v">${esc(decision)}</div>
-      <div class="stat-note">by operator quorum</div></div>
+      <div class="stat-v">${esc(decision)}</div></div>
   </div>`;
 }
 
@@ -935,7 +945,6 @@ function fillVerdict(r, belowThreshold) {
   const actions = document.getElementById("actions-slot");
   if (!panel || !right) return;
 
-  const attested = r.attestation?.status === "ATTESTED";
   const max = r.dataset?.max_hops ?? hops;
   const floor = r.dataset?.min_exposure_usd ?? usd;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
@@ -944,26 +953,25 @@ function fillVerdict(r, belowThreshold) {
   if (r.status === "SCREENING_FAILED") {
     tone = "fail"; headline = "Screening failed";
     reason = "The transaction graph could not be read, so the wallet was not "
-           + "screened. The policy denies by default. This is not a finding of exposure.";
+           + "screened. The policy denies by default, which is not a finding of exposure.";
   } else if (r.status === "ATTESTATION_FAILED") {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, "
-           + "so it carries no proof and the policy denies by default.";
+           + "so the policy denies by default.";
   } else if (belowThreshold) {
     tone = "pass"; headline = "Compliant";
     reason = `A path exists at ${hopWord(r.hop_count)}, but its smallest transfer `
            + `of ${money(r.exposure_usd)} is below the ${money(floor)} floor this `
-           + "policy acts on. The transfer may proceed.";
+           + "policy acts on.";
   } else if (r.exposure) {
     tone = "block"; headline = "Non Compliant";
     reason = r.direct_match
-      ? "This wallet is a known Lazarus Group address. The transfer is blocked."
-      : `This wallet reaches a known Lazarus Group address in ${hopWord(r.hop_count)}. `
-        + "The transfer is blocked.";
+      ? "This wallet is a known Lazarus Group address."
+      : `This wallet reaches a known Lazarus Group address in ${hopWord(r.hop_count)}.`;
   } else {
     tone = "pass"; headline = "Compliant";
     reason = `No path to a known Lazarus Group address was found within `
-           + `${hopWord(max)}. The transfer may proceed.`;
+           + `${hopWord(max)}.`;
   }
 
   panel.classList.add(tone, "settled");
@@ -974,13 +982,13 @@ function fillVerdict(r, belowThreshold) {
     <p class="reason p-lg">${esc(reason)}</p>
     ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
-    ${attested ? `<div class="quorum">Signed by an operator quorum · attested on Sepolia</div>` : ""}`;
+`;
 
   // The addresses go under the steps they came from, so the evidence extends
   // the scan rather than displacing it.
-  const path = renderPath(r);
+  const path = r.status === "SCREENING_FAILED" ? "" : renderPath(r);
   if (pathSlot && path) {
-    pathSlot.innerHTML = `<div class="path-label">The path found</div>${path}`;
+    pathSlot.innerHTML = path;
     pathSlot.classList.add("on");
   }
 
