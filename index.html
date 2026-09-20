@@ -189,9 +189,10 @@
     background:var(--paper); border:1px solid var(--ink-30);
   }
   .card-body { min-height:0; display:flex; flex-direction:column; }
-  .card-check .card-body { flex:1; gap:var(--s-2); }
+  .card-body { flex:1; }
+  .card-check .card-body { gap:var(--s-2); }
 
-  .rule { margin:var(--s-2) 0 0; max-width:34ch; font-size:20px; line-height:36px; }
+  .rule { margin:var(--s-2) 0 0; max-width:40ch; font-size:20px; line-height:30px; }
 
   /* The rail is the distance control: reach is shown by what is lit. */
   .rail { display:flex; align-items:center; margin-top:var(--s-3); }
@@ -223,9 +224,13 @@
   .val:hover:not(.sel) { border-color:var(--ink-90); color:var(--ink-90); }
   .val.sel { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
 
-  .flow-row { display:flex; align-items:center; gap:var(--s-15); font-size:14px; color:var(--ink-70); }
+  .flow-row {
+    display:flex; align-items:flex-start; gap:var(--s-15);
+    font-size:14px; line-height:20px; color:var(--ink-70); min-width:0;
+  }
+  .flow-row > span:last-child { flex:1; min-width:0; }
   .flow-n {
-    width:20px; height:20px; flex-shrink:0; border-radius:var(--pill);
+    width:20px; height:20px; flex-shrink:0; margin-top:1px; border-radius:var(--pill);
     background:var(--ink-90); color:var(--paper);
     font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center;
   }
@@ -259,6 +264,7 @@
   .btn-block { width:100%; margin-top:var(--s-2); flex-shrink:0; }
 
   /* ── Scan and verdict share one frame ───────────────────────── */
+  .intro, .console, .checking, .verdict { min-height:560px; }
   .checking, .verdict {
     width:100%; display:flex; flex-direction:column; justify-content:center;
     padding-block:var(--s-5);
@@ -272,8 +278,8 @@
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
 
   .grid {
-    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr);
-    gap:var(--s-6); align-items:start; width:100%;
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:var(--s-8); align-items:start; width:100%;
   }
   .grid.single { grid-template-columns:minmax(0,1fr); }
   .left { display:flex; align-items:flex-start; min-width:0; }
@@ -282,8 +288,8 @@
   /* The scan rows and the path nodes are one component, so the chain
      settles into the place the steps occupied rather than replacing them. */
   .steps, .path {
-    display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
-    width:100%; max-width:380px; margin:0;
+    display:flex; flex-direction:column; align-items:stretch; gap:var(--s-1);
+    width:100%; max-width:440px; margin:0;
   }
   .step, .node {
     display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
@@ -315,14 +321,14 @@
   a.arrow { color:var(--on-62); cursor:pointer; transition:color .12s, transform .12s; }
   a.arrow:hover { color:var(--ink-90); transform:scale(1.15); }
 
-  .reason { margin-top:var(--s-2); max-width:42ch; color:var(--ink-90); }
+  .reason { margin-top:var(--s-3); max-width:44ch; color:var(--ink-90); }
   .detail { font-family:var(--mono); font-size:14px; line-height:20px; color:var(--on-62); margin-top:var(--s-15); max-width:64ch; word-break:break-word; }
 
   .stats {
     display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
-    margin-top:var(--s-4); max-width:520px;
+    margin-top:var(--s-5); max-width:600px;
   }
-  .stat { padding:0 var(--s-3); }
+  .stat { padding:0 var(--s-4); }
   .stat:first-child { padding-left:0; }
   .stat + .stat { border-left:1px solid var(--on-22); }
   .stat-k { font-size:14px; color:var(--on-62); }
@@ -335,7 +341,7 @@
   .stat-link:hover { border-color:var(--ink-90); }
   .stat-ext { font-size:14px; font-weight:500; color:var(--on-62); }
 
-  .quorum { margin-top:var(--s-3); font-size:14px; color:var(--on-62); }
+  .quorum { margin-top:var(--s-4); font-size:14px; color:var(--on-62); }
   .actions { display:flex; align-items:center; gap:var(--s-15); margin:var(--s-4) 0 0; flex-wrap:wrap; }
   .actions .line { flex:1; min-width:var(--s-4); height:1px; background:var(--on-22); }
 
@@ -555,6 +561,7 @@ function renderIntro() {
           <div id="act-copy"></div>
           <div class="intro-foot">
             <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
+            <button class="btn btn-tertiary btn-md" id="next-act">Next ↓</button>
             <div class="acts">
               ${ACTS.map((_, i) => `<button class="act-dot" type="button"
                 data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}
@@ -568,6 +575,8 @@ function renderIntro() {
   document.getElementById("go-console").onclick = () => {
     stopAuto(); view = "console"; renderConsole();
   };
+  const next = document.getElementById("next-act");
+  if (next) next.onclick = () => { stopAuto(); paintAct((act + 1) % ACTS.length); };
   stage.querySelectorAll(".act-dot").forEach((b) => {
     b.onclick = () => { stopAuto(); paintAct(Number(b.dataset.act)); };
   });
@@ -585,7 +594,7 @@ function startAuto() {
   autoTimer = setInterval(() => {
     if (view !== "intro") return stopAuto();
     paintAct((act + 1) % ACTS.length);
-  }, 6500);
+  }, 5000);
 }
 function stopAuto() {
   if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
@@ -648,12 +657,6 @@ function renderConsole(prefill = "", error = "") {
               ${USD_CHOICES.map((v) => `<button class="val ${v === usd ? "sel" : ""}"
                 type="button" data-usd="${v}">${esc(usdLabel(v))}</button>`).join("")}
             </div>
-          </div>
-          <div class="deployed">
-            <span class="p-sm muted">Policy</span>
-            <a class="fact-link" href="https://sepolia.etherscan.io/address/${POLICY_ADDRESS}"
-               target="_blank" rel="noopener">${short(POLICY_ADDRESS)}</a>
-            <span class="p-sm muted">· 3,597 addresses, fixed 7 Sept 2026 · graph read live</span>
           </div>
         </div>
       </div>
