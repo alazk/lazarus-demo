@@ -271,14 +271,7 @@
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
     min-height:0; overflow-y:auto;
   }
-  /* Matches the verdict's actions row so both centre their grid alike. */
-  .left-stack { display:flex; flex-direction:column; gap:var(--s-3); width:100%; }
-  #path-slot {
-    max-height:0; opacity:0; overflow:hidden;
-    transition:max-height .5s ease, opacity .4s ease .1s;
-  }
-  #path-slot.on { max-height:520px; opacity:1; }
-  /* The actions only exist once there is a decision to act on. */
+  /* Matches the verdict's actions row so both centre their grid alike. */  /* The actions only exist once there is a decision to act on. */
   #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
   #actions-slot.on { margin:var(--s-4) 0 0; opacity:1; }
 
@@ -298,11 +291,11 @@
 
   /* The scan rows and the path nodes are one component, so the chain
      settles into the place the steps occupied rather than replacing them. */
-  .steps, .path {
+  .steps {
     display:flex; flex-direction:column; align-items:stretch; gap:var(--s-1);
     width:100%; max-width:440px; margin:0;
   }
-  .step, .node {
+  .step {
     display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-2);
     min-height:36px; padding:var(--s-1) var(--box-pad);
     border:1px solid var(--on-22); border-radius:var(--r-sm);
@@ -323,20 +316,8 @@
   .step-label { flex:1; font-size:16px; }
   .step-note { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
-
-  .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; flex-shrink:0; }
-  .node-addr:hover { text-decoration:underline; }
-  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); white-space:nowrap; }
-  .node.match { border-color:var(--ink-90); background:var(--veil-strong); }
-  /* The terminal box of a clean result: no address, because there is none. */
-  .node-none { justify-content:center; border-style:dashed; background:transparent; }
-  .node-none .node-role { color:var(--on-62); }
-  .arrow-end::after { content:'↓'; opacity:.5; }
-  .node.match .node-role { color:var(--ink-90); }
   .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; text-decoration:none; }
   .arrow::after { content:'↓'; }
-  a.arrow { color:var(--on-62); cursor:pointer; transition:color .12s, transform .12s; }
-  a.arrow:hover { color:var(--ink-90); transform:scale(1.15); }
 
   .reason { margin-top:var(--s-3); max-width:44ch; color:var(--ink-90); }
   .detail { font-family:var(--mono); font-size:14px; line-height:20px; color:var(--on-62); margin-top:var(--s-15); max-width:64ch; word-break:break-word; }
@@ -389,7 +370,7 @@
     .actions .btn { width:100%; }
     .btn-long { display:none; }
     .card { height:auto; }
-    .steps, .path { max-width:none; }
+    .steps { max-width:none; }
     .h1 { font-size:34px; }
   }
 </style>
@@ -764,7 +745,6 @@ function renderChecking(address) {
                   <span class="step-note"></span>
                 </div>`).join("")}
             </div>
-            <div id="path-slot"></div>
           </div>
         </div>
         <div class="right" id="right-slot">
@@ -844,68 +824,6 @@ async function submit(address) {
 }
 
 /* ── Verdict ─────────────────────────────────────────────────── */
-function roleLabel(node, i, last) {
-  if (node.role === "lazarus") return node.label || "Lazarus Group";
-  if (i === 0) return "Submitted wallet";
-  if (i === last) return "Lazarus Group";
-  return "Intermediary " + i;
-}
-
-function renderPath(r) {
-  const nodes = r.nodes?.length
-    ? r.nodes
-    : (r.path || []).map((a) => ({ address: a, role: "wallet" }));
-
-  // No path means nothing was reached, but the wallet still gets shown, so a
-  // clean result reads as the same panel as a blocked one rather than an
-  // emptier version of it.
-  if (nodes.length < 2) {
-    const only = nodes[0]?.address || r.wallet;
-    if (!only) return "";
-    const role = r.direct_match ? "Lazarus Group" : "Submitted wallet";
-    return `<div class="path">
-      <div class="node ${r.direct_match ? "match" : ""}">
-        <a class="node-addr" href="https://etherscan.io/address/${esc(only)}"
-           target="_blank" rel="noopener" title="${esc(only)}">${esc(short(only))}</a>
-        <span class="node-role">${esc(role)}</span>
-      </div>
-    </div>`;
-  }
-  const last = nodes.length - 1;
-
-  const boxes = nodes.map((n, i) => `
-    <div class="node ${n.role === "lazarus" || i === last ? "match" : ""}">
-      <a class="node-addr" href="https://etherscan.io/address/${esc(n.address)}"
-         target="_blank" rel="noopener" title="${esc(n.address)}">${esc(short(n.address))}</a>
-      <span class="node-role">${esc(roleLabel(n, i, last))}</span>
-    </div>`);
-
-  // Each hop is a transfer; where the screening reported its hash the arrow
-  // links to it, so the claim can be checked rather than taken on trust.
-  const joined = boxes.reduce((acc, box, i) => {
-    if (i === 0) return box;
-    const tx = (r.edges || [])[i - 1]?.tx;
-    const arrow = tx
-      ? `<a class="arrow" href="https://etherscan.io/tx/${esc(tx)}" target="_blank"
-           rel="noopener" title="View this transfer on Etherscan"></a>`
-      : '<span class="arrow" aria-hidden="true"></span>';
-    return acc + arrow + box;
-  }, "");
-  return `<div class="path">${joined}</div>`;
-}
-
-function renderClearedSteps(maxHops) {
-  const shown = STEP_LABELS.filter((_, n) => n <= (maxHops ?? 3));
-  return `<div class="steps">
-    ${shown.map((label, n) => `
-      ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
-      <div class="step clear">
-        <span class="step-label">${esc(label)}</span>
-        <span class="step-note">clear</span>
-      </div>`).join("")}
-  </div>`;
-}
-
 function renderStats(r) {
   const max = r.dataset?.max_hops ?? hops;
   const distance = r.direct_match ? "On the list"
@@ -941,7 +859,7 @@ function renderStats(r) {
 function fillVerdict(r, belowThreshold) {
   const panel = document.getElementById("panel");
   const right = document.getElementById("right-slot");
-  const pathSlot = document.getElementById("path-slot");
+
   const actions = document.getElementById("actions-slot");
   if (!panel || !right) return;
 
@@ -981,16 +899,7 @@ function fillVerdict(r, belowThreshold) {
     <div class="h1">${esc(headline)}</div>
     <p class="reason p-lg">${esc(reason)}</p>
     ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
-`;
-
-  // The addresses go under the steps they came from, so the evidence extends
-  // the scan rather than displacing it.
-  const path = r.status === "SCREENING_FAILED" ? "" : renderPath(r);
-  if (pathSlot && path) {
-    pathSlot.innerHTML = path;
-    pathSlot.classList.add("on");
-  }
+    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}`;
 
   actions.innerHTML = `
     <span class="line"></span>
