@@ -85,6 +85,10 @@
     min-height:0; overflow-y:auto;
   }
   .act { max-width:44ch; }
+  /* The copy crossfades rather than cutting, so the eye follows the argument
+     from one act to the next. */
+  #act-copy { transition:opacity .18s ease, transform .18s ease; }
+  #act-copy.fading { opacity:0; transform:translateY(6px); }
   .act .h6 { color:var(--ink-50); }
   .act .h2 { margin-top:var(--s-2); }
   .act p { margin:var(--s-3) 0 0; color:var(--ink-70); }
@@ -118,10 +122,14 @@
     transition:background .3s, border-color .3s, color .3s, opacity .3s;
   }
   .cn.known { border-color:var(--ink-90); }
+  .cn { transform:translateZ(0); }
   .cn.off   { color:var(--ink-50); opacity:.5; }
   .cn.pass  { background:var(--pass-a); border-color:var(--pass-b); }
   .cn.hit   { background:var(--block-a); border-color:var(--block-b); }
-  .cn-cap { font-size:12px; color:var(--ink-50); text-align:center; min-height:16px; }
+  .cn-cap {
+    font-size:12px; color:var(--ink-50); text-align:center; min-height:16px;
+    transition:color .3s;
+  }
   .cn-link { flex:0 0 var(--s-4); height:1px; background:var(--ink-30); margin-top:var(--s-3); }
 
   /* The bracket spans whole cells, so its width is computed from the count
@@ -129,7 +137,9 @@
   .cn-bracket {
     width:calc((100% - 3 * var(--s-4)) * var(--span) / 4 + (var(--span) - 1) * var(--s-4));
     display:flex; flex-direction:column; align-items:center; gap:var(--s-05);
+    opacity:0; transition:width .42s cubic-bezier(.4,0,.2,1), opacity .3s ease;
   }
+  .cn-bracket.on { opacity:1; }
   .cn-rule { width:100%; height:1px; background:var(--ink-50); }
   .cn-blabel {
     font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
@@ -137,19 +147,23 @@
   }
 
   /* The example wallets sit on the same chain the diagram just explained. */
-  .picker { display:flex; align-items:flex-start; margin-top:var(--s-1); }
-  .pk-cell { display:flex; flex-direction:column; align-items:center; gap:var(--s-05); flex:1; min-width:0; }
+  /* Five two-line labels on one row: the cells need room to breathe and the
+     text needs to wrap inside them rather than spilling past the border. */
+  .picker { display:flex; align-items:flex-start; gap:var(--s-1); margin-top:var(--s-1); }
+  .pk-cell { display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05); flex:1 1 0; min-width:0; }
   .pk {
-    width:100%; min-height:var(--s-6); padding:var(--s-1);
+    width:100%; min-height:56px; padding:var(--s-1) var(--s-05);
+    display:flex; align-items:center; justify-content:center; text-align:center;
     border:1px solid var(--ink-30); border-radius:var(--r-sm);
     background:var(--paper); cursor:pointer; font-family:var(--sans);
-    font-size:14px; font-weight:500; color:var(--ink-90); line-height:18px;
+    font-size:13px; font-weight:500; color:var(--ink-90); line-height:17px;
+    overflow-wrap:anywhere; hyphens:auto;
     transition:border-color .12s, background .12s, color .12s;
   }
   .pk:hover:not(.chosen) { border-color:var(--ink-90); }
   .pk.chosen { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
-  .pk-cap { font-size:12px; color:var(--ink-50); }
-  .pk-link { flex:0 0 var(--s-2); height:1px; background:var(--ink-30); margin-top:var(--s-3); }
+  .pk-cap { font-size:12px; color:var(--ink-50); text-align:center; }
+  .pk-link { display:none; }
 
   .deployed {
     margin-top:auto; padding-top:var(--s-2); border-top:1px solid var(--ink-30);
@@ -192,6 +206,7 @@
   .rail-node.sel { background:var(--ink-90); border-color:var(--ink-90); color:var(--paper); }
   .rail-node.end { background:var(--ink-90); border-color:var(--ink-90); color:var(--paper); }
   button.rail-node { cursor:pointer; transition:border-color .12s, background .12s, color .12s; }
+  span.rail-node { cursor:default; }
   button.rail-node:hover:not(.sel) { background:var(--ink-10); }
   .rail-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
   .rail-link.on { background:var(--ink-90); }
@@ -385,7 +400,10 @@ function money(n) {
   if (n >= 1e3) return "$" + Math.round(n / 1e3) + "k";
   return "$" + Math.round(n);
 }
-const usdLabel = (v) => (v === 0 ? "any amount" : "over " + money(v));
+const usdLabel = (v) =>
+  v === 0 ? "any amount"
+  : v >= 1e6 ? "over $" + (v / 1e6).toFixed(1) + "m"
+  : "over $" + Math.round(v / 1e3) + "k";
 
 /* The deployed contracts, so the policy can be read rather than trusted. */
 const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
@@ -394,9 +412,11 @@ const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
    with those parameters. Selecting one selects which contract the check is
    submitted to, so the rule is fixed onchain before the wallet is screened. */
 const RULES = [
-  { hops: 2, usd: 0 }, { hops: 2, usd: 1000000 },
+  { hops: 1, usd: 0 },
+  { hops: 2, usd: 0 },
   { hops: 3, usd: 0 }, { hops: 3, usd: 1000000 },
 ];
+const HOP_SHOWN = [1, 2, 3];
 const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
 const USD_CHOICES = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
 
@@ -419,7 +439,7 @@ const LABELS = {
 
 let view = "intro";
 let act = 0;
-let hops = 2;
+let hops = 3;
 let usd = 0;
 let inFlight = false;
 let presets = [];
@@ -462,55 +482,113 @@ const flowSteps = () => [
   "An operator quorum attests the decision onchain.",
 ];
 
-function renderChain(a) {
+/* The chain is built once and then only its classes change, so the nodes
+   transition between acts instead of being replaced. Re-rendering the markup
+   would restart every element and nothing would animate. */
+function renderChain() {
   const cells = CHAIN.map((label, i) => `
     <div class="cn-cell">
-      <div class="cn ${a.marks[i]}">${esc(label)}</div>
-      <div class="cn-cap">${esc(a.captions[i] || "")}</div>
+      <div class="cn" data-node="${i}">${esc(label)}</div>
+      <div class="cn-cap" data-cap="${i}"></div>
     </div>`);
   const row = cells.reduce((acc, cell, i) =>
     i === 0 ? cell : acc + '<span class="cn-link"></span>' + cell, "");
+  return `<div class="chain">
+    <div class="cn-row">${row}</div>
+    <div class="cn-bracket" id="bracket" style="--span:0">
+      <span class="cn-rule"></span>
+      <span class="cn-blabel" id="blabel"></span>
+    </div>
+  </div>`;
+}
 
-  // The bracket is what separates the three acts: one node for a list check,
-  // the whole path for the policy.
+/** Move the whole intro to an act: the copy crossfades, the chain restates. */
+function paintAct(n, animate = true) {
+  act = n;
+  const a = ACTS[n];
+
+  const copy = document.getElementById("act-copy");
+  const apply = () => {
+    copy.innerHTML = `
+      <div class="h6">${esc(a.kicker)}</div>
+      <div class="h2">${esc(a.title)}</div>
+      <p class="p-lg">${esc(a.body)}</p>`;
+    copy.classList.remove("fading");
+  };
+  if (animate && copy) {
+    copy.classList.add("fading");
+    setTimeout(apply, 180);
+  } else if (copy) { apply(); }
+
+  // The nodes carry their own transition, so setting the class is the whole
+  // animation. Staggering makes the chain read left to right.
+  CHAIN.forEach((_, i) => {
+    const node = stage.querySelector(`[data-node="${i}"]`);
+    const cap = stage.querySelector(`[data-cap="${i}"]`);
+    const set = () => {
+      if (node) node.className = "cn " + a.marks[i];
+      if (cap) cap.textContent = a.captions[i] || "";
+    };
+    animate ? setTimeout(set, 90 * i) : set();
+  });
+
+  const bracket = document.getElementById("bracket");
+  const blabel = document.getElementById("blabel");
   const b = a.bracket;
-  const bracket = b
-    ? `<div class="cn-bracket" style="--span:${b.span}">
-         <span class="cn-rule"></span>
-         <span class="cn-blabel">${esc(b.label)}</span>
-       </div>`
-    : "";
-  return `<div class="chain"><div class="cn-row">${row}</div>${bracket}</div>`;
+  const settle = () => {
+    bracket.style.setProperty("--span", b ? b.span : 0);
+    bracket.classList.toggle("on", Boolean(b));
+    blabel.textContent = b ? b.label : "";
+  };
+  if (bracket) animate ? setTimeout(settle, 90 * CHAIN.length) : settle();
+
+  stage.querySelectorAll(".act-dot").forEach((d, i) =>
+    d.classList.toggle("on", i === n));
 }
 
 function renderIntro() {
-  const a = ACTS[act];
   stage.className = "stage";
   stage.innerHTML = `
     <div class="intro">
-      <div class="grid intro-grid">
-        <div class="left">
-          <div class="act">
-            <div class="h6">${esc(a.kicker)}</div>
-            <div class="h2">${esc(a.title)}</div>
-            <p class="p-lg">${esc(a.body)}</p>
-            <div class="intro-foot">
-              <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
-              <div class="acts">
-                ${ACTS.map((_, i) => `<button class="act-dot ${i === act ? "on" : ""}"
-                  type="button" data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}
-              </div>
+      <div class="intro-grid">
+        <div class="act">
+          <div id="act-copy"></div>
+          <div class="intro-foot">
+            <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
+            <div class="acts">
+              ${ACTS.map((_, i) => `<button class="act-dot" type="button"
+                data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}
             </div>
           </div>
         </div>
-        <div class="right">${renderChain(a)}</div>
+        <div class="act-figure">${renderChain()}</div>
       </div>
     </div>`;
 
-  document.getElementById("go-console").onclick = () => { view = "console"; renderConsole(); };
+  document.getElementById("go-console").onclick = () => {
+    stopAuto(); view = "console"; renderConsole();
+  };
   stage.querySelectorAll(".act-dot").forEach((b) => {
-    b.onclick = () => { act = Number(b.dataset.act); renderIntro(); };
+    b.onclick = () => { stopAuto(); paintAct(Number(b.dataset.act)); };
   });
+
+  paintAct(act, false);
+  startAuto();
+}
+
+/* The three acts are an argument, so they advance on their own until the
+   reader takes over. Any interaction stops it for good. */
+let autoTimer = null;
+function startAuto() {
+  stopAuto();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  autoTimer = setInterval(() => {
+    if (view !== "intro") return stopAuto();
+    paintAct((act + 1) % ACTS.length);
+  }, 6500);
+}
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
 }
 
 /* ── Console ─────────────────────────────────────────────────── */
@@ -531,27 +609,21 @@ function setRule(nextHops, nextUsd) {
 
 /* The rail is the distance control: reach is what is lit. */
 function renderRail() {
-  const top = Math.max(...HOP_CHOICES);
   const parts = [`<span class="rail-node">You</span>`];
-  for (let n = 1; n <= top; n++) {
+  HOP_SHOWN.forEach((n) => {
     const on = n <= hops;
-    const pickable = HOP_CHOICES.includes(n);
+    const live = HOP_CHOICES.includes(n);
     parts.push(`<span class="rail-link ${on ? "on" : ""}"></span>`);
-    parts.push(pickable
+    parts.push(live
       ? `<button class="rail-node ${on ? "on" : ""} ${n === hops ? "sel" : ""}"
            type="button" data-hops="${n}">${n}</button>`
       : `<span class="rail-node ${on ? "on" : ""}">${n}</span>`);
-  }
-  parts.push(`<span class="rail-link ${hops >= top ? "on" : ""}"></span>`);
+  });
+  const lit = hops >= Math.max(...HOP_SHOWN);
+  parts.push(`<span class="rail-link ${lit ? "on" : ""}"></span>`);
   parts.push(`<span class="rail-node end">Lazarus</span>`);
   return `<div class="rail">${parts.join("")}</div>`;
 }
-
-const HOW = [
-  "The wallet’s transfers are read from the live graph.",
-  (n) => `The scan walks outward up to ${n} ${n === 1 ? "hop" : "hops"}, stopping at the first flagged address.`,
-  "An operator quorum attests the decision onchain.",
-];
 
 function renderConsole(prefill = "", error = "") {
   const ready = presets.filter((p) => p.address);
@@ -594,8 +666,7 @@ function renderConsole(prefill = "", error = "") {
             <div>
               <span class="label">Try a wallet on the chain</span>
               <div class="picker">
-                ${ready.map((p, i) => `
-                  ${i ? '<span class="pk-link"></span>' : ""}
+                ${ready.map((p) => `
                   <div class="pk-cell">
                     <button class="pk" type="button" data-addr="${esc(p.address)}"
                             title="${esc(p.address)}">${esc(LABELS[p.key] || p.label)}</button>

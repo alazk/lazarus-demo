@@ -123,10 +123,10 @@ async function submitToNewton(walletAddress, policy) {
 // so the rule is still fixed on-chain before the evidence is evaluated — the
 // caller picks a policy, it does not supply one.
 const CLIENTS = [
+  { hops: 1, usd: 0,       env: "NEWTON_POLICY_CLIENT_H1V0" },
+  { hops: 2, usd: 0,       env: "NEWTON_POLICY_CLIENT_H2V0" },
   { hops: 3, usd: 0,       env: "NEWTON_POLICY_CLIENT" },
   { hops: 3, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H3V1M" },
-  { hops: 2, usd: 0,       env: "NEWTON_POLICY_CLIENT_H2V0" },
-  { hops: 2, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H2V1M" },
 ];
 
 function configured() {
