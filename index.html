@@ -2,41 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Newton — Lazarus Scan</title>
-<meta name="description" content="Screen an Ethereum wallet for direct or indirect exposure to the Lazarus Group within three hops, and enforce the result as a Newton policy." />
-<meta property="og:title" content="Newton — Lazarus exposure screening" />
-<meta property="og:description" content="Screen the wallet. Trace its exposure. Enforce the result." />
-<meta property="og:type" content="website" />
+<meta name="description" content="Screen a wallet for its distance to a known Lazarus Group address, and have an operator quorum attest the decision onchain." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  /* ── Magic design system ──────────────────────────────────────────────
-     Colour, spacing and type taken from the system rather than invented:
-     8px layout grid, 4px baseline, Inter with a mono face for addresses. */
   :root {
-    /* Ink */
     --ink-90:#1B171A; --ink-70:#77767A; --ink-50:#B0B4BA;
     --ink-30:#E0E0E3; --ink-10:#F0F0FA; --paper:#FFFFFF;
-    /* Brand and semantics */
-    --leaf-50:#00CC8F;
-    --ruby-50:#FC5C36; --ruby-90:#932303;
-    --black:#000000;
 
-    /* Spacing: 1 unit = 8px */
     --s-05:4px; --s-1:8px; --s-15:12px; --s-2:16px; --s-3:24px;
-    --box-pad:16px;   /* horizontal padding inside node, threshold and example boxes */
-    --s-4:32px; --s-5:40px; --s-6:48px;
+    --s-4:32px; --s-5:40px; --s-6:48px; --s-8:64px;
+    --box-pad:16px;
 
-    /* Verdict surfaces, sampled from the sanctions panels */
     --pass-a:#DFFDCF; --pass-b:#B4DCB8;
     --block-a:#FAE1C2; --block-b:#E5BB8F;
     --fail-a:#EFEDEA; --fail-b:#D6D2CD;
 
-    /* Overlays for elements sitting on a tinted surface */
-    --on-22:rgba(27,23,26,.22);
-    --on-35:rgba(27,23,26,.35); --on-62:rgba(27,23,26,.62);
+    --on-22:rgba(27,23,26,.22); --on-35:rgba(27,23,26,.35);
+    --on-62:rgba(27,23,26,.62);
     --veil:rgba(255,255,255,.5); --veil-strong:rgba(255,255,255,.85);
 
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
@@ -55,22 +41,20 @@
   :focus-visible { outline:2px solid var(--ink-90); outline-offset:2px; }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
 
-  /* ── Type scale ─────────────────────────────────────────────── */
   .h1 { font-size:clamp(34px,4.4vw,60px); line-height:1.04; font-weight:700; letter-spacing:-.025em; }
-  .h3 { font-size:clamp(32px,4vw,48px); line-height:1.16; font-weight:700; letter-spacing:-.01em; }
+  .h2 { font-size:clamp(28px,3.2vw,44px); line-height:1.1; font-weight:700; letter-spacing:-.02em; }
   .h4 { font-size:20px; line-height:32px; font-weight:700; }
   .h6 { font-size:12px; line-height:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
-  .p-lg { font-size:18px; line-height:24px; }
+  .p-lg { font-size:18px; line-height:28px; }
   .p-std { font-size:16px; line-height:24px; }
   .p-sm { font-size:14px; line-height:24px; }
   .mono { font-family:var(--mono); }
   .muted { color:var(--ink-70); }
 
-  /* ── Masthead ───────────────────────────────────────────────── */
   .mast {
     background:var(--paper); border:1px solid var(--ink-30); border-radius:var(--r-lg);
     display:flex; align-items:center; justify-content:space-between;
-    gap:var(--s-3); padding:var(--s-15) var(--inset); flex-wrap:wrap;
+    gap:var(--s-3); padding:var(--s-15) var(--inset); flex-wrap:wrap; flex-shrink:0;
   }
   .brand { display:flex; align-items:center; gap:var(--s-2); }
   .wordmark { height:22px; width:auto; color:var(--ink-90); display:block; }
@@ -79,90 +63,127 @@
     padding:var(--s-1) var(--s-2); font-size:12px; font-weight:600;
     letter-spacing:.06em; text-transform:uppercase;
   }
-  .pills { display:flex; gap:var(--s-1); flex-wrap:wrap; }
   .pill {
     display:flex; align-items:center; gap:var(--s-1); height:40px;
     border:1px solid var(--ink-30); border-radius:var(--r-sm);
     padding:0 var(--s-2); background:var(--ink-10);
     font-size:14px; font-weight:500; white-space:nowrap;
   }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--leaf-50); }
+  .dot { width:8px; height:8px; border-radius:50%; background:#00CC8F; }
 
-  /* ── Stage and cards ────────────────────────────────────────── */
   .stage {
     background:var(--paper); border:1px solid var(--ink-30);
     border-radius:var(--r-xl); overflow:hidden; display:flex;
     justify-content:center; flex:1; min-height:0;
   }
+
+  /* ── Intro ──────────────────────────────────────────────────── */
+  .intro {
+    width:100%; display:flex; flex-direction:column; justify-content:center;
+    padding-block:var(--s-5);
+    padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
+    min-height:0; overflow-y:auto;
+  }
+  .act { max-width:44ch; }
+  .act .h6 { color:var(--ink-50); }
+  .act .h2 { margin-top:var(--s-2); }
+  .act p { margin:var(--s-3) 0 0; color:var(--ink-70); }
+  .act p + p { margin-top:var(--s-2); }
+  .intro-foot {
+    display:flex; align-items:center; gap:var(--s-3);
+    margin-top:var(--s-5); flex-wrap:wrap;
+  }
+  .acts { display:flex; gap:var(--s-1); }
+  .act-dot {
+    width:var(--s-4); height:var(--s-05); padding:0; border:none;
+    border-radius:var(--pill); background:var(--ink-30); cursor:pointer;
+    transition:background .2s;
+  }
+  .act-dot.on { background:var(--ink-90); }
+
+  /* ── Console ────────────────────────────────────────────────── */
   .console {
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     align-items:stretch; gap:var(--s-4); align-content:center;
     padding:var(--s-3) var(--inset); max-width:1400px; width:100%; margin:0 auto;
     min-height:0; overflow-y:auto;
   }
-  @media (max-width:860px) { .console { grid-template-columns:1fr; gap:var(--s-3); } }
-  @media (max-height:900px) {
-    body { padding:var(--s-2); gap:var(--s-2); }
-    .console { padding:var(--s-3) var(--inset); gap:var(--s-4); }
-    .card { padding:var(--s-3); }
-    .mast { padding:var(--s-1) var(--inset); }
-    .verdict, .checking { padding-block:var(--s-3); }
-  }
   .col { display:flex; flex-direction:column; gap:var(--s-15); min-width:0; }
   .card {
     display:flex; flex-direction:column; min-height:0; height:100%;
     border-radius:var(--r-md); padding:var(--s-3);
+    background:var(--paper); border:1px solid var(--ink-30);
   }
-  /* The action sits on the card's bottom edge so both columns end level. */
-  .card-check .card-body { flex:1; }
+  .card-body { min-height:0; display:flex; flex-direction:column; }
+  .card-check .card-body { flex:1; gap:var(--s-2); }
 
-  .card-policy { background:var(--paper); border:1px solid var(--ink-30); }
-  .card-check  { background:var(--paper); border:1px solid var(--ink-30); }
-  .card-body {
-    min-height:0; display:flex; flex-direction:column;
-    scrollbar-width:thin; scrollbar-color:var(--ink-30) transparent;
+  .rule { margin:var(--s-2) 0 0; max-width:34ch; font-size:20px; line-height:36px; }
+
+  /* The rail is the distance control: reach is shown by what is lit. */
+  .rail { display:flex; align-items:center; margin-top:var(--s-3); }
+  .rail-node {
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    height:var(--s-4); padding:0 var(--s-15);
+    border:1px solid var(--ink-30); border-radius:var(--r-sm);
+    background:var(--paper); font-family:var(--sans);
+    font-size:12px; font-weight:600; color:var(--ink-50);
   }
-  .card-body::-webkit-scrollbar { width:var(--s-05); }
-  .card-body::-webkit-scrollbar-thumb { background:var(--ink-30); border-radius:var(--r-sm); }
-  .card-check .card-body { gap:var(--s-2); }
+  .rail-node.on { border-color:var(--ink-90); color:var(--ink-90); }
+  .rail-node.sel { background:var(--ink-90); border-color:var(--ink-90); color:var(--paper); }
+  .rail-node.end { background:var(--ink-90); border-color:var(--ink-90); color:var(--paper); }
+  button.rail-node { cursor:pointer; transition:border-color .12s, background .12s, color .12s; }
+  button.rail-node:hover:not(.sel) { background:var(--ink-10); }
+  .rail-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
+  .rail-link.on { background:var(--ink-90); }
 
-
-  /* ── Controls ───────────────────────────────────────────────── */
   .label { font-size:14px; font-weight:500; color:var(--ink-70); }
+  .vals { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
+  .val {
+    flex:1; height:var(--s-4); padding:0 var(--s-15);
+    border:1px solid var(--ink-30); border-radius:var(--r-sm);
+    background:var(--paper); cursor:pointer; font-family:var(--sans);
+    font-size:14px; font-weight:500; color:var(--ink-70);
+    transition:border-color .12s, background .12s, color .12s;
+  }
+  .val:hover:not(.sel) { border-color:var(--ink-90); color:var(--ink-90); }
+  .val.sel { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
+
+  .flow {
+    margin-top:auto; padding-top:var(--s-2); border-top:1px solid var(--ink-30);
+    display:flex; flex-direction:column; gap:var(--s-1);
+  }
+  .flow-row { display:flex; align-items:center; gap:var(--s-15); font-size:14px; color:var(--ink-70); }
+  .flow-n {
+    width:20px; height:20px; flex-shrink:0; border-radius:var(--pill);
+    background:var(--ink-90); color:var(--paper);
+    font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center;
+  }
+
+  .examples { display:flex; flex-wrap:wrap; gap:var(--s-1); }
+  .example {
+    display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+    padding:var(--s-1) var(--s-2); text-align:left;
+    border:1px solid var(--ink-30); background:var(--paper);
+    border-radius:var(--r-sm); font-family:var(--sans); cursor:pointer;
+    transition:border-color .12s, background .12s, color .12s;
+  }
+  .example:hover:not(.chosen) { border-color:var(--ink-90); }
+  .example.chosen { border-color:var(--ink-90); background:var(--ink-90); }
+  .ex-label { font-size:14px; font-weight:500; color:var(--ink-90); }
+  .ex-caption { font-size:12px; color:var(--ink-50); }
+  .example.chosen .ex-label { color:var(--paper); }
+  .example.chosen .ex-caption { color:var(--ink-50); }
+
   .field {
     width:100%; height:48px; border:1px solid var(--ink-50);
     border-radius:var(--r-sm); background:var(--paper);
-    padding:0 var(--s-2); font-family:var(--mono); font-size:16px; color:var(--ink-90);
+    padding:0 var(--box-pad); font-family:var(--mono); font-size:16px; color:var(--ink-90);
   }
   .field::placeholder { color:var(--ink-50); }
   .field:focus { border-color:var(--ink-90); outline:none; box-shadow:0 0 0 var(--s-05) var(--ink-30); }
-  .field.invalid { border-color:var(--ruby-50); }
-  .err { font-size:14px; line-height:20px; color:var(--ruby-90); margin:0; }
+  .field.invalid { border-color:#FC5C36; }
+  .err { font-size:14px; line-height:20px; color:#932303; margin:0; }
   .err:empty { display:none; }
-
-  .examples { display:flex; flex-direction:column; gap:var(--s-1); }
-  .card-check .card-body > div:first-child { flex:1; }
-  .card-check .examples { flex:1; }
-  .example { flex:1; min-height:40px; }
-  .examples { margin-left:calc(var(--box-pad) * -1); width:calc(100% + var(--box-pad)); }
-  .example {
-    display:flex; align-items:center; justify-content:space-between; gap:var(--s-2);
-    width:100%; height:40px; padding:0 var(--box-pad); text-align:left;
-    border:1px solid var(--ink-30); background:var(--paper);
-    border-radius:var(--r-sm); font-family:var(--sans); color:var(--ink-90);
-    cursor:pointer; transition:border-color .12s, background .12s;
-  }
-  .example:hover { border-color:var(--ink-90); background:var(--ink-10); }
-  .example.chosen {
-    border-color:var(--ink-90); background:var(--ink-90); color:var(--paper);
-  }
-  .example.chosen .example-addr { color:var(--ink-50); }
-  .example-name { font-size:14px; font-weight:500; }
-  .example-addr { font-family:var(--mono); font-size:12px; color:var(--ink-70); }
-
-  .divide { display:flex; align-items:center; gap:var(--s-2); margin:var(--s-05) 0; }
-  .divide span:first-child, .divide span:last-child { flex:1; height:1px; background:var(--ink-30); }
-  .divide-text { font-size:14px; color:var(--ink-70); }
 
   .btn {
     border:none; border-radius:var(--pill); cursor:pointer;
@@ -174,21 +195,35 @@
   .btn-lg { min-height:48px; padding:var(--s-15) var(--s-4); font-size:16px; }
   .btn-md { min-height:44px; padding:var(--s-15) var(--s-3); font-size:14px; }
   .btn-primary { background:var(--ink-90); color:var(--paper); }
-  .btn-primary:hover { background:var(--black); }
+  .btn-primary:hover { background:#000; }
   .btn-primary[disabled] { background:var(--ink-50); cursor:default; }
   .btn-tertiary { background:transparent; color:var(--ink-90); border:1px solid var(--ink-90); }
   .btn-tertiary:hover { background:var(--ink-10); }
   .btn-block { width:100%; margin-top:var(--s-2); flex-shrink:0; }
 
-  /* ── Checking ───────────────────────────────────────────────── */
-  /* Matches the height of the verdict's actions row, so both panels
-     centre their grid at the same point. */
-  .checking::after { content:''; display:block; height:100px; flex-shrink:0; }
-  .checking {
+  /* ── Scan and verdict share one frame ───────────────────────── */
+  .checking, .verdict {
     width:100%; display:flex; flex-direction:column; justify-content:center;
     padding-block:var(--s-5);
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
+    min-height:0; overflow-y:auto;
   }
+  /* Matches the verdict's actions row so both centre their grid alike. */
+  .checking::after { content:''; display:block; height:100px; flex-shrink:0; }
+  .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
+  .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
+  .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
+
+  .grid {
+    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr);
+    gap:var(--s-6); align-items:start; width:100%;
+  }
+  .grid.single { grid-template-columns:minmax(0,1fr); }
+  .left { display:flex; align-items:flex-start; min-width:0; }
+  .right { min-width:0; }
+
+  /* The scan rows and the path nodes are one component, so the chain
+     settles into the place the steps occupied rather than replacing them. */
   .steps, .path {
     display:flex; flex-direction:column; align-items:stretch; gap:var(--s-05);
     width:100%; max-width:380px; margin:0;
@@ -200,239 +235,81 @@
     background:var(--veil);
   }
   .step {
-    font-size:16px; color:var(--ink-50); border-color:var(--ink-30);
-    background:var(--paper);
+    font-size:16px; color:var(--ink-50);
+    border-color:var(--ink-30); background:var(--paper);
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
   }
-  .step.active { color:var(--ink-90); border-color:var(--ink-90); }
-  .step.active { animation:pulse 1.2s ease-in-out infinite; }
-  /* A step that came back clean goes green; the one that found the path goes
-     red and the search stops there. */
-  .step.clear {
-    color:var(--ink-90); border-color:var(--pass-b); background:var(--pass-a);
-  }
-
-  .step.hit {
-    color:var(--ink-90); border-color:var(--block-b); background:var(--block-a);
-  }
-
+  .step.active { border-color:var(--ink-90); color:var(--ink-90); animation:pulse 1.2s ease-in-out infinite; }
+  .step.clear { color:var(--ink-90); border-color:var(--pass-b); background:var(--pass-a); }
+  .step.hit   { color:var(--ink-90); border-color:var(--block-b); background:var(--block-a); }
+  .step.below { color:var(--ink-90); border-color:var(--fail-b); background:var(--fail-a); }
   .step.idle { opacity:.35; }
   .step-label { flex:1; font-size:16px; }
   .step-note { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
 
-  /* ── Verdict ────────────────────────────────────────────────── */
-  .verdict {
-    /* Full bleed so the gradient fills the stage, with the content still
-       capped: the padding centres it rather than a max-width that would
-       leave the panel's own background short of the edges.
-       Top-anchored, not centred, so the chain lands exactly where the scan
-       steps were. */
-    width:100%; display:flex; flex-direction:column; justify-content:center;
-    min-height:0; overflow-y:auto;
-    padding-block:var(--s-5);
-    padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
-  }
-  .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
-  .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
-  .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
-  .verdict .h1 { color:var(--ink-90); }
+  .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; flex-shrink:0; }
+  .node-addr:hover { text-decoration:underline; }
+  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); white-space:nowrap; }
+  .node.match { border-color:var(--ink-90); background:var(--veil-strong); }
+  .node.match .node-role { color:var(--ink-90); }
+  .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; text-decoration:none; }
+  .arrow::after { content:'↓'; }
+  a.arrow { color:var(--on-62); cursor:pointer; transition:color .12s, transform .12s; }
+  a.arrow:hover { color:var(--ink-90); transform:scale(1.15); }
+
   .reason { margin-top:var(--s-2); max-width:42ch; color:var(--ink-90); }
+  .detail { font-family:var(--mono); font-size:14px; line-height:20px; color:var(--on-62); margin-top:var(--s-15); max-width:64ch; word-break:break-word; }
 
-  /* The decision reads down the left; the evidence for it sits alongside,
-     which is what fills the width rather than stretching either one. */
-  .v-grid {
-    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr);
-    gap:var(--s-6); align-items:start; width:100%;
-  }
-  /* The scan's heading and the verdict's heading are different sizes; the
-     left column must not shift because of it. */
-  .checking .v-right .h1, .verdict .v-right .h1 { margin-top:0; }
-  .v-grid.single { grid-template-columns:minmax(0,1fr); }
-  .v-left, .v-right { min-width:0; }
-  .v-left { display:flex; align-items:flex-start; }
-  .v-right { min-width:0; }
   .stats {
-    display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
     margin-top:var(--s-4); max-width:520px;
   }
-
   .stat { padding:0 var(--s-3); }
   .stat:first-child { padding-left:0; }
   .stat + .stat { border-left:1px solid var(--on-22); }
   .stat-k { font-size:14px; color:var(--on-62); }
   .stat-v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
+  .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
   .stat-link {
     display:inline-flex; align-items:baseline; gap:var(--s-05);
-    color:var(--ink-90); text-decoration:none;
-    border-bottom:1px solid var(--on-35);
+    color:var(--ink-90); text-decoration:none; border-bottom:1px solid var(--on-35);
   }
   .stat-link:hover { border-color:var(--ink-90); }
   .stat-ext { font-size:14px; font-weight:500; color:var(--on-62); }
-  .detail {
-    font-family:var(--mono); font-size:14px; line-height:20px;
-    color:var(--ink-70); margin-top:var(--s-15); max-width:64ch; word-break:break-word;
-  }
 
-  /* ── Hop ladder ─────────────────────────────────────────────── */
-  .ladder { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
-  @media (max-width:768px) {
-    .ladder { flex-direction:column; }
-    .rung { flex-direction:row; align-items:center; gap:var(--s-15); }
-  }
-
-
-  /* ── Path ───────────────────────────────────────────────────── */
-
-
-  .node.origin { border-color:var(--ink-90); }
-  .node.match  { border-color:var(--ink-90); background:var(--veil-strong); }
-  .node-addr { font-family:var(--mono); font-size:14px; color:var(--ink-90); text-decoration:none; flex-shrink:0; }
-  .node-addr:hover { text-decoration:underline; }
-  .node-role { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--on-62); white-space:nowrap; }
-  .node.match .node-role { color:var(--ink-90); }
-  .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; }
-  .arrow-tx {
-    text-decoration:none; color:var(--on-62); cursor:pointer;
-    transition:color .12s, transform .12s;
-  }
-  .arrow-tx:hover { color:var(--ink-90); transform:scale(1.15); }
-  .arrow::after { content:'↓'; }
-
-
-  .actions {
-    display:flex; align-items:center; gap:var(--s-15);
-    margin:var(--s-4) 0 var(--s-3); flex-wrap:wrap;
-  }
+  .quorum { margin-top:var(--s-3); font-size:14px; color:var(--on-62); }
+  .actions { display:flex; align-items:center; gap:var(--s-15); margin:var(--s-4) 0 0; flex-wrap:wrap; }
   .actions .line { flex:1; min-width:var(--s-4); height:1px; background:var(--on-22); }
-  .party { display:flex; flex-direction:column; gap:var(--s-05); min-width:0; }
 
-  
-/* ── Rules disclosure ───────────────────────────────────────── */
-  .how {
-    margin:var(--s-3) 0 0; padding:0; list-style:none;
-    counter-reset:how; display:flex; flex-direction:column; gap:var(--s-15);
+  @media (max-width:860px) { .console { grid-template-columns:1fr; } }
+  @media (max-height:900px) {
+    body { padding:var(--s-2); gap:var(--s-2); }
+    .console { padding:var(--s-2) var(--inset); gap:var(--s-3); }
+    .card { padding:var(--s-2); }
+    .mast { padding:var(--s-1) var(--inset); }
+    .checking, .verdict, .intro { padding-block:var(--s-3); }
   }
-  .how li {
-    counter-increment:how; position:relative; padding-left:var(--s-4);
-    font-size:14px; line-height:20px; color:var(--ink-70);
-  }
-  .how li::before {
-    content:counter(how); position:absolute; left:0; top:0;
-    width:20px; height:20px; border-radius:var(--pill);
-    background:var(--ink-90); color:var(--paper);
-    font-size:12px; font-weight:600; display:flex;
-    align-items:center; justify-content:center;
-  }
-  .how b { font-weight:600; color:var(--ink-90); }
-
-  .deployed {
-    margin-top:auto; padding-top:var(--s-2);
-    border-top:1px solid var(--ink-30);
-    display:flex; align-items:center; gap:var(--s-1); flex-wrap:wrap;
-  }
-  .fact-link {
-    font-family:var(--mono); font-size:14px; font-weight:500;
-    color:var(--ink-90); text-decoration:none; border-bottom:1px solid var(--ink-30);
-  }
-  .fact-link:hover { border-color:var(--ink-90); }
-
-  /* A hop is one transfer; the diagram says so faster than a sentence. */
-  .hops { display:flex; align-items:center; margin-top:var(--s-2); }
-  .hop {
-    display:flex; align-items:center; justify-content:center;
-    height:var(--s-4); padding:0 var(--s-15); flex-shrink:0;
-    border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    background:var(--paper); font-family:var(--sans);
-  }
-  .hop-n { font-size:12px; font-weight:600; color:var(--ink-50); }
-  /* Reach is shown by which hops are lit, so the diagram is the control. */
-  .hop.on { border-color:var(--ink-90); }
-  .hop.on .hop-n { color:var(--ink-90); }
-  .hop-pick { cursor:pointer; transition:border-color .12s, background .12s; }
-  .hop-pick:hover:not(:disabled) { border-color:var(--ink-90); background:var(--ink-10); }
-  .hop-pick:disabled { cursor:default; opacity:.4; }
-  .hop-pick.sel { background:var(--ink-90); border-color:var(--ink-90); }
-  .hop-pick.sel .hop-n { color:var(--paper); }
-  .hop-end { border-color:var(--ink-90); background:var(--ink-90); }
-  .hop-end .hop-n { color:var(--paper); }
-  .hop-link { flex:1; height:1px; background:var(--ink-30); min-width:var(--s-1); }
-  .hop-link.on { background:var(--ink-90); }
-
-  .stat-note { font-size:12px; color:var(--on-62); margin-top:2px; }
-
-  .choices { display:flex; gap:var(--s-1); margin-top:var(--s-1); flex-wrap:wrap; }
-  .choice { height:var(--s-4); }
-  .choice {
-    flex:1; min-width:96px; height:var(--s-5); padding:0 var(--s-15);
-    border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    background:var(--paper); cursor:pointer;
-    font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink-70);
-    transition:border-color .12s, background .12s, color .12s;
-  }
-  .choice:hover { border-color:var(--ink-90); color:var(--ink-90); }
-  .choice.on { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
-
-  .rule {
-    margin:var(--s-2) 0 0; max-width:34ch;
-    font-size:20px; line-height:36px; color:var(--ink-90);
-  }
-  .pick {
-    display:inline; padding:2px var(--s-1); margin:0 2px;
-    border:none; border-bottom:2px solid var(--ink-30); border-radius:0;
-    background:none; cursor:pointer;
-    font-family:var(--sans); font-size:20px; font-weight:600; color:var(--ink-90);
-    transition:border-color .12s, background .12s;
-  }
-  .pick:hover { border-color:var(--ink-90); background:var(--ink-10); }
-
-  .facts {
-    margin-top:var(--s-2); padding-top:var(--s-2);
-    border-top:1px solid var(--ink-30); display:flex; flex-direction:column; gap:var(--s-1);
-  }
-  .fact { display:flex; justify-content:space-between; gap:var(--s-2); font-size:14px; line-height:24px; }
-  .fact-k { color:var(--ink-70); }
-  .fact-v { font-weight:600; font-variant-numeric:tabular-nums; }
-  .verdict .rules { margin-top:var(--s-5); }
-
-  /* ── Phones ─────────────────────────────────────────────────
-     Below this width the fixed-height page stops making sense: the
-     content is taller than any phone, so the page scrolls normally
-     and the panels stop competing for a fixed box. */
   @media (max-width:620px) {
     html,body { height:auto; overflow:visible; }
     body { height:auto; min-height:100dvh; padding:var(--s-15); gap:var(--s-15); }
     .stage { flex:none; }
     .mast { padding:var(--s-15); gap:var(--s-15); }
     .wordmark { height:20px; }
-    .console { padding:var(--s-3) var(--s-2); overflow:visible; }
-    .verdict, .checking { padding-block:var(--s-3); padding-inline:var(--s-2); overflow:visible; }
-    .v-grid { grid-template-columns:minmax(0,1fr); gap:var(--s-4); }
-    .v-right { padding-top:0; }
+    .console, .checking, .verdict, .intro {
+      padding-block:var(--s-3); padding-inline:var(--s-2); overflow:visible;
+    }
+    .grid { grid-template-columns:minmax(0,1fr); gap:var(--s-4); }
     .stats { grid-template-columns:minmax(0,1fr); gap:var(--s-15); }
-    .how li { font-size:14px; }
-    .card { height:auto; }
-    .example { height:44px; }
-    .deployed { margin-top:var(--s-3); }
-    .fact { flex-wrap:wrap; gap:var(--s-05); }
     .stat, .stat + .stat { border-left:none; padding:0; }
     .stat + .stat { border-top:1px solid var(--on-22); padding-top:var(--s-15); }
-    .actions { gap:var(--s-1); }
-    .actions .line { display:none; }
     .actions { flex-direction:column; align-items:stretch; }
+    .actions .line { display:none; }
     .actions .btn { width:100%; }
     .btn-long { display:none; }
-    /* The checking card was mostly empty space on a phone. */
-    .checking .h1 { font-size:34px; }
-    .checking .h3 { font-size:32px; }
-    .steps { max-width:none; }
-    /* Two threshold cells per row reads better than an orphan on the second. */
-    .path { max-width:none; }
-    .examples { margin-left:0; width:100%; }
-    /* The headline was taking four lines at the largest clamp. */
+    .card { height:auto; }
+    .steps, .path { max-width:none; }
     .h1 { font-size:34px; }
-    .reason { font-size:16px; line-height:24px; }
-
   }
 </style>
 </head>
@@ -443,57 +320,120 @@
     <svg class="wordmark" viewBox="0 0 115.073 24" role="img" aria-label="Newton" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M9.88853 0.248964C10.4764 -0.0829879 11.1963 -0.0829879 11.7842 0.248964L20.7229 5.31822C21.3068 5.64518 21.6698 6.26209 21.6728 6.93199V17.0685C21.6698 17.7384 21.3068 18.3543 20.7229 18.6823L11.7842 23.7495C11.1963 24.0835 10.4764 24.0835 9.88853 23.7495L0.949858 18.6803C0.365945 18.3523 0.00299955 17.7364 0 17.0665V6.92799C0.0039994 6.25909 0.365945 5.64318 0.949858 5.31622L9.88853 0.248964ZM10.5504 1.57277L1.48778 16.9845C1.42279 17.0975 1.42379 17.2365 1.48978 17.3475C1.55577 17.4595 1.67775 17.5274 1.80773 17.5244H19.929C20.058 17.5254 20.179 17.4575 20.244 17.3465C20.309 17.2345 20.31 17.0965 20.245 16.9845L11.1863 1.57277C11.1193 1.46079 10.9984 1.3918 10.8674 1.3918C10.7364 1.3918 10.6154 1.46079 10.5484 1.57277H10.5504ZM15.4277 12.1152C15.4277 14.6209 13.364 16.6486 10.8124 16.6486C8.26277 16.6486 6.19708 14.6209 6.19708 12.1152C6.19708 9.6116 8.26277 7.58389 10.8124 7.58389C13.364 7.58389 15.4297 9.6116 15.4297 12.1152H15.4277ZM8.91267 13.669C8.91267 13.753 8.94667 13.833 9.00566 13.892C9.06565 13.951 9.14664 13.984 9.23062 13.983H12.3942C12.4781 13.984 12.5591 13.951 12.6191 13.892C12.6791 13.834 12.7131 13.753 12.7141 13.669V10.5615C12.7141 10.3895 12.5721 10.2495 12.3962 10.2495H9.23062C9.05265 10.2495 8.91267 10.3895 8.91267 10.5615V13.669Z"/><path fill="currentColor" d="M29.9959 3.00044H32.7435L41.6722 15.7546V3.00244H44.6317V20.9998H41.8841L32.9555 8.24968V21.0018H29.9959V3.00044ZM49.1411 8.51964C50.1269 7.95972 51.2587 7.68376 52.5326 7.68376C53.8044 7.68376 54.9622 7.93973 55.948 8.45365C56.9339 8.96958 57.7118 9.69947 58.2777 10.6393C58.8436 11.5792 59.1376 12.687 59.1536 13.9548C59.1536 14.2988 59.1276 14.6507 59.0736 15.0107H48.9671V15.1647C49.0371 16.3145 49.405 17.2224 50.0669 17.8903C50.7308 18.5582 51.6107 18.8941 52.7125 18.8941C53.5844 18.8941 54.3163 18.6942 54.9122 18.2902C55.5041 17.8863 55.898 17.3164 56.09 16.5805H58.9176C58.6916 17.8863 57.9857 19.0601 56.9379 19.872C55.8661 20.7279 54.5263 21.1578 52.9185 21.1578C51.5247 21.1578 50.3049 20.8778 49.267 20.3219C48.2532 19.789 47.4163 18.9711 46.8594 17.9703C46.2915 16.9584 46.0095 15.7846 46.0095 14.4468C46.0095 13.107 46.2835 11.9051 46.8334 10.8853C47.3833 9.86544 48.1512 9.07556 49.1371 8.51964H49.1411ZM55.1122 10.7293C54.4563 10.1894 53.6324 9.91944 52.6365 9.91944C51.7127 9.91944 50.9128 10.1974 50.2409 10.7533C49.569 11.3092 49.1811 12.0531 49.0751 12.977H56.274C56.154 12.0171 55.7661 11.2692 55.1102 10.7273L55.1122 10.7293ZM62.0811 7.83574L65.1467 17.9143L68.2102 7.83574H70.8018L73.7354 17.9143L76.9049 7.83574H79.7845L75.3332 20.9998H72.2976L69.47 12.0531L66.5385 20.9998L63.4749 21.0258L59.1036 7.83574H62.0871H62.0831H62.0811ZM83.8159 4.16028V7.83574H87.0614V10.2754H83.8159V17.1424C83.8159 17.6563 83.9199 18.0203 84.1298 18.2342C84.3378 18.4482 84.6958 18.5562 85.2037 18.5562H87.3514V20.9978H84.6278C83.352 20.9978 82.4281 20.7059 81.8522 20.1239C81.2783 19.542 80.9883 18.6422 80.9883 17.4243V4.15828H83.8159V4.16028ZM88.4312 17.9543C87.8653 16.9344 87.5813 15.7546 87.5813 14.4188C87.5813 13.079 87.8653 11.9291 88.4312 10.9093C88.9871 9.90044 89.823 9.07356 90.8388 8.52964C91.8787 7.96572 93.0685 7.68176 94.4143 7.68176C95.7581 7.68176 96.9499 7.96172 97.9878 8.52964C99.0256 9.09356 99.8275 9.88744 100.395 10.9093C100.963 11.9291 101.245 13.099 101.245 14.4188C101.245 15.7386 100.961 16.9344 100.395 17.9543C99.8415 18.9611 99.0046 19.783 97.9878 20.3179C96.9479 20.8738 95.7561 21.1538 94.4123 21.1538C93.0685 21.1538 91.8767 20.8738 90.8388 20.3179C89.822 19.783 88.9851 18.9611 88.4312 17.9543ZM98.3697 14.4208C98.3697 13.135 98.0058 12.0851 97.2819 11.2712C96.556 10.4554 95.6021 10.0474 94.4143 10.0474C93.2245 10.0474 92.2746 10.4554 91.5607 11.2712C90.8428 12.0851 90.4849 13.135 90.4849 14.4208C90.4849 15.7066 90.8448 16.7544 91.5607 17.5703C92.2766 18.3842 93.2285 18.7921 94.4143 18.7921C95.6001 18.7921 96.556 18.3842 97.2819 17.5703C98.0058 16.7544 98.3677 15.7066 98.3677 14.4208H98.3697ZM115.071 13.7509V21.0018H112.218V13.9049C112.218 12.653 111.948 11.7012 111.406 11.0513C110.864 10.3994 110.07 10.0754 109.024 10.0754C107.906 10.0754 107.03 10.4574 106.393 11.2212C105.755 11.9831 105.437 13.033 105.437 14.3708V21.0038H102.609V7.83574H105.071L105.385 9.55949C106.399 8.30767 107.828 7.68376 109.68 7.68376C111.268 7.68376 112.566 8.16369 113.567 9.12355C114.571 10.0834 115.073 11.6252 115.073 13.7529L115.071 13.7509Z"/></svg>
     <span class="badge">Lazarus Scan</span>
   </div>
-  <div class="pills">
-    <span class="pill"><span class="dot"></span>Sepolia</span>
-  </div>
+  <div class="pills"><span class="pill"><span class="dot"></span>Sepolia</span></div>
 </div>
 
 <div class="stage" id="stage" aria-live="polite"></div>
 
 <script>
 const stage = document.getElementById("stage");
-const short = (a) => a ? a.slice(0, 6) + "…" + a.slice(-4) : "";
+const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-
 function money(n) {
   if (typeof n !== "number") return null;
-  if (n >= 1e6) return "$" + (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "m";
+  if (n >= 1e6) {
+    const m = n / 1e6;
+    return "$" + (m >= 10 || Number.isInteger(m) ? Math.round(m) : m.toFixed(1)) + "m";
+  }
   if (n >= 1e3) return "$" + Math.round(n / 1e3) + "k";
   return "$" + Math.round(n);
 }
+const usdLabel = (v) => (v === 0 ? "any amount" : "over " + money(v));
 
-const DEFAULT_PRESETS = [
-  { key: "direct", label: "Known Lazarus address", address: "" },
-  { key: "one",    label: "1 hop away",           address: "" },
-  { key: "two",    label: "2 hops away",          address: "" },
-  { key: "three",  label: "3 hops away",          address: "" },
-  { key: "clean",  label: "No exposure",          address: "" },
-];
-let presets = DEFAULT_PRESETS;
-let inFlight = false;
-// Thresholds are separate policy clients, so choosing one chooses which
-// contract the check is submitted to. Picked before screening, never after.
-// The deployed combinations. Each is a policy client; cycling a parameter
-// moves to the next rule that exists rather than one that might not.
+/* The deployed contracts, so the policy can be read rather than trusted. */
+const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
+
+/* Every combination below is a policy client already bound to the policy
+   with those parameters. Selecting one selects which contract the check is
+   submitted to, so the rule is fixed onchain before the wallet is screened. */
 const RULES = [
   { hops: 2, usd: 0 }, { hops: 2, usd: 1000000 },
   { hops: 3, usd: 0 }, { hops: 3, usd: 1000000 },
 ];
+const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
+const USD_CHOICES = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
 
+const ACTS = [
+  { kicker: "Why this exists", title: "The Lazarus Group",
+    body: "A North Korean state hacking operation. They have taken billions from "
+        + "exchanges and bridges, and their addresses are designated by OFAC." },
+  { kicker: "The gap", title: "The money does not stay put.",
+    body: "An address gets designated, but by then the funds left it. Your list "
+        + "check passes, and the wallet you just paid is one transfer from the "
+        + "one on the list." },
+  { kicker: "The policy", title: "Screen the path, not the address.",
+    body: "Lazarus Scan walks the transfer graph outward from the wallet you are "
+        + "paying and reports how far a known address sits, and how much moved "
+        + "along the way.",
+    body2: "Every check is run by independent operators and the signed result "
+         + "written onchain." },
+];
+
+const FLOW = [
+  "Policy contract holds the rule",
+  "Operator quorum screens and signs",
+  "Attestation written onchain",
+];
+
+const STEP_LABELS = [
+  "Checking the wallet itself",
+  "Looking one hop out",
+  "Looking two hops out",
+  "Looking three hops out",
+];
+
+/* Captions say where the wallet sits without naming the verdict. */
+const CAPTIONS = {
+  direct: "on the list", one: "1 hop", two: "2 hops",
+  three: "3 hops", clean: "off the chain",
+};
+const LABELS = {
+  direct: "Lazarus wallet", one: "Direct counterparty", two: "Second degree",
+  three: "Third degree", clean: "No known link",
+};
+
+let view = "intro";
+let act = 0;
 let hops = 2;
 let usd = 0;
-const usdLabel = (v) => (v === 0 ? "any amount" : "over " + money(v));
+let inFlight = false;
+let presets = [];
 
-const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
+/* ── Intro ───────────────────────────────────────────────────── */
+function renderIntro() {
+  const a = ACTS[act];
+  stage.className = "stage";
+  stage.innerHTML = `
+    <div class="intro">
+      <div class="act">
+        <div class="h6">${esc(a.kicker)}</div>
+        <div class="h2">${esc(a.title)}</div>
+        <p class="p-lg">${esc(a.body)}</p>
+        ${a.body2 ? `<p class="p-lg">${esc(a.body2)}</p>` : ""}
+      </div>
+      <div class="intro-foot">
+        <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
+        <div class="acts">
+          ${ACTS.map((_, i) => `<button class="act-dot ${i === act ? "on" : ""}"
+            type="button" data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}
+        </div>
+      </div>
+    </div>`;
 
-/** Move to a deployed rule. A combination with no client is not offered. */
+  document.getElementById("go-console").onclick = () => { view = "console"; renderConsole(); };
+  stage.querySelectorAll(".act-dot").forEach((b) => {
+    b.onclick = () => { act = Number(b.dataset.act); renderIntro(); };
+  });
+}
+
+/* ── Console ─────────────────────────────────────────────────── */
 function setRule(nextHops, nextUsd) {
   let value = nextUsd;
   if (!RULES.some((r) => r.hops === nextHops && r.usd === value)) {
-    // Not every combination is deployed. Fall to the nearest value that is,
-    // rather than refusing the click and appearing broken.
+    // Not every combination has a deployed client. Fall to the nearest that
+    // does rather than refusing the click and looking broken.
     const atHops = RULES.filter((r) => r.hops === nextHops).map((r) => r.usd);
     if (atHops.length === 0) return;
     value = atHops.reduce((best, v) =>
@@ -504,69 +444,20 @@ function setRule(nextHops, nextUsd) {
   renderConsole(document.getElementById("addr")?.value || "");
 }
 
-/** Cycle the value to its next setting that exists at this distance. */
-function cycle() {
-  const values = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
-  for (let i = 1; i <= values.length; i++) {
-    const next = values[(values.indexOf(usd) + i) % values.length];
-    if (RULES.some((r) => r.hops === hops && r.usd === next)) {
-      setRule(hops, next);
-      return;
-    }
-  }
+function renderRail() {
+  const parts = [`<span class="rail-node">You</span>`];
+  HOP_CHOICES.forEach((n) => {
+    const on = n <= hops;
+    parts.push(`<span class="rail-link ${on ? "on" : ""}"></span>`);
+    parts.push(`<button class="rail-node ${on ? "on" : ""} ${n === hops ? "sel" : ""}"
+      type="button" data-hops="${n}">${n}</button>`);
+  });
+  const lit = hops >= Math.max(...HOP_CHOICES);
+  parts.push(`<span class="rail-link ${lit ? "on" : ""}"></span>`);
+  parts.push(`<span class="rail-node end">Lazarus</span>`);
+  return `<div class="rail">${parts.join("")}</div>`;
 }
 
-/** The scan, shown settled, for a result that has no path to draw. */
-function renderClearedSteps(maxHops) {
-  const shown = STEPS.filter((st) => st.key <= maxHops);
-  return `<div class="steps">
-    ${shown.map((st, n) => `
-      ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
-      <div class="step clear">
-        <span class="step-label">${esc(st.label)}</span>
-        <span class="step-note">clear</span>
-      </div>`).join("")}
-  </div>`;
-}
-
-/* ── Decision summary ────────────────────────────────────────────
-   Distance, value and outcome as three figures. The ladder these replace
-   spent a full row rendering a number between zero and three, and the path
-   below says the same thing with evidence attached. */
-function renderStats(r) {
-  const distance = r.direct_match ? "Known address"
-    : r.exposure ? `${r.hop_count} ${r.hop_count === 1 ? "hop" : "hops"}`
-    : "None within 3";
-  const value = r.direct_match ? "—"
-    : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
-  const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
-
-  // The exposure figure is the smallest transfer on the path. Where that is
-  // the wallet's own transfer, the screening reports its hash and the figure
-  // can link to it. Where the smallest transfer is further along the path,
-  // inside the precomputed neighbourhood, no hash was returned and the figure
-  // stays plain rather than linking to the wrong transaction.
-  const tx = (r.edges || [])[0]?.tx;
-  const isFirstEdge = typeof r.first_edge_usd === "number"
-    && r.first_edge_usd === r.exposure_usd;
-  const valueCell = (tx && isFirstEdge)
-    ? `<a class="stat-v stat-link" href="https://etherscan.io/tx/${esc(tx)}"
-         target="_blank" rel="noopener"
-         title="The transfer this figure comes from">${esc(value)} <span class="stat-ext">↗</span></a>`
-    : `<div class="stat-v">${esc(value)}</div>`;
-
-  return `<div class="stats">
-    <div class="stat"><div class="stat-k">Distance</div><div class="stat-v">${esc(distance)}</div>
-      <div class="stat-note">to a known address</div></div>
-    <div class="stat">
-      <div class="stat-k">Smallest transfer</div>${valueCell}
-      <div class="stat-note">on the path above</div></div>
-    <div class="stat"><div class="stat-k">Decision</div><div class="stat-v">${esc(decision)}</div>
-      <div class="stat-note">by operator quorum</div></div>
-  </div>`;
-}
-
-/* ── Console ─────────────────────────────────────────────────── */
 function renderConsole(prefill = "", error = "") {
   const ready = presets.filter((p) => p.address);
   stage.className = "stage";
@@ -574,61 +465,43 @@ function renderConsole(prefill = "", error = "") {
     <div class="console">
       <div class="col">
         <div class="h6 muted">Active policy</div>
-        <div class="card card-policy">
+        <div class="card">
           <div class="card-body">
             <div class="h4">Lazarus Scan</div>
             <p class="rule">
               Block a wallet within <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
-              of a known Lazarus address, on transfers of
-              <button class="pick" id="pick-usd" type="button">${usdLabel(usd)}</button>.
+              of a known Lazarus address, on transfers of <b>${esc(usdLabel(usd))}</b>.
             </p>
-            <p class="p-sm muted" style="margin:var(--s-2) 0 0;max-width:46ch">
-              Both parameters are held on-chain. Changing either selects a
-              different deployed policy, so the rule is fixed before the wallet
-              is screened. The address list is fixed at 7 Sept 2026; the
-              transaction graph is read live.
-            </p>
-
-            <div class="hops" id="hops">
-              <span class="hop hop-you"><span class="hop-n">You</span></span>
-              ${HOP_CHOICES.map((n) => `
-                <span class="hop-link ${n <= hops ? "on" : ""}"></span>
-                <button class="hop hop-pick ${n === hops ? "sel" : ""} ${n <= hops ? "on" : ""}"
-                  type="button" data-hops="${n}"
-                  ${HOP_CHOICES.includes(n) ? "" : "disabled"}>
-                  <span class="hop-n">${n}</span>
-                </button>`).join("")}
-              <span class="hop-link ${hops >= 3 ? "on" : ""}"></span>
-              <span class="hop hop-end"><span class="hop-n">Lazarus</span></span>
+            ${renderRail()}
+            <div class="label" style="margin-top:var(--s-3)">Minimum transfer</div>
+            <div class="vals">
+              ${USD_CHOICES.map((v) => `<button class="val ${v === usd ? "sel" : ""}"
+                type="button" data-usd="${v}">${esc(usdLabel(v))}</button>`).join("")}
             </div>
-            <p class="p-sm muted" style="margin:var(--s-1) 0 0">
-              Click a hop to set how far the scan reaches.
-            </p>
           </div>
-          <div class="deployed">
-            <span class="p-sm muted">Policy</span>
-            <a class="fact-link" href="https://sepolia.etherscan.io/address/${POLICY_ADDRESS}"
-               target="_blank" rel="noopener">${short(POLICY_ADDRESS)}</a>
-            <span class="p-sm muted">·</span>
-            <span class="p-sm muted">Against 3,597 addresses</span>
+          <div class="flow">
+            ${FLOW.map((t, i) => `<div class="flow-row">
+              <span class="flow-n">${i + 1}</span><span>${esc(t)}</span>
+            </div>`).join("")}
           </div>
         </div>
       </div>
+
       <div class="col">
         <div class="h6 muted">Screen a wallet</div>
         <div class="card card-check">
           <div class="card-body">
             ${ready.length ? `
             <div style="display:flex;flex-direction:column;gap:var(--s-1)">
-              <span class="label">Pick an example</span>
+              <span class="label">Try one of these</span>
               <div class="examples">
-                ${ready.map((p) => `<button class="example" type="button" data-addr="${esc(p.address)}">
-                  <span class="example-name">${esc(p.label)}</span>
-                  <span class="example-addr">${esc(short(p.address))}</span>
+                ${ready.map((p) => `<button class="example" type="button"
+                  data-addr="${esc(p.address)}" title="${esc(p.address)}">
+                  <span class="ex-label">${esc(LABELS[p.key] || p.label)}</span>
+                  <span class="ex-caption">${esc(CAPTIONS[p.key] || "")}</span>
                 </button>`).join("")}
               </div>
-            </div>
-            <div class="divide"><span></span><span class="divide-text">or</span><span></span></div>` : ""}
+            </div>` : ""}
             <div style="display:flex;flex-direction:column;gap:var(--s-1)">
               <label class="label" for="addr">Enter any Ethereum address</label>
               <input class="field" id="addr" spellcheck="false" autocomplete="off"
@@ -636,15 +509,20 @@ function renderConsole(prefill = "", error = "") {
               <p class="err" id="err">${esc(error)}</p>
             </div>
           </div>
-          <button class="btn btn-primary btn-lg btn-block" id="go">Run the check</button>
+          <button class="btn btn-primary btn-lg btn-block" id="run">Run the check</button>
         </div>
       </div>
     </div>`;
 
   const input = document.getElementById("addr");
-  const go = document.getElementById("go");
-  // Picking an example fills the field rather than running immediately, so the
-  // address is visible before the check and both inputs stay one flow.
+  const run = document.getElementById("run");
+
+  stage.querySelectorAll(".rail-node[data-hops]").forEach((b) => {
+    b.onclick = () => setRule(Number(b.dataset.hops), usd);
+  });
+  stage.querySelectorAll(".val").forEach((b) => {
+    b.onclick = () => setRule(hops, Number(b.dataset.usd));
+  });
   stage.querySelectorAll(".example").forEach((b) => {
     b.onclick = () => {
       stage.querySelectorAll(".example").forEach((x) => x.classList.remove("chosen"));
@@ -655,64 +533,41 @@ function renderConsole(prefill = "", error = "") {
       sync();
     };
   });
-  // Typing an address clears the chosen example, so the two never disagree.
-  input.addEventListener("input", () => {
-    stage.querySelectorAll(".example").forEach((x) => {
-      x.classList.toggle("chosen", x.dataset.addr === input.value.trim());
-    });
-  });
-  stage.querySelectorAll(".hop-pick").forEach((b) => {
-    b.onclick = () => setRule(Number(b.dataset.hops), usd);
-  });
-  const pickUsd = document.getElementById("pick-usd");
-  if (pickUsd) pickUsd.onclick = () => cycle();
 
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
-  const sync = () => { go.disabled = !valid(input.value); };
+  const sync = () => { run.disabled = !valid(input.value); };
   input.oninput = () => {
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
+    stage.querySelectorAll(".example").forEach((x) =>
+      x.classList.toggle("chosen", x.dataset.addr === input.value.trim()));
     sync();
   };
-  input.onkeydown = (e) => { if (e.key === "Enter" && !go.disabled) go.click(); };
-  go.onclick = () => submit(String(input.value ?? "").trim());
+  input.onkeydown = (e) => { if (e.key === "Enter" && !run.disabled) run.click(); };
+  run.onclick = () => submit(String(input.value ?? "").trim());
   sync();
   if (window.matchMedia("(min-width: 861px)").matches) input.focus();
 }
 
 /* ── Checking ────────────────────────────────────────────────────
-   The screening genuinely works outward from the wallet, so the steps track
-   real stages rather than decorating a wait. When the answer arrives the
-   matching step is marked and the rest clear, which makes the result legible
-   before the verdict panel replaces it. */
-/* The deployed contracts. Shown so the policy can be inspected rather than
-   taken on trust; update these if the policy is redeployed. */
-const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
-const POLICY_CLIENT  = "0xfD054556b4D00D8B0f897b1Ae377ECD17Fccae78";
-
-const STEPS = [
-  { key: 0, label: "Checking the wallet itself" },
-  { key: 1, label: "Looking one hop out" },
-  { key: 2, label: "Looking two hops out" },
-  { key: 3, label: "Looking three hops out" },
-];
-
+   The steps sit in the column the path chain will occupy, so the scan
+   settles into its result rather than being replaced by it. */
 function renderChecking(address) {
   stage.className = "stage";
   stage.innerHTML = `
     <div class="checking">
-      <div class="v-grid">
-        <div class="v-left">
+      <div class="grid">
+        <div class="left">
           <div class="steps">
-            ${STEPS.filter((st) => st.key <= hops).map((st, n) => `
+            ${STEP_LABELS.filter((_, n) => n <= hops).map((label, n) => `
               ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
-              <div class="step ${n === 0 ? "active" : "idle"}" data-step="${st.key}">
-                <span class="step-label">${esc(st.label)}</span>
+              <div class="step ${n === 0 ? "active" : "idle"}" data-step="${n}">
+                <span class="step-label">${esc(label)}</span>
                 <span class="step-note"></span>
               </div>`).join("")}
           </div>
         </div>
-        <div class="v-right">
+        <div class="right">
           <div class="h1">Checking</div>
           <p class="reason p-lg">Tracing the graph outward from this wallet, then
             waiting on an operator quorum.</p>
@@ -725,13 +580,12 @@ function renderChecking(address) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   return {
-    stop() {},
-    /** Walk outward one step at a time. Each step that comes back clean turns
-     *  green; the step that finds the path turns red and the walk stops. */
-    async settle(hop) {
+    /** Walk outward. Clean steps go green; the step that finds the path goes
+     *  peach, or grey when a path exists but sits below the threshold. */
+    async settle(hitAt, kind) {
       const list = rows();
       if (!list.length) return;
-      const hit = (hop === null || hop === undefined) ? list.length : hop;
+      const hit = hitAt === null || hitAt === undefined ? list.length : hitAt;
 
       for (let n = 0; n < list.length; n++) {
         const row = list[n];
@@ -741,14 +595,13 @@ function renderChecking(address) {
         row.classList.remove("active");
 
         if (n === hit) {
-          row.classList.add("hit");
-          row.querySelector(".step-note").textContent = "exposure found";
-          // Anything further out is never reached, so it is not shown as checked.
+          row.classList.add(kind);
+          row.querySelector(".step-note").textContent =
+            kind === "below" ? "below threshold" : "exposure found";
           list.slice(n + 1).forEach((r) => r.classList.add("idle"));
           await wait(850);
           return;
         }
-
         row.classList.add("clear");
         row.querySelector(".step-note").textContent = "clear";
       }
@@ -775,108 +628,153 @@ async function submit(address) {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
       + "&max_hops=" + hops + "&min_usd=" + usd);
     const result = await resp.json();
-    if (result.status === "INVALID_ADDRESS") {
-      search.stop();
-      return renderConsole(address, result.reason);
-    }
-    await search.settle(result.exposure ? result.hop_count : null);
-    renderVerdict(result);
+    if (result.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
+
+    // A path found but allowed means the policy's value threshold let it
+    // through: worth showing as its own outcome, not as a plain pass.
+    const belowThreshold = result.exposure && result.decision === "ALLOW";
+    await search.settle(result.exposure ? result.hop_count : null,
+                        belowThreshold ? "below" : "hit");
+    renderVerdict(result, belowThreshold);
   } catch (e) {
-    search.stop();
     renderVerdict({
       wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
-      reason: "Unable to complete exposure check",
-      detail: String(e.message || e), evaluated_at: new Date().toISOString(),
-    });
+      detail: String(e.message || e),
+    }, false);
   } finally { inFlight = false; }
 }
 
 /* ── Verdict ─────────────────────────────────────────────────── */
-function roleLabel(node, index) {
+function roleLabel(node, i, last) {
   if (node.role === "lazarus") return node.label || "Lazarus Group";
-  if (index === 0) return "Submitted wallet";
-  if (node.role === "service") return node.label || "Service";
-  return "Intermediary " + index;
+  if (i === 0) return "Submitted wallet";
+  if (i === last) return "Lazarus Group";
+  return "Intermediary " + i;
 }
 
-function renderPath(result) {
-  const nodes = result.nodes?.length
-    ? result.nodes
-    : (result.path || []).map((a) => ({ address: a, role: "wallet" }));
+function renderPath(r) {
+  const nodes = r.nodes?.length
+    ? r.nodes
+    : (r.path || []).map((a) => ({ address: a, role: "wallet" }));
   if (nodes.length < 2) return "";
+  const last = nodes.length - 1;
 
-  // Each hop corresponds to a transfer. Where the screening reported the
-  // transaction, the arrow links to it, so the claim can be checked rather
-  // than taken on trust.
-  const txFor = (i) => {
-    const edge = (result.edges || [])[i];
-    return edge?.tx || null;
-  };
-
-  const parts = nodes.map((n, i) => {
-    const cls = i === 0 ? "origin" : (n.role === "lazarus" ? "match" : "");
-    return `<div class="node ${cls}">
+  const boxes = nodes.map((n, i) => `
+    <div class="node ${n.role === "lazarus" || i === last ? "match" : ""}">
       <a class="node-addr" href="https://etherscan.io/address/${esc(n.address)}"
          target="_blank" rel="noopener" title="${esc(n.address)}">${esc(short(n.address))}</a>
-      <span class="node-role">${esc(roleLabel(n, i))}</span>
-    </div>`;
-  });
+      <span class="node-role">${esc(roleLabel(n, i, last))}</span>
+    </div>`);
 
-  const joined = parts.reduce((acc, part, i) => {
-    if (i === 0) return part;
-    const tx = txFor(i - 1);
+  // Each hop is a transfer; where the screening reported its hash the arrow
+  // links to it, so the claim can be checked rather than taken on trust.
+  const joined = boxes.reduce((acc, box, i) => {
+    if (i === 0) return box;
+    const tx = (r.edges || [])[i - 1]?.tx;
     const arrow = tx
-      ? `<a class="arrow arrow-tx" href="https://etherscan.io/tx/${esc(tx)}"
-           target="_blank" rel="noopener" title="View this transfer on Etherscan"></a>`
+      ? `<a class="arrow" href="https://etherscan.io/tx/${esc(tx)}" target="_blank"
+           rel="noopener" title="View this transfer on Etherscan"></a>`
       : '<span class="arrow" aria-hidden="true"></span>';
-    return acc + arrow + part;
+    return acc + arrow + box;
   }, "");
   return `<div class="path">${joined}</div>`;
 }
 
+function renderClearedSteps(maxHops) {
+  const shown = STEP_LABELS.filter((_, n) => n <= (maxHops ?? 3));
+  return `<div class="steps">
+    ${shown.map((label, n) => `
+      ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
+      <div class="step clear">
+        <span class="step-label">${esc(label)}</span>
+        <span class="step-note">clear</span>
+      </div>`).join("")}
+  </div>`;
+}
 
-function renderVerdict(r) {
+function renderStats(r) {
+  const max = r.dataset?.max_hops ?? hops;
+  const distance = r.direct_match ? "Known address"
+    : r.exposure ? `${r.hop_count} ${r.hop_count === 1 ? "hop" : "hops"}`
+    : `None within ${max}`;
+  const value = r.direct_match ? "—"
+    : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
+  const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
+
+  // The figure links to its transfer only when that transfer is the one the
+  // screening reported. When the smallest sits deeper in the path there is
+  // no hash for it, and linking the first edge would point at the wrong one.
+  const tx = (r.edges || [])[0]?.tx;
+  const isFirstEdge = typeof r.first_edge_usd === "number"
+    && r.first_edge_usd === r.exposure_usd;
+  const valueCell = (tx && isFirstEdge)
+    ? `<a class="stat-v stat-link" href="https://etherscan.io/tx/${esc(tx)}"
+         target="_blank" rel="noopener" title="The transfer this figure comes from"
+         >${esc(value)} <span class="stat-ext">↗</span></a>`
+    : `<div class="stat-v">${esc(value)}</div>`;
+
+  return `<div class="stats">
+    <div class="stat"><div class="stat-k">Distance</div>
+      <div class="stat-v">${esc(distance)}</div>
+      <div class="stat-note">to a known address</div></div>
+    <div class="stat"><div class="stat-k">Smallest transfer</div>${valueCell}
+      <div class="stat-note">${r.exposure ? "on the path found" : "no path found"}</div></div>
+    <div class="stat"><div class="stat-k">Decision</div>
+      <div class="stat-v">${esc(decision)}</div>
+      <div class="stat-note">by operator quorum</div></div>
+  </div>`;
+}
+
+function renderVerdict(r, belowThreshold) {
   const attested = r.attestation?.status === "ATTESTED";
+  const max = r.dataset?.max_hops ?? hops;
+  const floor = r.dataset?.min_exposure_usd ?? usd;
+  const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
+  let tone, headline, reason, left = "";
 
-  const failed = r.status === "SCREENING_FAILED";
-  const unattested = r.status === "ATTESTATION_FAILED";
-  let tone, headline, reason, body = { left: "", right: "", foot: "" };
-
-  if (failed) {
+  if (r.status === "SCREENING_FAILED") {
     tone = "fail"; headline = "Screening failed";
-    reason = "The transaction graph could not be read, so the wallet was not screened. "
-           + "The policy denies by default. This is not a finding of exposure.";
-  } else if (unattested) {
+    reason = "The transaction graph could not be read, so the wallet was not "
+           + "screened. The policy denies by default. This is not a finding of exposure.";
+  } else if (r.status === "ATTESTATION_FAILED") {
     tone = "fail"; headline = "Not attested";
-    reason = "The wallet was screened, but the decision could not be attested, so it "
-           + "carries no proof and the policy denies by default.";
-    body = { left: renderPath(r), right: renderStats(r), foot: "" };
+    reason = "The wallet was screened, but the decision could not be attested, "
+           + "so it carries no proof and the policy denies by default.";
+    left = renderPath(r);
+  } else if (belowThreshold) {
+    // A path exists but the policy's floor let it through. Shown as its own
+    // outcome, because collapsing it into a plain pass loses the point.
+    tone = "pass"; headline = "Compliant";
+    reason = `A path exists at ${hopWord(r.hop_count)}, but its smallest transfer `
+           + `of ${money(r.exposure_usd)} is below the ${money(floor)} floor this `
+           + `policy acts on. The transfer may proceed.`;
+    left = renderPath(r);
   } else if (r.exposure) {
-    tone = "block"; headline = "Non&nbsp;Compliant";
+    tone = "block"; headline = "Non Compliant";
     reason = r.direct_match
       ? "This wallet is a known Lazarus Group address. The transfer is blocked."
-      : `This wallet reaches a known Lazarus Group address in ${r.hop_count}`
-        + ` ${r.hop_count === 1 ? "hop" : "hops"}. The transfer is blocked.`;
-    body = { left: renderPath(r), right: renderStats(r), foot: "" };
+      : `This wallet reaches a known Lazarus Group address in ${hopWord(r.hop_count)}. `
+        + "The transfer is blocked.";
+    left = renderPath(r);
   } else {
     tone = "pass"; headline = "Compliant";
-    reason = "No path to a known Lazarus Group address was found within three hops. "
-           + "The transfer may proceed.";
-    body = { left: renderClearedSteps(r.dataset?.max_hops ?? 3),
-             right: renderStats(r), foot: "" };
+    reason = `No path to a known Lazarus Group address was found within `
+           + `${hopWord(max)}. The transfer may proceed.`;
+    left = renderClearedSteps(max);
   }
 
   const detail = r.detail || r.attestation?.detail;
   stage.className = "stage";
   stage.innerHTML = `
     <div class="verdict ${tone}">
-      <div class="v-grid ${body.left ? "" : "single"}">
-        ${body.left ? `<div class="v-left">${body.left}</div>` : ""}
-        <div class="v-right">
-          <div class="h1">${headline}</div>
+      <div class="grid ${left ? "" : "single"}">
+        ${left ? `<div class="left">${left}</div>` : ""}
+        <div class="right">
+          <div class="h1">${esc(headline)}</div>
           <p class="reason p-lg">${esc(reason)}</p>
           ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-          ${body.right}
+          ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
+          ${attested ? `<div class="quorum">Signed by an operator quorum · attested on Sepolia</div>` : ""}
         </div>
       </div>
       <div class="actions">
@@ -885,25 +783,22 @@ function renderVerdict(r) {
         ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
            target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}
       </div>
-      ${body.foot}
     </div>`;
 
-  document.getElementById("again").onclick = () => renderConsole(r.wallet);
-
+  document.getElementById("again").onclick = () => renderConsole(r.wallet || "");
 }
 
-/* ── Boot ────────────────────────────────────────────────────── */
+/* ── Boot ────────────────────────────────────────────────────────
+   Wait for the example wallets before the first paint, with a cap so a slow
+   file cannot hold the page blank. Painting twice shows an empty console. */
 (async function boot() {
   const wallets = fetch("data/demo_wallets.json")
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
-  // Don't let a slow file hold the page hostage, but do avoid painting the
-  // console twice: once empty and once with examples.
-  const timeout = new Promise((r) => setTimeout(() => r(null), 1200));
-  const data = await Promise.race([wallets, timeout]);
+  const data = await Promise.race([wallets, new Promise((r) => setTimeout(() => r(null), 1200))]);
   const loaded = data?.wallets;
-  if (Array.isArray(loaded) && loaded.some((w) => w.address)) presets = loaded;
-  renderConsole();
+  if (Array.isArray(loaded)) presets = loaded.filter((w) => w.address);
+  renderIntro();
 })();
 </script>
 </body>
