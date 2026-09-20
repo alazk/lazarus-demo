@@ -272,7 +272,22 @@
     min-height:0; overflow-y:auto;
   }
   /* Matches the verdict's actions row so both centre their grid alike. */
+  .left-stack { display:flex; flex-direction:column; gap:var(--s-3); width:100%; }
+  #path-slot {
+    max-height:0; opacity:0; overflow:hidden;
+    transition:max-height .5s ease, opacity .4s ease .1s;
+  }
+  #path-slot.on { max-height:520px; opacity:1; }
+  .path-label {
+    font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--on-62); margin-bottom:var(--s-1);
+  }
+  /* The actions only exist once there is a decision to act on. */
+  #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
+  #actions-slot.on { margin:var(--s-4) 0 0; opacity:1; }
+
   .checking::after { content:''; display:block; height:100px; flex-shrink:0; }
+  .verdict { transition:background .55s ease; }
   .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
   .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
@@ -301,8 +316,10 @@
     font-size:16px; color:var(--ink-50);
     border-color:var(--ink-30); background:var(--paper);
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
+    transition:opacity .25s, border-color .2s, color .2s, background .2s;
   }
   .step.active { border-color:var(--ink-90); color:var(--ink-90); animation:pulse 1.2s ease-in-out infinite; }
+  .settled .step.active { animation:none; }
   .step.clear { color:var(--ink-90); border-color:var(--pass-b); background:var(--pass-a); }
   .step.hit   { color:var(--ink-90); border-color:var(--block-b); background:var(--block-a); }
   .step.below { color:var(--ink-90); border-color:var(--fail-b); background:var(--fail-a); }
@@ -729,31 +746,37 @@ function renderConsole(prefill = "", error = "") {
   if (window.matchMedia("(min-width: 861px)").matches) input.focus();
 }
 
-/* ── Checking ────────────────────────────────────────────────────
-   The steps sit in the column the path chain will occupy, so the scan
-   settles into its result rather than being replaced by it. */
+/* ── Checking, then the verdict in the same frame ────────────────
+   One panel for both. The scan runs in the left column and stays exactly
+   where it is; when the outcome lands the panel takes its colour and the
+   right column fills in. Nothing moves, so the result reads as the scan
+   resolving rather than as a new screen. */
 function renderChecking(address) {
   stage.className = "stage";
   stage.innerHTML = `
-    <div class="checking">
+    <div class="verdict" id="panel">
       <div class="grid">
         <div class="left">
-          <div class="steps">
-            ${STEP_LABELS.filter((_, n) => n <= hops).map((label, n) => `
-              ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
-              <div class="step ${n === 0 ? "active" : "idle"}" data-step="${n}">
-                <span class="step-label">${esc(label)}</span>
-                <span class="step-note"></span>
-              </div>`).join("")}
+          <div class="left-stack">
+            <div class="steps">
+              ${STEP_LABELS.filter((_, n) => n <= hops).map((label, n) => `
+                ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
+                <div class="step ${n === 0 ? "active" : "idle"}" data-step="${n}">
+                  <span class="step-label">${esc(label)}</span>
+                  <span class="step-note"></span>
+                </div>`).join("")}
+            </div>
+            <div id="path-slot"></div>
           </div>
         </div>
-        <div class="right">
+        <div class="right" id="right-slot">
           <div class="h1">Checking</div>
           <p class="reason p-lg">Tracing the graph outward from this wallet, then
             waiting on an operator quorum.</p>
           <div class="mono p-sm" style="word-break:break-all;margin-top:var(--s-3);color:var(--on-62)">${esc(address)}</div>
         </div>
       </div>
+      <div class="actions" id="actions-slot"></div>
     </div>`;
 
   const rows = () => [...stage.querySelectorAll(".step")];
@@ -766,26 +789,24 @@ function renderChecking(address) {
       const list = rows();
       if (!list.length) return;
       const hit = hitAt === null || hitAt === undefined ? list.length : hitAt;
-
       for (let n = 0; n < list.length; n++) {
         const row = list[n];
         row.classList.remove("idle");
         row.classList.add("active");
         await wait(430);
         row.classList.remove("active");
-
         if (n === hit) {
           row.classList.add(kind);
           row.querySelector(".step-note").textContent =
             kind === "below" ? "below threshold" : "exposure found";
           list.slice(n + 1).forEach((r) => r.classList.add("idle"));
-          await wait(850);
+          await wait(700);
           return;
         }
         row.classList.add("clear");
         row.querySelector(".step-note").textContent = "clear";
       }
-      await wait(650);
+      await wait(550);
     },
   };
 }
@@ -810,14 +831,14 @@ async function submit(address) {
     const result = await resp.json();
     if (result.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
 
-    // A path found but allowed means the policy's value threshold let it
-    // through: worth showing as its own outcome, not as a plain pass.
+    // A path found but allowed means the policy's value floor let it through:
+    // its own outcome, not a plain pass.
     const belowThreshold = result.exposure && result.decision === "ALLOW";
     await search.settle(result.exposure ? result.hop_count : null,
                         belowThreshold ? "below" : "hit");
-    renderVerdict(result, belowThreshold);
+    fillVerdict(result, belowThreshold);
   } catch (e) {
-    renderVerdict({
+    fillVerdict({
       wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
       detail: String(e.message || e),
     }, false);
@@ -905,12 +926,20 @@ function renderStats(r) {
   </div>`;
 }
 
-function renderVerdict(r, belowThreshold) {
+/** Fill the panel the scan is already sitting in: colour it, write the right
+ *  column, add the path below the settled steps. The steps do not move. */
+function fillVerdict(r, belowThreshold) {
+  const panel = document.getElementById("panel");
+  const right = document.getElementById("right-slot");
+  const pathSlot = document.getElementById("path-slot");
+  const actions = document.getElementById("actions-slot");
+  if (!panel || !right) return;
+
   const attested = r.attestation?.status === "ATTESTED";
   const max = r.dataset?.max_hops ?? hops;
   const floor = r.dataset?.min_exposure_usd ?? usd;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
-  let tone, headline, reason, left = "";
+  let tone, headline, reason;
 
   if (r.status === "SCREENING_FAILED") {
     tone = "fail"; headline = "Screening failed";
@@ -920,51 +949,47 @@ function renderVerdict(r, belowThreshold) {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, "
            + "so it carries no proof and the policy denies by default.";
-    left = renderPath(r);
   } else if (belowThreshold) {
-    // A path exists but the policy's floor let it through. Shown as its own
-    // outcome, because collapsing it into a plain pass loses the point.
     tone = "pass"; headline = "Compliant";
     reason = `A path exists at ${hopWord(r.hop_count)}, but its smallest transfer `
            + `of ${money(r.exposure_usd)} is below the ${money(floor)} floor this `
-           + `policy acts on. The transfer may proceed.`;
-    left = renderPath(r);
+           + "policy acts on. The transfer may proceed.";
   } else if (r.exposure) {
     tone = "block"; headline = "Non Compliant";
     reason = r.direct_match
       ? "This wallet is a known Lazarus Group address. The transfer is blocked."
       : `This wallet reaches a known Lazarus Group address in ${hopWord(r.hop_count)}. `
         + "The transfer is blocked.";
-    left = renderPath(r);
   } else {
     tone = "pass"; headline = "Compliant";
     reason = `No path to a known Lazarus Group address was found within `
            + `${hopWord(max)}. The transfer may proceed.`;
-    left = renderClearedSteps(max);
   }
 
-  const detail = r.detail || r.attestation?.detail;
-  stage.className = "stage";
-  stage.innerHTML = `
-    <div class="verdict ${tone}">
-      <div class="grid ${left ? "" : "single"}">
-        ${left ? `<div class="left">${left}</div>` : ""}
-        <div class="right">
-          <div class="h1">${esc(headline)}</div>
-          <p class="reason p-lg">${esc(reason)}</p>
-          ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-          ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
-          ${attested ? `<div class="quorum">Signed by an operator quorum · attested on Sepolia</div>` : ""}
-        </div>
-      </div>
-      <div class="actions">
-        <span class="line"></span>
-        <button class="btn btn-tertiary btn-md" id="again">New check</button>
-        ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-           target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}
-      </div>
-    </div>`;
+  panel.classList.add(tone, "settled");
 
+  const detail = r.detail || r.attestation?.detail;
+  right.innerHTML = `
+    <div class="h1">${esc(headline)}</div>
+    <p class="reason p-lg">${esc(reason)}</p>
+    ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
+    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
+    ${attested ? `<div class="quorum">Signed by an operator quorum · attested on Sepolia</div>` : ""}`;
+
+  // The addresses go under the steps they came from, so the evidence extends
+  // the scan rather than displacing it.
+  const path = renderPath(r);
+  if (pathSlot && path) {
+    pathSlot.innerHTML = `<div class="path-label">The path found</div>${path}`;
+    pathSlot.classList.add("on");
+  }
+
+  actions.innerHTML = `
+    <span class="line"></span>
+    <button class="btn btn-tertiary btn-md" id="again">New check</button>
+    ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
+       target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}`;
+  actions.classList.add("on");
   document.getElementById("again").onclick = () => renderConsole(r.wallet || "");
 }
 
