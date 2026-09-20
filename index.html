@@ -525,10 +525,11 @@ const ACTS = [
     marks: ["known", "off", "off", "off"],
     captions: ["on the list", "", "", "the wallet you pay"] },
 
-  { kicker: "The gap", title: "The money does not stay put.",
-    body: "An address gets designated, but by then the funds left it. Your list "
-        + "check passes, and the wallet you just paid is one transfer from the "
-        + "one on the list.",
+  { kicker: "The gap", title: "A list checks one address.",
+    body: "It compares the wallet you are paying against a set of designated "
+        + "addresses. But the money moved along a path. The wallet is not on "
+        + "the list, it is one transfer from a wallet that is, and a list check "
+        + "cannot tell you that.",
     marks: ["hit", "pass", "pass", "pass"],
     captions: ["caught", "clears", "clears", "clears the list"],
     bracket: { span: 1, label: "What a list covers" } },
