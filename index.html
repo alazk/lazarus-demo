@@ -316,6 +316,39 @@
   .step-label { flex:1; font-size:16px; }
   .step-note { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  @keyframes settleIn { from { opacity:0; transform:translateY(-4px) scale(.99); } to { opacity:1; transform:none; } }
+
+  /* The steps arrive in sequence, so the scan looks like it is being built
+     rather than appearing all at once. */
+  .steps .step { animation:rise .34s ease backwards; }
+  .steps .step:nth-child(1) { animation-delay:.02s; }
+  .steps .step:nth-child(3) { animation-delay:.08s; }
+  .steps .step:nth-child(5) { animation-delay:.14s; }
+  .steps .step:nth-child(7) { animation-delay:.20s; }
+  .steps .arrow { animation:rise .34s ease backwards .1s; }
+
+  /* The verdict settles into the panel the scan left behind. */
+  .right .h1, .right .reason, .right .stats, .right .detail { animation:settleIn .4s ease backwards; }
+  .right .reason { animation-delay:.06s; }
+  .right .stats  { animation-delay:.12s; }
+
+  /* Each figure counts in just after the one before it. */
+  .stat { animation:rise .36s ease backwards; }
+  .stat:nth-child(1) { animation-delay:.14s; }
+  .stat:nth-child(2) { animation-delay:.20s; }
+  .stat:nth-child(3) { animation-delay:.26s; }
+
+  /* The console's two cards arrive together but not abruptly. */
+  .console .col { animation:rise .4s ease backwards; }
+  .console .col:nth-child(2) { animation-delay:.07s; }
+
+  /* The intro figure follows its copy. */
+  .act-figure { animation:rise .45s ease backwards .1s; }
+  .cn-cell { animation:rise .4s ease backwards; }
+  .cn-cell:nth-child(3) { animation-delay:.06s; }
+  .cn-cell:nth-child(5) { animation-delay:.12s; }
+  .cn-cell:nth-child(7) { animation-delay:.18s; }
   .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; text-decoration:none; }
   .arrow::after { content:'↓'; }
 
@@ -349,6 +382,14 @@
     .mast { padding:var(--s-1) var(--inset); }
     .checking, .verdict, .intro { padding-block:var(--s-3); }
   }
+  /* Tablets: two columns are too narrow side by side before the phone rules
+     take over, so they stack earlier. */
+  @media (max-width:900px) {
+    .intro-grid { grid-template-columns:minmax(0,1fr); gap:var(--s-4); }
+    .act { max-width:none; }
+    .grid { grid-template-columns:minmax(0,1fr); gap:var(--s-4); }
+  }
+
   @media (max-width:620px) {
     html,body { height:auto; overflow:visible; }
     body { height:auto; min-height:100dvh; padding:var(--s-15); gap:var(--s-15); }
@@ -372,6 +413,26 @@
     .card { height:auto; }
     .steps { max-width:none; }
     .h1 { font-size:34px; }
+    .h2 { font-size:28px; line-height:1.14; }
+    .intro, .console, .checking, .verdict { min-height:0; }
+    /* The chain becomes a vertical list: four boxes across is unreadable. */
+    .cn { min-height:44px; font-size:13px; }
+    .cn-cap { text-align:left; }
+    .cn-cell { align-items:stretch; }
+    /* The wallet picker wraps to a grid instead of five columns. */
+    .picker { flex-wrap:wrap; }
+    .pk-cell { flex:1 1 calc(50% - var(--s-1)); }
+    .pk { min-height:48px; font-size:13px; }
+    .rail-node { padding:0 var(--s-1); font-size:11px; }
+    .rail-link { min-width:var(--s-05); }
+    .vals { flex-direction:column; }
+    .val { width:100%; }
+    .rule { font-size:18px; line-height:28px; }
+    .intro-foot { gap:var(--s-15); }
+    .intro-foot .btn { flex:1 1 auto; }
+    .step { min-height:44px; }
+    .step-label { font-size:15px; }
+    .field { font-size:16px; }
   }
 </style>
 </head>
@@ -557,7 +618,7 @@ function renderIntro() {
           <div id="act-copy"></div>
           <div class="intro-foot">
             <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
-            <button class="btn btn-tertiary btn-md" id="next-act">Next ↓</button>
+            <button class="btn btn-tertiary btn-md" id="next-act">Next</button>
             <div class="acts">
               ${ACTS.map((_, i) => `<button class="act-dot" type="button"
                 data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}
@@ -572,7 +633,11 @@ function renderIntro() {
     stopAuto(); view = "console"; renderConsole();
   };
   const next = document.getElementById("next-act");
-  if (next) next.onclick = () => { stopAuto(); paintAct((act + 1) % ACTS.length); };
+  if (next) next.onclick = () => {
+    stopAuto();
+    if (act >= ACTS.length - 1) { view = "console"; renderConsole(); return; }
+    paintAct(act + 1);
+  };
   stage.querySelectorAll(".act-dot").forEach((b) => {
     b.onclick = () => { stopAuto(); paintAct(Number(b.dataset.act)); };
   });
@@ -589,7 +654,13 @@ function startAuto() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   autoTimer = setInterval(() => {
     if (view !== "intro") return stopAuto();
-    paintAct((act + 1) % ACTS.length);
+    if (act >= ACTS.length - 1) {
+      stopAuto();
+      view = "console";
+      renderConsole();
+      return;
+    }
+    paintAct(act + 1);
   }, 5000);
 }
 function stopAuto() {
