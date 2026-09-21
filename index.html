@@ -18,8 +18,8 @@
     --s-4:32px; --s-5:40px; --s-6:48px; --s-8:64px;
     --box-pad:16px;
 
-    --pass-a:#DFFDCF; --pass-b:#B4DCB8;
-    --block-a:#FAE1C2; --block-b:#E5BB8F;
+    --pass-a:#DFFDCF; --pass-b:#B4DCB8; --pass-edge:#5FAE6E;
+    --block-a:#FAE1C2; --block-b:#E5BB8F; --block-edge:#C9772E;
     --fail-a:#EFEDEA; --fail-b:#D6D2CD;
 
     --on-22:rgba(27,23,26,.22); --on-35:rgba(27,23,26,.35);
@@ -92,7 +92,10 @@
   .act { max-width:44ch; }
   /* The copy crossfades rather than cutting, so the eye follows the argument
      from one act to the next. */
-  #act-copy { transition:opacity .18s ease, transform .18s ease; }
+  #act-copy {
+    transition:opacity .22s ease, transform .22s ease;
+    min-height:clamp(260px, 30vh, 340px);
+  }
   #act-copy.fading { opacity:0; transform:translateY(6px); }
   .act .h6 { color:var(--ink-50); }
   .act .h2 { margin-top:var(--s-2); }
@@ -233,16 +236,6 @@
   .rail-cell:has(.sel) .rail-cap { color:var(--ink-90); font-weight:600; }
 
   .label { font-size:14px; font-weight:500; color:var(--ink-70); }
-  .vals { display:flex; gap:var(--s-1); margin-top:var(--s-1); }
-  .val {
-    flex:1; height:var(--s-4); padding:0 var(--s-15);
-    border:1px solid var(--ink-30); border-radius:var(--r-sm);
-    background:var(--paper); cursor:pointer; font-family:var(--sans);
-    font-size:14px; font-weight:500; color:var(--ink-70);
-    transition:border-color .12s, background .12s, color .12s;
-  }
-  .val:hover:not(.sel) { border-color:var(--ink-90); color:var(--ink-90); }
-  .val.sel { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
 
   .flow-row {
     display:flex; align-items:flex-start; gap:var(--s-15);
@@ -286,17 +279,16 @@
   /* ── Scan and verdict share one frame ───────────────────────── */
   .intro, .console, .checking, .verdict { min-height:560px; }
   .checking, .verdict {
-    width:100%; display:flex; flex-direction:column; justify-content:center;
-    padding-block:var(--s-5);
+    width:100%; display:flex; flex-direction:column; justify-content:flex-start;
+    padding-block:clamp(var(--s-5), 9vh, 112px) var(--s-5);
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
     min-height:0; overflow-y:auto;
-  }
-  /* Matches the verdict's actions row so both centre their grid alike. */  /* The actions only exist once there is a decision to act on. */
-  #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
+  }  #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
   #actions-slot.on { margin:var(--s-4) 0 0; opacity:1; }
 
-  .checking::after { content:''; display:block; height:100px; flex-shrink:0; }
-  .verdict { transition:background .55s ease; }
+  .verdict { transition:background .7s cubic-bezier(.4,0,.2,1); }
+  #right-slot { transition:opacity .22s ease, transform .22s ease; }
+  #right-slot.swapping { opacity:0; transform:translateY(6px); }
   .verdict.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); }
   .verdict.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); }
   .verdict.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); }
@@ -307,7 +299,7 @@
   }
   .grid.single { grid-template-columns:minmax(0,1fr); }
   .left { display:flex; align-items:flex-start; min-width:0; }
-  .right { min-width:0; }
+  .right { min-width:0; min-height:300px; }
 
   /* The scan rows and the path nodes are one component, so the chain
      settles into the place the steps occupied rather than replacing them. */
@@ -331,8 +323,9 @@
   .settled .step.active { animation:none; }
   .step.waiting .step-note { animation:pulse 1.4s ease-in-out infinite; }
   .settled .step.waiting .step-note { animation:none; }
-  .step.clear { color:var(--ink-90); border-color:var(--pass-b); background:var(--pass-a); }
-  .step.hit   { color:var(--ink-90); border-color:var(--block-b); background:var(--block-a); }
+  .step.clear { color:var(--ink-90); border-color:var(--pass-edge); background:var(--pass-a); }
+  .step.hit   { color:var(--ink-90); border-color:var(--block-edge); background:var(--block-a);
+                box-shadow:inset 3px 0 0 var(--block-edge); }
   .step.below { color:var(--ink-90); border-color:var(--fail-b); background:var(--fail-a); }
   .step.idle { opacity:.35; }
   .step-label { flex:1; font-size:16px; }
@@ -448,8 +441,6 @@
     .rail-node { padding:0 var(--s-1); font-size:11px; }
     .rail-cap { font-size:10px; white-space:normal; }
     .rail-link { min-width:var(--s-05); }
-    .vals { flex-direction:column; }
-    .val { width:100%; }
     .rule { font-size:18px; line-height:28px; }
     .intro-foot { gap:var(--s-15); }
     .intro-foot .btn { flex:1 1 auto; }
@@ -498,9 +489,7 @@ const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
    with those parameters. Selecting one selects which contract the check is
    submitted to, so the rule is fixed onchain before the wallet is screened. */
 const RULES = [
-  { hops: 1, usd: 0 },
-  { hops: 2, usd: 0 },
-  { hops: 3, usd: 0 }, { hops: 3, usd: 1000000 },
+  { hops: 1, usd: 0 }, { hops: 2, usd: 0 }, { hops: 3, usd: 0 },
 ];
 const HOP_SHOWN = [1, 2, 3];
 const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
@@ -550,7 +539,7 @@ const ACTS = [
     bracket: { span: 1, label: "What a list covers" } },
 
   { kicker: "The policy", title: "Screen the path, not the address.",
-    body: "Lazarus Scan walks the transfer graph outward from the wallet you are "
+    body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
         + "paying and reports how far a known address sits, and how much moved "
         + "along the way.",
     marks: ["hit", "hit", "hit", "hit"],
@@ -600,7 +589,7 @@ function paintAct(n, animate = true) {
   };
   if (animate && copy) {
     copy.classList.add("fading");
-    setTimeout(apply, 180);
+    setTimeout(apply, 220);
   } else if (copy) { apply(); }
 
   // The nodes carry their own transition, so setting the class is the whole
@@ -749,11 +738,6 @@ function renderConsole(prefill = "", error = "") {
             <p class="p-sm muted" style="margin:var(--s-2) 0 0">
               Each step is one transfer. Click a hop to set how far the scan reaches.
             </p>
-            <div class="label" style="margin-top:var(--s-3)">Minimum transfer on that path</div>
-            <div class="vals">
-              ${USD_CHOICES.map((v) => `<button class="val ${v === usd ? "sel" : ""}"
-                type="button" data-usd="${v}" aria-pressed="${v === usd}">${esc(usdLabel(v))}</button>`).join("")}
-            </div>
           </div>
         </div>
       </div>
@@ -799,9 +783,7 @@ function renderConsole(prefill = "", error = "") {
   stage.querySelectorAll(".rail-node[data-hops]").forEach((b) => {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
   });
-  stage.querySelectorAll(".val").forEach((b) => {
-    b.onclick = () => setRule(hops, Number(b.dataset.usd));
-  });
+
   stage.querySelectorAll(".pk").forEach((b) => {
     b.onclick = () => {
       stage.querySelectorAll(".pk").forEach((x) => {
@@ -933,9 +915,9 @@ async function submit(address) {
     const belowThreshold = result.exposure && result.decision === "ALLOW";
     await search.settle(result.exposure ? result.hop_count : null,
                         belowThreshold ? "below" : "hit");
-    fillVerdict(result, belowThreshold);
+    await fillVerdict(result, belowThreshold);
   } catch (e) {
-    fillVerdict({
+    await fillVerdict({
       wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
       detail: String(e.message || e),
     }, false);
@@ -975,7 +957,7 @@ function renderStats(r) {
 
 /** Fill the panel the scan is already sitting in: colour it, write the right
  *  column, add the path below the settled steps. The steps do not move. */
-function fillVerdict(r, belowThreshold) {
+async function fillVerdict(r, belowThreshold) {
   const panel = document.getElementById("panel");
   const right = document.getElementById("right-slot");
 
@@ -1011,6 +993,8 @@ function fillVerdict(r, belowThreshold) {
            + `${hopWord(max)}.`;
   }
 
+  right.classList.add("swapping");
+  await new Promise((r) => setTimeout(r, 220));
   panel.classList.add(tone, "settled");
   document.title = `${headline} · Lazarus Scan`;
   // The scan's last note said it was waiting; the verdict answers that.
@@ -1029,6 +1013,7 @@ function fillVerdict(r, belowThreshold) {
     <p class="reason p-lg">${esc(reason)}</p>
     ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}`;
+  requestAnimationFrame(() => right.classList.remove("swapping"));
 
   actions.innerHTML = `
     <span class="line"></span>
