@@ -323,17 +323,50 @@
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
     transition:opacity .25s, border-color .2s, color .2s, background .2s;
   }
-  .step.active { border-color:var(--ink-90); color:var(--ink-90); animation:pulse 1.2s ease-in-out infinite; }
+  .step { position:relative; overflow:hidden; align-items:center; }
+  .step.active { border-color:var(--ink-90); color:var(--ink-90); }
+  /* A band of light crosses the row while it is being checked, which reads
+     as work happening; the old opacity pulse read as a loading glitch. */
+  .step.active::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent 0%, var(--ink-10) 45%,
+               rgba(255,255,255,.9) 50%, var(--ink-10) 55%, transparent 100%);
+    background-size:220% 100%;
+    animation:sweep 1.1s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes sweep { from { background-position:120% 0; } to { background-position:-120% 0; } }
   .settled .step.active { animation:none; }
   .step.waiting .step-note { animation:pulse 1.4s ease-in-out infinite; }
   .settled .step.waiting .step-note { animation:none; }
   .step.clear { color:var(--ink-90); border-color:var(--pass-edge); background:var(--pass-a); }
-  .step.hit   { color:var(--ink-90); border-color:var(--block-edge); background:var(--block-a);
-                box-shadow:inset 3px 0 0 var(--block-edge); }
+  .step { border-width:1.5px; }
+  .step.hit   { color:var(--ink-90); border-color:var(--block-edge); background:var(--block-a); }
   .step.below { color:var(--ink-90); border-color:var(--fail-b); background:var(--fail-a); }
   .step.idle { opacity:.35; }
-  .step-label { flex:1; font-size:16px; }
-  .step-note { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+  .step-icon {
+    position:relative; z-index:1; flex-shrink:0;
+    width:18px; height:18px; border-radius:var(--pill);
+    border:1.5px solid var(--ink-30); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; line-height:1;
+    transition:background .25s, border-color .25s, color .25s, transform .25s;
+  }
+  .step.active .step-icon { border-color:var(--ink-90); }
+  .step.clear .step-icon { background:var(--pass-edge); border-color:var(--pass-edge); color:var(--paper); }
+  .step.clear .step-icon::before { content:'✓'; }
+  .step.hit .step-icon { background:var(--block-edge); border-color:var(--block-edge); color:var(--paper); }
+  .step.hit .step-icon::before { content:'!'; }
+  .step.below .step-icon { background:var(--ink-50); border-color:var(--ink-50); color:var(--paper); }
+  .step.below .step-icon::before { content:'–'; }
+  /* One small pop when the answer lands, so each row resolves visibly. */
+  .step.resolved .step-icon { animation:pop .32s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes pop { 0% { transform:scale(.4); } 100% { transform:scale(1); } }
+  .step-label { flex:1; font-size:16px; position:relative; z-index:1; }
+  .step-note {
+    position:relative; z-index:1;
+    font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+  }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
   @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
   @keyframes settleIn { from { opacity:0; transform:translateY(-4px) scale(.99); } to { opacity:1; transform:none; } }
@@ -369,7 +402,12 @@
   .cn-cell:nth-child(3) { animation-delay:.06s; }
   .cn-cell:nth-child(5) { animation-delay:.12s; }
   .cn-cell:nth-child(7) { animation-delay:.18s; }
-  .arrow { align-self:flex-start; margin-left:var(--s-2); color:var(--ink-50); font-size:16px; line-height:16px; text-decoration:none; }
+  .arrow {
+    align-self:flex-start; margin-left:var(--s-2); color:var(--ink-30);
+    font-size:16px; line-height:16px; text-decoration:none;
+    transition:color .3s ease, transform .3s ease;
+  }
+  .arrow.lit { color:var(--ink-90); transform:translateY(2px); }
   .arrow::after { content:'↓'; }
 
   .reason { margin-top:var(--s-3); max-width:44ch; color:var(--ink-90); }
@@ -838,6 +876,7 @@ function renderChecking(address) {
               ${STEP_LABELS.filter((_, n) => n <= hops).map((label, n) => `
                 ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
                 <div class="step ${n === 0 ? "active" : "idle"}" data-step="${n}">
+                  <span class="step-icon" aria-hidden="true"></span>
                   <span class="step-label">${esc(label)}</span>
                   <span class="step-note"></span>
                 </div>`).join("")}
@@ -863,15 +902,24 @@ function renderChecking(address) {
     async settle(hitAt, kind) {
       const list = rows();
       if (!list.length) return;
+      const arrows = [...stage.querySelectorAll(".steps .arrow")];
       const hit = hitAt === null || hitAt === undefined ? list.length : hitAt;
+
       for (let n = 0; n < list.length; n++) {
         const row = list[n];
+        // The connector into this row lights first, so the scan reads as
+        // travelling down the column rather than jumping between rows.
+        if (n > 0 && arrows[n - 1]) {
+          arrows[n - 1].classList.add("lit");
+          await wait(140);
+        }
         row.classList.remove("idle");
         row.classList.add("active");
-        await wait(430);
+        await wait(560);
         row.classList.remove("active");
+
         if (n === hit) {
-          row.classList.add(kind);
+          row.classList.add(kind, "resolved");
           row.querySelector(".step-note").textContent =
             kind === "below" ? "below threshold" : "exposure found";
           list.slice(n + 1).forEach((r) => r.classList.add("idle"));
@@ -879,12 +927,11 @@ function renderChecking(address) {
           row.classList.add("waiting");
           return;
         }
-        row.classList.add("clear");
+        row.classList.add("clear", "resolved");
         row.querySelector(".step-note").textContent = "clear";
+        await wait(120);
       }
-      await wait(400);
-      // The walk is done but the quorum is not. Saying so beats a finished
-      // scan sitting still while the request is in flight.
+      await wait(300);
       const last = list[list.length - 1];
       if (last) {
         const note = last.querySelector(".step-note");
