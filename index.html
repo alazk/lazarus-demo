@@ -12,6 +12,7 @@
   :root {
     --ink-90:#1B171A; --ink-70:#77767A; --ink-50:#B0B4BA;
     --ink-30:#E0E0E3; --ink-10:#F0F0FA; --paper:#FFFFFF;
+    --black:#000000; --leaf-50:#00CC8F; --ruby-50:#FC5C36; --ruby-90:#932303;
 
     --s-05:4px; --s-1:8px; --s-15:12px; --s-2:16px; --s-3:24px;
     --s-4:32px; --s-5:40px; --s-6:48px; --s-8:64px;
@@ -41,6 +42,7 @@
   :focus-visible { outline:2px solid var(--ink-90); outline-offset:2px; }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
 
+  .h1, .h2, .rule, .reason { text-wrap:balance; }
   .h1 { font-size:clamp(34px,4.4vw,60px); line-height:1.04; font-weight:700; letter-spacing:-.025em; }
   .h2 { font-size:clamp(28px,3.2vw,44px); line-height:1.1; font-weight:700; letter-spacing:-.02em; }
   .h4 { font-size:20px; line-height:32px; font-weight:700; }
@@ -72,7 +74,7 @@
     padding:0 var(--s-2); background:var(--ink-10);
     font-size:14px; font-weight:500; white-space:nowrap;
   }
-  .dot { width:8px; height:8px; border-radius:50%; background:#00CC8F; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--leaf-50); }
 
   .stage {
     background:var(--paper); border:1px solid var(--ink-30);
@@ -261,8 +263,8 @@
   }
   .field::placeholder { color:var(--ink-50); }
   .field:focus { border-color:var(--ink-90); outline:none; box-shadow:0 0 0 var(--s-05) var(--ink-30); }
-  .field.invalid { border-color:#FC5C36; }
-  .err { font-size:14px; line-height:20px; color:#932303; margin:0; }
+  .field.invalid { border-color:var(--ruby-50); }
+  .err { font-size:14px; line-height:20px; color:var(--ruby-90); margin:0; }
   .err:empty { display:none; }
 
   .btn {
@@ -275,7 +277,7 @@
   .btn-lg { min-height:48px; padding:var(--s-15) var(--s-4); font-size:16px; }
   .btn-md { min-height:44px; padding:var(--s-15) var(--s-3); font-size:14px; }
   .btn-primary { background:var(--ink-90); color:var(--paper); }
-  .btn-primary:hover { background:#000; }
+  .btn-primary:hover { background:var(--black); }
   .btn-primary[disabled] { background:var(--ink-50); cursor:default; }
   .btn-tertiary { background:transparent; color:var(--ink-90); border:1px solid var(--ink-90); }
   .btn-tertiary:hover { background:var(--ink-10); }
@@ -623,8 +625,10 @@ function paintAct(n, animate = true) {
   };
   if (bracket) animate ? setTimeout(settle, 90 * CHAIN.length) : settle();
 
-  stage.querySelectorAll(".act-dot").forEach((d, i) =>
-    d.classList.toggle("on", i === n));
+  stage.querySelectorAll(".act-dot").forEach((d, i) => {
+    d.classList.toggle("on", i === n);
+    d.setAttribute("aria-current", i === n ? "step" : "false");
+  });
 }
 
 function renderIntro() {
@@ -721,7 +725,7 @@ function renderRail() {
     parts.push(cell(String(n), RAIL_CAPTIONS[n] || "",
       `${on ? "on" : ""} ${n === hops ? "sel" : ""}`,
       live ? "button" : "span",
-      live ? `type="button" data-hops="${n}"` : ""));
+      live ? `type="button" data-hops="${n}" aria-pressed="${n === hops}"` : ""));
   });
   const lit = hops >= Math.max(...HOP_SHOWN);
   parts.push(`<span class="rail-link ${lit ? "on" : ""}"></span>`);
@@ -730,6 +734,7 @@ function renderRail() {
 }
 
 function renderConsole(prefill = "", error = "") {
+  document.title = "Lazarus Scan · Newton";
   const ready = presets.filter((p) => p.address);
   stage.className = "stage";
   stage.innerHTML = `
@@ -747,7 +752,7 @@ function renderConsole(prefill = "", error = "") {
             <div class="label" style="margin-top:var(--s-3)">Minimum transfer on that path</div>
             <div class="vals">
               ${USD_CHOICES.map((v) => `<button class="val ${v === usd ? "sel" : ""}"
-                type="button" data-usd="${v}">${esc(usdLabel(v))}</button>`).join("")}
+                type="button" data-usd="${v}" aria-pressed="${v === usd}">${esc(usdLabel(v))}</button>`).join("")}
             </div>
           </div>
         </div>
@@ -764,7 +769,7 @@ function renderConsole(prefill = "", error = "") {
                 ${ready.map((p) => `
                   <div class="pk-cell">
                     <button class="pk" type="button" data-addr="${esc(p.address)}"
-                            title="${esc(p.address)}">
+                            title="${esc(p.address)}" aria-pressed="false">
                       <span class="pk-name">${esc(LABELS[p.key] || p.label)}</span>
                       <span class="pk-addr">${esc(short(p.address))}</span>
                     </button>
@@ -799,8 +804,11 @@ function renderConsole(prefill = "", error = "") {
   });
   stage.querySelectorAll(".pk").forEach((b) => {
     b.onclick = () => {
-      stage.querySelectorAll(".pk").forEach((x) => x.classList.remove("chosen"));
+      stage.querySelectorAll(".pk").forEach((x) => {
+        x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+      });
       b.classList.add("chosen");
+      b.setAttribute("aria-pressed", "true");
       input.value = b.dataset.addr;
       input.classList.remove("invalid");
       document.getElementById("err").textContent = "";
@@ -813,8 +821,11 @@ function renderConsole(prefill = "", error = "") {
   input.oninput = () => {
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
-    stage.querySelectorAll(".pk").forEach((x) =>
-      x.classList.toggle("chosen", x.dataset.addr === input.value.trim()));
+    stage.querySelectorAll(".pk").forEach((x) => {
+      const on = x.dataset.addr === input.value.trim();
+      x.classList.toggle("chosen", on);
+      x.setAttribute("aria-pressed", String(on));
+    });
     sync();
   };
   input.onkeydown = (e) => { if (e.key === "Enter" && !run.disabled) run.click(); };
@@ -829,6 +840,7 @@ function renderConsole(prefill = "", error = "") {
    right column fills in. Nothing moves, so the result reads as the scan
    resolving rather than as a new screen. */
 function renderChecking(address) {
+  document.title = "Checking… · Lazarus Scan";
   stage.className = "stage";
   stage.innerHTML = `
     <div class="verdict" id="panel">
@@ -1000,6 +1012,7 @@ function fillVerdict(r, belowThreshold) {
   }
 
   panel.classList.add(tone, "settled");
+  document.title = `${headline} · Lazarus Scan`;
   // The scan's last note said it was waiting; the verdict answers that.
   stage.querySelectorAll(".step.waiting").forEach((row) => {
     row.classList.remove("waiting");
