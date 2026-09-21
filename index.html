@@ -279,12 +279,15 @@
   /* ── Scan and verdict share one frame ───────────────────────── */
   .intro, .console, .checking, .verdict { min-height:560px; }
   .checking, .verdict {
-    width:100%; display:flex; flex-direction:column; justify-content:flex-start;
-    padding-block:clamp(var(--s-5), 9vh, 112px) var(--s-5);
+    width:100%; display:flex; flex-direction:column; justify-content:center;
+    padding-block:var(--s-5);
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
     min-height:0; overflow-y:auto;
-  }  #actions-slot { margin:0; opacity:0; transition:opacity .4s ease .15s; }
-  #actions-slot.on { margin:var(--s-4) 0 0; opacity:1; }
+  }  #actions-slot {
+    margin:var(--s-4) 0 0; min-height:44px; opacity:0; visibility:hidden;
+    transition:opacity .4s ease .15s, visibility 0s linear .15s;
+  }
+  #actions-slot.on { opacity:1; visibility:visible; transition-delay:.15s, 0s; }
 
   .verdict { transition:background .7s cubic-bezier(.4,0,.2,1); }
   #right-slot { transition:opacity .22s ease, transform .22s ease; }
@@ -299,6 +302,7 @@
   }
   .grid.single { grid-template-columns:minmax(0,1fr); }
   .left { display:flex; align-items:flex-start; min-width:0; }
+  .left-stack { width:100%; }
   .right { min-width:0; min-height:300px; }
 
   /* The scan rows and the path nodes are one component, so the chain
@@ -356,6 +360,7 @@
 
   /* The console's two cards arrive together but not abruptly. */
   .console .col { animation:rise .4s ease backwards; }
+  .console.still .col, .console.still .rail-cell { animation:none; }
   .console .col:nth-child(2) { animation-delay:.07s; }
 
   /* The intro figure follows its copy. */
@@ -691,7 +696,7 @@ function setRule(nextHops, nextUsd) {
   }
   hops = nextHops;
   usd = value;
-  renderConsole(document.getElementById("addr")?.value || "");
+  renderConsole(document.getElementById("addr")?.value || "", "", true);
 }
 
 /* The rail is the distance control: reach is what is lit. */
@@ -722,12 +727,12 @@ function renderRail() {
   return `<div class="rail">${parts.join("")}</div>`;
 }
 
-function renderConsole(prefill = "", error = "") {
+function renderConsole(prefill = "", error = "", still = false) {
   document.title = "Lazarus Scan · Newton";
   const ready = presets.filter((p) => p.address);
   stage.className = "stage";
   stage.innerHTML = `
-    <div class="console">
+    <div class="console ${still ? "still" : ""}">
       <div class="col">
         <div class="h6 muted">Active policy</div>
         <div class="card">
