@@ -1290,6 +1290,59 @@
   /* A selected row keeps light text, whatever its coverage colour. */
   .m-row.chosen .m-sub, .m-row.chosen.in .m-sub { color:var(--ink-30); }
   .m-row.chosen .m-bar, .m-row.chosen.in .m-bar { background:var(--paper); }
+
+  /* ── Scan pulse ──────────────────────────────────────────────────
+     While a check runs, pulses leave the centre every 0.45s and fade at the
+     scan front, so the scan reads as actively searching outward. */
+  .cov-scanpulse circle {
+    fill:none; stroke:var(--ink-90); stroke-width:2.5; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px;
+  }
+  .cov-scanpulse.on circle { animation:scanPulse 1.35s cubic-bezier(.25,.6,.35,1) infinite; }
+  .cov-scanpulse.on circle:nth-child(2) { animation-delay:.45s; }
+  .cov-scanpulse.on circle:nth-child(3) { animation-delay:.9s; }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    15%  { opacity:.55; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
+  /* The front itself breathes while it waits on each ring. */
+  .cov-wave.on { animation:frontBreath 1.1s ease-in-out infinite; }
+  @keyframes frontBreath { 0%,100% { stroke-width:3.5; opacity:.8; } 50% { stroke-width:6; opacity:.5; } }
+  /* A cleared ring flashes green at its edge. */
+  .cov-flash {
+    fill:none; stroke:var(--pass-edge); stroke-width:6; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px; transform:scale(var(--k, .5));
+  }
+  .cov-flash.go { animation:ringFlash .6s ease-out; }
+  @keyframes ringFlash { 0% { opacity:.9; stroke-width:8; } 100% { opacity:0; stroke-width:2; } }
+  /* Where Lazarus is found, a burst goes off at the wallet. */
+  .cov-burst { fill:none; stroke:var(--block-edge); stroke-width:3; opacity:0; pointer-events:none;
+    transform-box:fill-box; transform-origin:center; }
+  .cov-burst.go { animation:burst .9s cubic-bezier(.2,.7,.3,1) 2; }
+  @keyframes burst { 0% { transform:scale(.6); opacity:1; } 100% { transform:scale(4); opacity:0; } }
+  .cov-svg:not(.scanning) .cov-scanpulse { display:none; }
+
+  /* ── One-line sentences in the result card ───────────────────────── */
+  .card-result .reason { max-width:none; text-wrap:wrap; font-size:17px; line-height:26px; }
+
+  @media (prefers-reduced-motion:reduce) {
+    .cov-scanpulse.on circle, .cov-wave.on, .cov-flash.go, .cov-burst.go { animation:none; }
+  }
+
+  /* Narrower laptops: a little less side padding and a smaller step of text
+     keep the verdict sentence and the checking line on one line each. */
+  @media (min-width:621px) and (max-width:1180px) {
+    .card-result { padding-inline:18px; }
+    .card-result .reason { font-size:14px; line-height:22px; }
+  }
+
+  .cov-scanpulse circle { stroke-width:3; }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    12%  { opacity:.75; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
 </style>
 </head>
 <body>
@@ -1757,6 +1810,10 @@ function renderCoverage(ready, mode = "console") {
           <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
         </g>
         <circle class="cov-ripple" id="cov-ripple" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+        <g class="cov-scanpulse" id="cov-scanpulse" style="--k:${(COV_R[0] / COV_R[3]).toFixed(3)}">
+          <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+        </g>
+        <circle class="cov-flash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
         <circle class="cov-wave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[3]}"
           style="transform:scale(${(COV_R[0] / COV_R[3]).toFixed(3)})"/>
         <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
@@ -1769,6 +1826,7 @@ function renderCoverage(ready, mode = "console") {
           x2="${onRay(COV_R[3] + 36)[0].toFixed(1)}" y2="${onRay(COV_R[3] + 36)[1].toFixed(1)}"/>
         <g class="cov-pick" id="cov-pick" style="opacity:0">
           <circle class="cov-pick-hit" r="24"/>
+          <circle class="cov-burst" r="10"/>
           <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
         </g>
       </svg>
@@ -2056,14 +2114,32 @@ function scanMapController() {
   const q = (sel) => svg && svg.querySelector(sel);
   const status = () => document.getElementById("cov-status");
   const wave = q("#cov-wave");
+  const pulse = q("#cov-scanpulse");
+  const flash = q("#cov-flash");
+  const restart = (el, cls) => {
+    if (!el) return;
+    el.setAttribute("class", cls.split(" ")[0]);
+    el.getBoundingClientRect();
+    el.setAttribute("class", cls);
+  };
   const words = ["Checking the wallet itself…", "Scanning one hop out…",
                  "Scanning two hops out…", "Scanning three hops out…"];
   return {
+    /** While the network answers, pulse across the whole coverage. */
+    idle() {
+      if (pulse) {
+        pulse.style.setProperty("--k", (COV_R[hops] / COV_R[3]).toFixed(3));
+        pulse.setAttribute("class", "cov-scanpulse on");
+      }
+    },
     reach(n) {
+      const k = ((n === 0 ? COV_R[0] + 14 : COV_R[n]) / COV_R[3]).toFixed(3);
       if (wave) {
-        wave.style.transform = `scale(${((n === 0 ? COV_R[0] : COV_R[n]) / COV_R[3]).toFixed(3)})`;
+        wave.style.transform = `scale(${k})`;
         wave.setAttribute("class", "cov-wave on");
       }
+      // Pulses keep firing from the centre out to wherever the front is.
+      if (pulse) { pulse.style.setProperty("--k", k); pulse.setAttribute("class", "cov-scanpulse on"); }
       const st = status(); if (st) st.textContent = words[n] || "";
     },
     settle(n, state) {
@@ -2076,6 +2152,11 @@ function scanMapController() {
         return;
       }
       q(`.cband[data-band="${n}"]`)?.setAttribute("class", `cband ${state}`);
+      // A cleared ring flashes once at its edge.
+      if (state === "clear" && flash) {
+        flash.style.setProperty("--k", (COV_R[n] / COV_R[3]).toFixed(3));
+        restart(flash, "cov-flash go");
+      }
     },
     found(n, warn) {
       const g = document.getElementById("cov-pick");
@@ -2084,6 +2165,7 @@ function scanMapController() {
       g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       g.style.opacity = "1";
       g.setAttribute("class", `cov-pick found ${warn ? "warn" : ""}`);
+      restart(g.querySelector(".cov-burst"), "cov-burst go");
     },
     clean() {
       const g = document.getElementById("cov-pick");
@@ -2095,6 +2177,7 @@ function scanMapController() {
     },
     done(text) {
       if (wave) wave.setAttribute("class", "cov-wave done");
+      if (pulse) pulse.setAttribute("class", "cov-scanpulse");
       const st = status(); if (st && text) st.textContent = text;
     },
   };
@@ -2118,8 +2201,7 @@ function renderChecking(address) {
           <div class="result-body">
             <div class="right" id="right-slot">
               <div class="h1">Checking</div>
-              <p class="reason p-lg">Scanning outward from this wallet, then waiting on an
-                operator quorum.</p>
+              <p class="reason p-lg">Scanning outward, then waiting on an operator quorum.</p>
               <div class="mono p-sm result-addr">${esc(address)}</div>
             </div>
             <div class="trail">
@@ -2139,6 +2221,9 @@ function renderChecking(address) {
       </div>
     </div>`;
   placePick(address);
+  // Pulse from the first moment: the wait for the operators is the longest
+  // part of a check, and it should not look idle.
+  scanMapController().idle();
 
   const rows = () => [...stage.querySelectorAll(".step")];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
