@@ -966,6 +966,78 @@
     .cov-core-glow, .cov-pick-pulse, .cov-ripple.go { animation:none; }
     .cov-disc, .cov-halo, .cov-knob, .cov-pick { transition:none; }
   }
+
+  /* ── Coverage switch under the map ─────────────────────────────── */
+  .cov-seg {
+    display:flex; gap:3px; padding:3px; margin-top:var(--s-2);
+    background:var(--ink-10); border-radius:var(--r-sm);
+  }
+  .cov-seg .m-seg-btn {
+    min-width:84px; height:40px; padding:0 var(--s-2);
+    border:none; border-radius:6px; background:transparent; cursor:pointer;
+    font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ink-70);
+    transition:background .15s, color .15s, box-shadow .15s;
+  }
+  .cov-seg .m-seg-btn.sel { background:var(--paper); color:var(--ink-90); box-shadow:0 1px 2px rgba(27,23,26,.14); }
+  @media (hover:hover) { .cov-seg .m-seg-btn:not(.sel):not(:disabled):hover { color:var(--ink-90); } }
+  .cov-seg .m-seg-btn:disabled { opacity:.35; cursor:default; }
+  .cov-sum { margin-top:var(--s-15); }
+  .cov-ring { cursor:pointer; }
+
+  /* ── Scan map ─────────────────────────────────────────────────── */
+  .scan-map { width:clamp(160px, 22vh, 210px); margin:0 0 var(--s-3); }
+  .scan-svg { width:100%; height:auto; display:block; overflow:visible; }
+  .sband { stroke-width:1.6; transition:fill .45s ease, stroke .45s ease; }
+  .sband.pending { fill:rgba(255,255,255,.75); stroke:var(--ink-30); }
+  .sband.beyond  { fill:none; stroke:var(--ink-50); stroke-dasharray:2 6; opacity:.75; }
+  .sband.clear   { fill:var(--pass-a); stroke:var(--pass-edge); }
+  .sband.hit     { fill:var(--block-a); stroke:var(--block-edge); }
+  .sband.warn    { fill:rgba(250,225,194,.55); stroke:var(--block-edge); stroke-dasharray:5 4; opacity:1; }
+  .sreach { fill:none; stroke:var(--ink-90); stroke-width:1.6; opacity:.55; }
+  /* The scan front: a bright ring that travels outward, one hop per step. */
+  .swave {
+    fill:none; stroke:var(--ink-90); stroke-width:3; opacity:0;
+    transform-box:view-box; transform-origin:200px 200px;
+    transition:transform .5s cubic-bezier(.3,.7,.3,1), opacity .35s;
+    filter:drop-shadow(0 0 6px rgba(27,23,26,.35));
+  }
+  .swave.on   { opacity:.7; }
+  .swave.done { opacity:0; }
+  .score { fill:var(--ink-90); transition:fill .45s; }
+  .score.clear { fill:var(--pass-edge); }
+  .score.hit   { fill:var(--block-edge); }
+  .score-label { font:600 15px var(--sans); fill:var(--paper); pointer-events:none; }
+  .slaz { opacity:0; transition:opacity .3s; }
+  .slaz.shown { opacity:1; }
+  .slaz circle {
+    fill:var(--ink-90); stroke:var(--paper); stroke-width:3;
+    transform-box:fill-box; transform-origin:center;
+  }
+  .slaz.shown circle { animation:lazDrop .45s cubic-bezier(.34,1.5,.5,1); }
+  .slaz.warn circle { fill:var(--block-edge); }
+  .slaz text { font:700 14px var(--sans); fill:var(--ink-90); }
+  @keyframes lazDrop { from { transform:scale(0); } to { transform:scale(1); } }
+
+  /* Phones keep every state on one screen, so the scan map steps aside. */
+  @media (max-width:620px) { .scan-map { display:none; } }
+  @media (prefers-reduced-motion:reduce) {
+    .swave, .sband, .slaz { transition:none; }
+    .slaz.shown circle { animation:none; }
+  }
+
+  .cov-core-pick {
+    fill:none; stroke:var(--block-edge); stroke-width:3; opacity:0; pointer-events:none;
+    transform-box:fill-box; transform-origin:center; transition:opacity .25s;
+  }
+  .cov-core-pick.on { opacity:1; animation:corePick 1.6s ease-out infinite; }
+  @keyframes corePick { 0% { transform:scale(1); opacity:1; } 100% { transform:scale(1.3); opacity:0; } }
+  @media (prefers-reduced-motion:reduce) { .cov-core-pick.on { animation:none; } }
+
+  /* The scan map at a size that reads, centred over the steps. */
+  .scan-map { width:clamp(180px, 30vh, 280px); margin:0 auto var(--s-3); }
+  .score-label { font-size:22px; }
+  .slaz text { font-size:21px; }
+  .slaz circle { stroke-width:3.5; }
 </style>
 </head>
 <body>
@@ -1340,8 +1412,9 @@ function renderLadder(ready, prefill) {
    reaches it. Reach changes update in place so the motion can play. */
 const COV_C = 200;
 const COV_R = [44, 96, 142, 188];          // core, then the outer edge of hops 1–3
-const KNOB_DEG = -40;
-const PICK_DEG = 128;
+/* Every picked wallet sits on this one ray, so changing wallets slides the
+   dot straight in or out, clear of the labels stacked above the centre. */
+const RAY_DEG = 45;
 let pickAddr = "";
 
 const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
@@ -1355,14 +1428,21 @@ function coverageSummary(ready) {
   const covered = ready.filter((w) => isCovered(DIST[w.key])).length;
   return `Covering <b>${hopWord(hops)}</b> · ${covered} of ${ready.length} example wallets covered`;
 }
-function knobXY(n = hops) {
-  const a = KNOB_DEG * Math.PI / 180;
-  return [COV_C + COV_R[n] * Math.cos(a), COV_C + COV_R[n] * Math.sin(a)];
+function onRay(r) {
+  const a = RAY_DEG * Math.PI / 180;
+  return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
+}
+/** Radius on the ray for a wallet at distance d: the edge of the centre for
+ *  the listed address, the middle of its band otherwise, and just past the
+ *  last ring for a wallet with no known link. */
+function rayRadius(d) {
+  if (d === 0) return COV_R[0] - 10;
+  if (d === null || d === undefined) return COV_R[3] + 20;
+  return (COV_R[d - 1] + COV_R[d]) / 2;
 }
 
 function renderCoverage(ready) {
   const c = COV_C, k = COV_R[hops] / COV_R[3];
-  const [kx, ky] = knobXY();
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
     return `<g class="cov-pill ${n <= hops ? "on" : ""}" data-ring="${n}" transform="translate(${c} ${y})">
@@ -1387,19 +1467,20 @@ function renderCoverage(ready) {
         ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         <circle class="cov-ripple" id="cov-ripple" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
         <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+        <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0] + 7}"/>
         <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
         ${pills}
         <g class="cov-pick" id="cov-pick" style="opacity:0">
           <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
         </g>
-        <g class="cov-knob" id="cov-knob" style="transform:translate(${kx.toFixed(1)}px, ${ky.toFixed(1)}px)">
-          <circle r="16"/>
-          <path d="M-6 -2 L-2 -6 M-6 -2 L-2 2 M6 2 L2 -2 M6 2 L2 6" />
-        </g>
       </svg>
+      <div class="cov-seg" role="group" aria-label="Coverage">
+        ${[1, 2, 3].map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}" type="button"
+          data-hops="${n}" aria-pressed="${n === hops}"
+          ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
+      </div>
       <p class="cov-sum" id="cov-sum">${coverageSummary(ready)}</p>
-      <p class="cov-hint">Drag the edge or tap a ring to change the coverage.</p>
     </div>`;
 }
 
@@ -1409,16 +1490,18 @@ function placePick(addr) {
   const g = document.getElementById("cov-pick");
   if (!g) return;
   const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
-  if (!w) { g.style.opacity = "0"; return; }
-  const d = DIST[w.key];
-  let x = COV_C, y = COV_C, cls = "cov-pick";
-  if (d === null || d === undefined) {
-    x = COV_C + 172; y = COV_C + 150; cls += " not";
-  } else if (d > 0) {
-    const r = (COV_R[d - 1] + COV_R[d]) / 2, a = PICK_DEG * Math.PI / 180;
-    x = COV_C + r * Math.cos(a); y = COV_C + r * Math.sin(a);
-    if (d > hops) cls += " not";
+  if (!w) {
+    g.style.opacity = "0";
+    document.getElementById("cov-core-pick")?.classList.remove("on");
+    return;
   }
+  const d = DIST[w.key];
+  // The listed wallet is the centre itself: ring the centre, draw no dot.
+  const ring = document.getElementById("cov-core-pick");
+  if (ring) ring.classList.toggle("on", d === 0);
+  if (d === 0) { g.style.opacity = "0"; return; }
+  const [x, y] = onRay(rayRadius(d));
+  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not");
   g.setAttribute("class", cls);
   g.style.opacity = "1";
   g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
@@ -1436,9 +1519,6 @@ function applyReach() {
       r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= hops ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
       g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= hops ? "on" : ""}`));
-    const [kx, ky] = knobXY();
-    const knob = document.getElementById("cov-knob");
-    if (knob) knob.style.transform = `translate(${kx.toFixed(1)}px, ${ky.toFixed(1)}px)`;
     const ripple = document.getElementById("cov-ripple");
     if (ripple) {
       ripple.style.setProperty("--k", k);
@@ -1548,27 +1628,16 @@ function renderConsole(prefill = "", error = "", still = false) {
       const r = Math.hypot(q.x - COV_C, q.y - COV_C);
       return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
     };
-    let dragging = false;
-    svg.addEventListener("pointerdown", (ev) => {
-      dragging = true;
-      svg.setPointerCapture?.(ev.pointerId);
-      svg.classList.add("dragging");
+    svg.addEventListener("click", (ev) => {
       const n = bandAt(ev); if (n) setRule(n, usd);
     });
-    svg.addEventListener("pointermove", (ev) => {
-      if (!dragging) return;
-      const n = bandAt(ev); if (n && n !== hops) setRule(n, usd);
-    });
-    const stop = () => { dragging = false; svg.classList.remove("dragging"); };
-    svg.addEventListener("pointerup", stop);
-    svg.addEventListener("pointercancel", stop);
     svg.addEventListener("keydown", (e) => {
       if (["ArrowRight", "ArrowUp"].includes(e.key)) { e.preventDefault(); setRule(Math.min(3, hops + 1), usd); }
       if (["ArrowLeft", "ArrowDown"].includes(e.key)) { e.preventDefault(); setRule(Math.max(1, hops - 1), usd); }
     });
   }
 
-  // Phone ladder: reach, rows and the paste link.
+  // The coverage switches, under the map on desktop and on the phone.
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
   });
@@ -1627,6 +1696,58 @@ function renderConsole(prefill = "", error = "", still = false) {
    where it is; when the outcome lands the panel takes its colour and the
    right column fills in. Nothing moves, so the result reads as the scan
    resolving rather than as a new screen. */
+/* ── Scan map ────────────────────────────────────────────────────
+   The same rings, centred on the wallet being screened, because the scan
+   searches outward from it. A scan front expands one ring per step, each
+   ring settles as it resolves, and a found Lazarus address drops onto the
+   same ray the console uses. Rings past the reach are dashed. */
+function renderScanMap() {
+  const c = COV_C;
+  return `<svg class="scan-svg" id="scan-svg" viewBox="0 0 400 400" aria-hidden="true">
+    ${[3, 2, 1].map((n) => `<circle class="sband ${n <= hops ? "pending" : "beyond"}" data-band="${n}"
+      cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+    <circle class="sreach" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
+    <circle class="swave" id="swave" cx="${c}" cy="${c}" r="${COV_R[3]}"
+      style="transform:scale(${(COV_R[0] / COV_R[3]).toFixed(3)})"/>
+    <circle class="score" id="score" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+    <text class="score-label" id="score-label" x="${c}" y="${c + 5}" text-anchor="middle">Wallet</text>
+    <g class="slaz" id="slaz"><circle r="13"/><text x="20" y="7">Lazarus</text></g>
+  </svg>`;
+}
+
+function scanMapController() {
+  const svg = document.getElementById("scan-svg");
+  const q = (sel) => svg && svg.querySelector(sel);
+  const wave = q("#swave"), core = q("#score"), label = q("#score-label"), laz = q("#slaz");
+  return {
+    /** Push the scan front out to hop n. */
+    reach(n) {
+      if (!wave) return;
+      wave.style.transform = `scale(${((n === 0 ? COV_R[0] : COV_R[n]) / COV_R[3]).toFixed(3)})`;
+      wave.setAttribute("class", "swave on");
+    },
+    /** Settle hop n as clear, hit, or found past the reach. */
+    settle(n, state) {
+      if (!svg) return;
+      if (n === 0) {
+        core.setAttribute("class", `score ${state}`);
+        if (state === "hit") label.textContent = "Lazarus";
+        return;
+      }
+      const band = q(`.sband[data-band="${n}"]`);
+      if (band) band.setAttribute("class", `sband ${state}`);
+    },
+    /** Drop the Lazarus marker on the ray at hop n. */
+    found(n, warn) {
+      if (!laz || n === 0) return;
+      const [x, y] = onRay((COV_R[n - 1] + COV_R[n]) / 2);
+      laz.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      laz.setAttribute("class", `slaz shown ${warn ? "warn" : ""}`);
+    },
+    done() { if (wave) wave.setAttribute("class", "swave done"); },
+  };
+}
+
 function renderChecking(address) {
   document.title = "Checking… · Lazarus Scan";
   stage.className = "stage";
@@ -1635,6 +1756,7 @@ function renderChecking(address) {
       <div class="grid">
         <div class="left">
           <div class="left-stack">
+            <div class="scan-map">${renderScanMap()}</div>
             <div class="steps">
               ${STEP_LABELS.map((label, n) => `
                 ${n ? `<span class="arrow ${n > hops ? "beyond" : ""}" aria-hidden="true"></span>` : ""}
@@ -1659,6 +1781,7 @@ function renderChecking(address) {
 
   const rows = () => [...stage.querySelectorAll(".step")];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const map = scanMapController();
 
   return {
     /** Walk the rows inside the reach. The step that finds a path inside
@@ -1680,10 +1803,14 @@ function renderChecking(address) {
         }
         row.classList.remove("idle");
         row.classList.add("active");
+        map.reach(n);
         await wait(560);
         row.classList.remove("active");
 
         if (kind === "hit" && n === hit) {
+          map.settle(n, "hit");
+          map.found(n, false);
+          map.done();
           row.classList.add("hit", "resolved");
           row.querySelector(".step-note").textContent = "exposure found";
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
@@ -1693,12 +1820,16 @@ function renderChecking(address) {
         }
         row.classList.add("clear", "resolved");
         row.querySelector(".step-note").textContent = "clear";
+        map.settle(n, "clear");
         await wait(120);
       }
+      map.done();
 
       if (kind === "warn" && hit !== null && list[hit]) {
         await wait(260);
         const row = list[hit];
+        map.settle(hit, "warn");
+        map.found(hit, true);
         row.classList.add("warn", "resolved");
         row.querySelector(".step-note").innerHTML = 'outside reach';
         await wait(500);
