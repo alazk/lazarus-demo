@@ -1038,6 +1038,125 @@
   .score-label { font-size:22px; }
   .slaz text { font-size:21px; }
   .slaz circle { stroke-width:3.5; }
+
+  /* ── One shell for console, scan and verdict ─────────────────────
+     Both columns fill the stage at a fixed height in every state, and the
+     block under the map is one fixed height, so the map never moves when a
+     check starts or ends. */
+  @media (min-width:621px) {
+    .console { height:100%; align-content:stretch; align-items:stretch; }
+    .console > .col { display:flex; flex-direction:column; min-height:0; }
+    .console > .col > .card { flex:1 1 auto; min-height:0; }
+  }
+  .card-cov .card-body { justify-content:center; align-items:center; }
+  .cov-foot {
+    height:108px; width:100%; display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-start;
+  }
+  .cov-status {
+    margin:var(--s-2) 0 0; min-height:40px; display:flex; align-items:center;
+    font-size:17px; line-height:24px; font-weight:600; color:var(--ink-90); text-align:center;
+  }
+  .cov-foot .cov-sum { margin-top:var(--s-15); }
+
+  /* Coverage pulse: sonar waves leave the centre and fade out exactly at
+     the edge of the coverage, so the pulse itself shows how far it goes. */
+  .cov-sonar circle {
+    fill:none; stroke:var(--block-edge); stroke-width:2; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px;
+    animation:sonar 3.6s cubic-bezier(.2,.6,.3,1) infinite;
+  }
+  .cov-sonar circle:nth-child(2) { animation-delay:1.2s; }
+  .cov-sonar circle:nth-child(3) { animation-delay:2.4s; }
+  @keyframes sonar {
+    0%   { transform:scale(.24); opacity:0; }
+    12%  { opacity:.75; }
+    100% { transform:scale(var(--k, 1)); opacity:0; }
+  }
+  .cov-svg.scanning .cov-sonar { display:none; }
+
+  /* Scan layers on the same map. */
+  .cband { fill:none; stroke:none; transition:fill .45s ease; pointer-events:none; }
+  .cband.clear { fill:rgba(223,253,207,.92); }
+  .cband.hit   { fill:rgba(236,160,90,.55); }
+  .cband.warn  { fill:rgba(250,225,194,.7); }
+  .cov-svg.scanning .cov-ring.in { opacity:1; }
+  .cov-wave {
+    fill:none; stroke:var(--ink-90); stroke-width:3.5; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px;
+    transition:transform .5s cubic-bezier(.3,.7,.3,1), opacity .35s;
+    filter:drop-shadow(0 0 7px rgba(27,23,26,.4));
+  }
+  .cov-wave.on   { opacity:.75; }
+  .cov-wave.done { opacity:0; }
+  .cov-core { transition:fill .45s; }
+  .cov-core.hit { fill:var(--block-edge); }
+  .cov-pick.found { color:var(--block-edge); }
+  .cov-pick.found .cov-pick-dot { fill:var(--ink-90); stroke:var(--block-edge); stroke-width:3.5; }
+  .cov-pick.warn .cov-pick-dot { fill:var(--block-edge); stroke:var(--paper); }
+  .cov-svg.scanning { cursor:default; }
+  .cov-svg.scanning .cov-ring { cursor:default; }
+
+  /* ── The result card ─────────────────────────────────────────── */
+  .card-result {
+    display:flex; flex-direction:column; justify-content:center;
+    padding:var(--s-5); transition:background .7s cubic-bezier(.4,0,.2,1);
+  }
+  .card-result.pass  { background:linear-gradient(135deg,var(--pass-a),var(--pass-b)); border-color:transparent; }
+  .card-result.block { background:linear-gradient(135deg,var(--block-a),var(--block-b)); border-color:transparent; }
+  .card-result.fail  { background:linear-gradient(135deg,var(--fail-a),var(--fail-b)); border-color:transparent; }
+  .result-body { width:100%; max-width:560px; display:flex; flex-direction:column; gap:var(--s-4); }
+  .card-result .right { min-height:0; }
+  .result-addr { word-break:break-all; margin-top:var(--s-2); color:var(--ink-70); }
+  .card-result .stats { margin-top:var(--s-3); }
+
+  /* The scan as a row of four tiles. */
+  .trail-label {
+    display:block; margin-bottom:var(--s-1); font-size:12px; font-weight:600;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-70);
+  }
+  .card-result.settled .trail-label { color:var(--on-62); }
+  .trail .steps { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:var(--s-1); }
+  .trail .step {
+    flex-direction:column; align-items:flex-start; gap:6px; min-height:0;
+    padding:var(--s-15); border-radius:var(--r-md);
+  }
+  .trail .step-label { font-size:15px; font-weight:600; flex:none; }
+  .trail .step-note { font-size:11px; letter-spacing:.06em; min-height:14px; }
+  .trail .step-icon { width:20px; height:20px; }
+  .trail .step.warn .step-icon { width:22px; height:20px; }
+
+  .card-result .actions { justify-content:flex-start; margin-top:0; }
+  .card-result .actions .line { display:none; }
+
+  /* One-line intro caption where there is room for it. */
+  @media (min-width:621px) { .ring-note { max-width:none; white-space:nowrap; } }
+
+  /* Phones: the map steps aside; the result card fills the screen. */
+  @media (max-width:620px) {
+    .card-result { padding:var(--s-3) var(--s-2); justify-content:flex-start; height:100%; }
+    .console.scan-shell > .col:last-child { flex:1 1 auto; min-height:0; }
+    .result-body { gap:var(--s-3); }
+    .trail .step { padding:10px 8px; }
+    .trail .step-label { font-size:14px; }
+    .trail .step-note { font-size:10px; }
+    .card-result .actions { flex-direction:row; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .cov-sonar circle { animation:none; }
+    .cov-wave, .cband { transition:none; }
+  }
+
+  /* Tiles use the card's full width; the vertical list's cap does not apply. */
+  .trail .steps { width:100%; max-width:none; }
+  /* The one-line caption needs one line of height, not two. */
+  @media (min-width:621px) { .ring-note { min-height:0; } }
+
+  @media (max-width:620px) {
+    .card-result .actions { flex-wrap:nowrap; }
+    .card-result .actions .btn { width:auto; }
+    .card-result .actions .btn-primary { flex:1 1 auto; }
+  }
 </style>
 </head>
 <body>
@@ -1095,6 +1214,7 @@ const WARN_ICON = `<svg class="warn-icon" viewBox="0 0 24 24" aria-hidden="true"
   <path d="M12 3.2 22.4 20.6H1.6Z" fill="currentColor"/>
   <rect x="11" y="9" width="2" height="6.4" rx="1" fill="#fff"/>
   <circle cx="12" cy="17.7" r="1.2" fill="#fff"/></svg>`;
+const STEP_TILE = ["Wallet", "1 hop", "2 hops", "3 hops"];
 const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three hops out"];
 
 /* Captions say where the wallet sits without naming the verdict. */
@@ -1131,7 +1251,7 @@ const ACTS = [
     body: "A North Korean state hacking operation. They have taken billions from "
         + "exchanges and bridges, and their addresses are designated by OFAC.",
     core: "known", rings: ["off", "off", "off"],
-    note: "Lazarus at the centre. Each ring is one transfer further out." },
+    note: "Lazarus at the centre. Each ring is one transfer out." },
 
   { kicker: "The gap", title: "A list checks one address.",
     body: "It compares the wallet you are paying against a set of designated "
@@ -1139,14 +1259,14 @@ const ACTS = [
         + "the list, it is one transfer from a wallet that is, and a list check "
         + "cannot tell you that.",
     core: "hit", rings: ["pass", "pass", "pass"],
-    note: "What a list covers: the centre only. Every ring around it clears." },
+    note: "A list covers the centre only." },
 
   { kicker: "The policy", title: "Screen the path, not the address.",
     body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
         + "paying and reports how far a known address sits, and how much moved "
         + "along the way.",
     core: "hit", rings: ["hit", "hit", "hit"],
-    note: "What the policy covers: every ring inside the reach you set." },
+    note: "The policy covers every ring inside your reach." },
 ];
 
 const flowSteps = () => [
@@ -1441,7 +1561,7 @@ function rayRadius(d) {
   return (COV_R[d - 1] + COV_R[d]) / 2;
 }
 
-function renderCoverage(ready) {
+function renderCoverage(ready, mode = "console") {
   const c = COV_C, k = COV_R[hops] / COV_R[3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
@@ -1451,7 +1571,7 @@ function renderCoverage(ready) {
   }).join("");
   return `
     <div class="cov">
-      <svg class="cov-svg" id="cov-svg" viewBox="0 0 400 400" tabindex="0" role="slider"
+      <svg class="cov-svg ${mode === "scan" ? "scanning" : ""}" id="cov-svg" viewBox="0 0 400 400" tabindex="${mode === "scan" ? "-1" : "0"}" role="${mode === "scan" ? "img" : "slider"}"
            aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
            aria-valuetext="${hopWord(hops)}">
         <defs>
@@ -1464,8 +1584,14 @@ function renderCoverage(ready) {
         </defs>
         <circle class="cov-halo" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
+        ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+        <g class="cov-sonar" style="--k:${k.toFixed(3)}">
+          <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+        </g>
         <circle class="cov-ripple" id="cov-ripple" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+        <circle class="cov-wave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[3]}"
+          style="transform:scale(${(COV_R[0] / COV_R[3]).toFixed(3)})"/>
         <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0] + 7}"/>
         <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
@@ -1475,12 +1601,17 @@ function renderCoverage(ready) {
           <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
         </g>
       </svg>
-      <div class="cov-seg" role="group" aria-label="Coverage">
-        ${[1, 2, 3].map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}" type="button"
-          data-hops="${n}" aria-pressed="${n === hops}"
-          ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
+      <div class="cov-foot">
+        ${mode === "scan" ? `
+        <p class="cov-status" id="cov-status">Scanning outward from the centre…</p>
+        <p class="cov-sum">Covering <b>${hopWord(hops)}</b></p>` : `
+        <div class="cov-seg" role="group" aria-label="Coverage">
+          ${[1, 2, 3].map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}" type="button"
+            data-hops="${n}" aria-pressed="${n === hops}"
+            ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
+        </div>
+        <p class="cov-sum" id="cov-sum">${coverageSummary(ready)}</p>`}
       </div>
-      <p class="cov-sum" id="cov-sum">${coverageSummary(ready)}</p>
     </div>`;
 }
 
@@ -1515,6 +1646,7 @@ function applyReach() {
   if (svg) {
     const k = COV_R[hops] / COV_R[3];
     svg.querySelectorAll(".cov-disc, .cov-halo").forEach((e) => { e.style.transform = `scale(${k})`; });
+    svg.querySelector(".cov-sonar")?.style.setProperty("--k", k.toFixed(3));
     svg.querySelectorAll(".cov-ring").forEach((r) =>
       r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= hops ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
@@ -1696,88 +1828,94 @@ function renderConsole(prefill = "", error = "", still = false) {
    where it is; when the outcome lands the panel takes its colour and the
    right column fills in. Nothing moves, so the result reads as the scan
    resolving rather than as a new screen. */
-/* ── Scan map ────────────────────────────────────────────────────
-   The same rings, centred on the wallet being screened, because the scan
-   searches outward from it. A scan front expands one ring per step, each
-   ring settles as it resolves, and a found Lazarus address drops onto the
-   same ray the console uses. Rings past the reach are dashed. */
-function renderScanMap() {
-  const c = COV_C;
-  return `<svg class="scan-svg" id="scan-svg" viewBox="0 0 400 400" aria-hidden="true">
-    ${[3, 2, 1].map((n) => `<circle class="sband ${n <= hops ? "pending" : "beyond"}" data-band="${n}"
-      cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-    <circle class="sreach" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
-    <circle class="swave" id="swave" cx="${c}" cy="${c}" r="${COV_R[3]}"
-      style="transform:scale(${(COV_R[0] / COV_R[3]).toFixed(3)})"/>
-    <circle class="score" id="score" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
-    <text class="score-label" id="score-label" x="${c}" y="${c + 5}" text-anchor="middle">Wallet</text>
-    <g class="slaz" id="slaz"><circle r="13"/><text x="20" y="7">Lazarus</text></g>
-  </svg>`;
-}
-
 function scanMapController() {
-  const svg = document.getElementById("scan-svg");
+  const svg = document.getElementById("cov-svg");
   const q = (sel) => svg && svg.querySelector(sel);
-  const wave = q("#swave"), core = q("#score"), label = q("#score-label"), laz = q("#slaz");
+  const status = () => document.getElementById("cov-status");
+  const wave = q("#cov-wave");
+  const words = ["Checking the wallet itself…", "Scanning one hop out…",
+                 "Scanning two hops out…", "Scanning three hops out…"];
   return {
-    /** Push the scan front out to hop n. */
     reach(n) {
-      if (!wave) return;
-      wave.style.transform = `scale(${((n === 0 ? COV_R[0] : COV_R[n]) / COV_R[3]).toFixed(3)})`;
-      wave.setAttribute("class", "swave on");
+      if (wave) {
+        wave.style.transform = `scale(${((n === 0 ? COV_R[0] : COV_R[n]) / COV_R[3]).toFixed(3)})`;
+        wave.setAttribute("class", "cov-wave on");
+      }
+      const st = status(); if (st) st.textContent = words[n] || "";
     },
-    /** Settle hop n as clear, hit, or found past the reach. */
     settle(n, state) {
       if (!svg) return;
       if (n === 0) {
-        core.setAttribute("class", `score ${state}`);
-        if (state === "hit") label.textContent = "Lazarus";
+        if (state === "hit") {
+          q(".cov-core")?.setAttribute("class", "cov-core hit");
+          document.getElementById("cov-core-pick")?.classList.add("on");
+        }
         return;
       }
-      const band = q(`.sband[data-band="${n}"]`);
-      if (band) band.setAttribute("class", `sband ${state}`);
+      q(`.cband[data-band="${n}"]`)?.setAttribute("class", `cband ${state}`);
     },
-    /** Drop the Lazarus marker on the ray at hop n. */
     found(n, warn) {
-      if (!laz || n === 0) return;
+      const g = document.getElementById("cov-pick");
+      if (!g || n === 0) return;
       const [x, y] = onRay((COV_R[n - 1] + COV_R[n]) / 2);
-      laz.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      laz.setAttribute("class", `slaz shown ${warn ? "warn" : ""}`);
+      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      g.style.opacity = "1";
+      g.setAttribute("class", `cov-pick found ${warn ? "warn" : ""}`);
     },
-    done() { if (wave) wave.setAttribute("class", "swave done"); },
+    clean() {
+      const g = document.getElementById("cov-pick");
+      if (!g) return;
+      const [x, y] = onRay(rayRadius(null));
+      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      g.style.opacity = "1";
+      g.setAttribute("class", "cov-pick not");
+    },
+    done(text) {
+      if (wave) wave.setAttribute("class", "cov-wave done");
+      const st = status(); if (st && text) st.textContent = text;
+    },
   };
 }
 
 function renderChecking(address) {
   document.title = "Checking… · Lazarus Scan";
   stage.className = "stage";
+  const ready = presets.filter((p) => p.address);
   stage.innerHTML = `
-    <div class="verdict" id="panel">
-      <div class="grid">
-        <div class="left">
-          <div class="left-stack">
-            <div class="scan-map">${renderScanMap()}</div>
-            <div class="steps">
-              ${STEP_LABELS.map((label, n) => `
-                ${n ? `<span class="arrow ${n > hops ? "beyond" : ""}" aria-hidden="true"></span>` : ""}
-                ${n === hops + 1 ? `<div class="reach-edge"><span>Your reach ends here</span></div>` : ""}
-                <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
-                  <span class="step-icon" aria-hidden="true"></span>
-                  <span class="step-label"><span class="lbl-long">${esc(label)}</span><span class="lbl-short">${esc(STEP_SHORT[n])}</span></span>
-                  <span class="step-note">${n > hops ? "outside reach" : ""}</span>
-                </div>`).join("")}
-            </div>
-          </div>
-        </div>
-        <div class="right" id="right-slot">
-          <div class="h1">Checking</div>
-          <p class="reason p-lg">Tracing the graph outward from this wallet, then
-            waiting on an operator quorum.</p>
-          <div class="mono p-sm" style="word-break:break-all;margin-top:var(--s-3);color:var(--on-62)">${esc(address)}</div>
+    <div class="console still scan-shell">
+      <div class="col">
+        <div class="h6 muted">Coverage</div>
+        <div class="card card-policy card-cov">
+          <div class="card-body">${renderCoverage(ready, "scan")}</div>
         </div>
       </div>
-      <div class="actions" id="actions-slot"></div>
+      <div class="col">
+        <div class="h6 muted">Result</div>
+        <div class="card card-result" id="panel">
+          <div class="result-body">
+            <div class="right" id="right-slot">
+              <div class="h1">Checking</div>
+              <p class="reason p-lg">Scanning outward from this wallet, then waiting on an
+                operator quorum.</p>
+              <div class="mono p-sm result-addr">${esc(address)}</div>
+            </div>
+            <div class="trail">
+              <span class="trail-label">Scan</span>
+              <div class="steps">
+                ${STEP_LABELS.map((label, n) => `
+                  <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
+                    <span class="step-icon" aria-hidden="true"></span>
+                    <span class="step-label">${esc(STEP_TILE[n])}</span>
+                    <span class="step-note">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
+                  </div>`).join("")}
+              </div>
+            </div>
+            <div class="actions" id="actions-slot"></div>
+          </div>
+        </div>
+      </div>
     </div>`;
+  placePick(address);
 
   const rows = () => [...stage.querySelectorAll(".step")];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1810,9 +1948,10 @@ function renderChecking(address) {
         if (kind === "hit" && n === hit) {
           map.settle(n, "hit");
           map.found(n, false);
-          map.done();
+          map.done(n === 0 ? "This wallet is on the list itself"
+                           : `Found ${hopWord(n)} out · inside your coverage`);
           row.classList.add("hit", "resolved");
-          row.querySelector(".step-note").textContent = "exposure found";
+          row.querySelector(".step-note").textContent = "found";
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
           await wait(500);
           row.classList.add("waiting");
@@ -1830,17 +1969,22 @@ function renderChecking(address) {
         const row = list[hit];
         map.settle(hit, "warn");
         map.found(hit, true);
+        map.done(`Found ${hopWord(hit)} out · outside your coverage`);
         row.classList.add("warn", "resolved");
-        row.querySelector(".step-note").innerHTML = 'outside reach';
+        row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
         await wait(500);
         row.classList.add("waiting");
         return;
       }
+      // Nothing inside the coverage. A wallet with no example distance is
+      // placed outside every ring so the map still says where it stands.
+      if (document.getElementById("cov-pick")?.style.opacity !== "1") map.clean();
+      map.done("No link found inside your coverage");
       await wait(300);
       const last = inside[inside.length - 1];
       if (last) {
         const note = last.querySelector(".step-note");
-        if (note) note.textContent = "waiting on quorum";
+        if (note) note.textContent = "signing";
         last.classList.add("waiting");
       }
     },
@@ -1964,9 +2108,8 @@ async function fillVerdict(r, outsideReach) {
   stage.querySelectorAll(".step.waiting").forEach((row) => {
     row.classList.remove("waiting");
     const note = row.querySelector(".step-note");
-    if (note && note.textContent === "waiting on quorum" && !row.classList.contains("warn")) {
-      note.textContent = row.classList.contains("hit") ? "exposure found"
-        : "clear";
+    if (note && note.textContent === "signing" && !row.classList.contains("warn")) {
+      note.textContent = row.classList.contains("hit") ? "found" : "clear";
     }
   });
 
@@ -1987,7 +2130,8 @@ async function fillVerdict(r, outsideReach) {
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
        target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}`;
   actions.classList.add("on");
-  document.getElementById("again").onclick = () => renderConsole(r.wallet || "");
+  // Back to the console without an entrance, so the map does not jump.
+  document.getElementById("again").onclick = () => renderConsole(currentAddress || r.wallet || "", "", true);
 }
 
 /* ── Boot ────────────────────────────────────────────────────────
