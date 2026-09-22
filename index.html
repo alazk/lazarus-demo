@@ -1491,6 +1491,166 @@
     .cov-disc, .cov-halo, .intro-map .cov-disc, .intro-map .cov-halo { transition:none; }
     .cov-pick, .cov-wave { transition:opacity .3s; }
   }
+
+  /* ── Map: no CSS animation or transform transitions ───────────────
+     Motion inside the map is SVG animation and script tweens only (see Map
+     motion in the script). Colours may still fade. */
+  .cov-svg, .cov-svg * { animation:none !important; }
+  .cov-svg * { transition-property:fill, stroke, opacity, stroke-dasharray !important; transition-duration:.35s; }
+  /* Positioned groups (the wallet dot, the pills) keep their transform
+     attribute, which a CSS transform would override. */
+  .cov-disc, .cov-halo, .cov-pick-dot, .cov-core-glow, .cov-core-pick { transform:none !important; }
+  .cov-halo { fill:url(#cov-halo-grad); opacity:1; filter:none !important; }
+  .cov-core-glow { display:none; }
+  .cov-core-pick { opacity:0; }
+  .cov-core-pick.on { opacity:1; }
+
+  .spulse circle { stroke:var(--cov-edge); pointer-events:none; }
+  .sflash { stroke:var(--pass-edge); pointer-events:none; }
+  .swave { stroke:var(--ink-90); stroke-width:3; opacity:0; pointer-events:none; }
+  .swave.on { opacity:.6; }
+  .swave.done { opacity:0; }
+  .sburst { stroke:var(--block-edge); pointer-events:none; }
+  .spick-pulse { stroke:currentColor; pointer-events:none; }
+  .cov-pick-dot { transition-property:fill, stroke !important; }
+  .cov-pick.dragging .cov-pick-dot { stroke:var(--paper); stroke-width:3; }
+
+  /* ── Step headings ─────────────────────────────────────────────── */
+  .step-kicker {
+    display:flex; align-items:center; gap:8px; color:var(--ink-90);
+    font-size:13px; letter-spacing:.04em;
+  }
+  .step-kicker .kn {
+    width:20px; height:20px; border-radius:50%; background:var(--ink-90); color:var(--paper);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; letter-spacing:0; flex:none;
+  }
+
+  /* ── Phones: even gutters, full-width pickers, single-line rows ───── */
+  @media (max-width:620px) {
+    .console, .console.scan-shell { padding:var(--s-15) var(--s-2) var(--s-2); gap:var(--s-15); }
+    .cov { width:100%; }
+    .cov-foot { width:100%; }
+    .cov-seg { width:100%; margin-top:var(--s-15); padding:4px; border-radius:var(--r-md); }
+    .cov-seg .m-seg-btn { height:44px; border-radius:var(--r-sm); font-size:15px; }
+    .card-check { padding:var(--s-15) var(--s-2) var(--s-2); }
+    .m-list-head { padding-inline:2px; }
+    /* One line per wallet: the name, and whether the radius reaches it. */
+    .m-only .m-row { min-height:48px; padding-right:var(--s-15); }
+    .m-only .m-text { flex-direction:row; align-items:center; justify-content:space-between; gap:var(--s-1); padding-block:0; }
+    .m-only .m-name { font-size:15px; }
+    .m-only .m-sub { font-size:12px; text-align:right; white-space:nowrap; }
+    .card-result { padding:var(--s-2); }
+  }
+  /* Taller phones have room to show the two steps. */
+  @media (max-width:620px) and (min-height:740px) {
+    .console > .col > .step-kicker { display:flex; margin:0 0 6px 2px; }
+  }
+  @media (max-width:620px) and (max-height:700px) {
+    .console, .console.scan-shell { padding:var(--s-1) var(--s-15) var(--s-15); gap:var(--s-1); }
+    .m-only .m-row { min-height:44px; }
+    .cov-seg .m-seg-btn { height:40px; }
+  }
+
+  /* Where the step heading shows on a phone, the list label would repeat it. */
+  @media (max-width:620px) and (min-height:740px) {
+    .m-list-head { justify-content:flex-end; }
+    .m-list-head .label { display:none; }
+  }
+
+  /* ── Wallets on the map: lettered dots in their rings ──────────────── */
+  .wdot circle { fill:var(--paper); stroke:var(--ink-50); stroke-width:1.8; }
+  .wdot text { font:700 11px var(--sans); fill:var(--ink-70); pointer-events:none; }
+  .wdot.in circle { stroke:var(--cov-edge); }
+  .wdot.in text { fill:var(--ink-90); }
+  .wdot.chosen circle { fill:var(--ink-90); stroke:var(--ink-90); }
+  .wdot.chosen text { fill:var(--paper); }
+  .cov-svg:not(.scanning) .wdot { cursor:pointer; }
+  @media (hover:hover) { .cov-svg:not(.scanning) .wdot:not(.chosen):hover circle { stroke:var(--ink-90); stroke-width:2.4; } }
+  .wdot:focus-visible { outline:none; }
+  .wdot:focus-visible circle { stroke:var(--ink-90); stroke-width:3; }
+  .cov-svg.scanning .wdot:not(.chosen) { opacity:.35; }
+
+  /* The highlight ring sits behind the chosen wallet and carries the found
+     pulse and burst during a scan. It takes no pointer events itself. */
+  .cov-svg .cov-pick { pointer-events:none !important; cursor:default; }
+  .cov-pick-ring { fill:none; stroke:var(--ink-90); stroke-width:2; }
+  .cov-pick.not .cov-pick-ring { stroke:var(--ink-50); }
+  .cov-pick.found .cov-pick-ring { stroke:var(--block-edge); stroke-width:3; }
+  .cov-pick-dot { fill:var(--ink-90); }
+
+  /* ── Wallet rows: letter, label, descriptor, address ───────────────── */
+  .wrow { align-items:center; gap:var(--s-15); }
+  .w-letter {
+    flex:none; width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--ink-10); color:var(--ink-70); font-size:13px; font-weight:700;
+  }
+  .wrow.in .w-letter { background:var(--cov-soft); color:var(--ink-90); }
+  .wrow.chosen .w-letter { background:var(--paper); color:var(--ink-90); }
+  .wrow .m-text { min-width:0; flex:1 1 auto; }
+  .wrow .m-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .w-addr { flex:none; margin-left:auto; font-family:var(--mono); font-size:13px; color:var(--ink-50); }
+  .wrow.chosen .w-addr { color:var(--ink-30); }
+  .wrow .m-bar { margin-right:0; }
+
+  @media (max-width:620px) {
+    /* Two-line text on phones: the label, then what is known about it. */
+    .m-only .wrow .m-text { flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; padding-block:6px; }
+    .m-only .wrow .m-sub { text-align:left; }
+    .m-only .wrow { min-height:52px; gap:10px; }
+    .m-only .wrow .m-name { font-size:14px; }
+    .w-letter { width:26px; height:26px; font-size:12px; }
+    .w-addr { font-size:11.5px; }
+  }
+  @media (max-width:620px) and (max-height:700px) {
+    .m-only .wrow { min-height:46px; }
+    .m-only .wrow .m-text { padding-block:3px; }
+  }
+
+  /* An old rule styled a class of the same name; the group itself draws
+     nothing, and the letter has no outline. */
+  g.wdot { fill:none; stroke:none; stroke-width:0; }
+  .wdot text { stroke:none; font:700 13px var(--sans); }
+
+  /* Phones: two-line wallet rows kept compact so all five sit above Run. */
+  @media (max-width:620px) {
+    .m-only .wrow { min-height:48px; }
+    .m-only .wrow .m-text { padding-block:4px; gap:0; }
+    .m-only .wrow .m-name { font-size:14px; line-height:18px; }
+    .m-only .wrow .m-sub { font-size:11.5px; line-height:15px; }
+  }
+  @media (max-width:620px) and (max-height:700px) {
+    .m-only .wrow { min-height:43px; }
+    .m-only .wrow .m-text { padding-block:2px; }
+    .w-letter { width:24px; height:24px; font-size:11.5px; }
+  }
+
+  /* The label and descriptor truncate inside their column; they never run
+     into the address. */
+  .wrow .m-text { overflow:hidden; align-items:stretch; }
+  .wrow .m-name, .wrow .m-sub { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .m-only .wrow .m-text { align-items:stretch; }
+  .w-addr { padding-left:var(--s-1); }
+
+  /* Narrow phones: the label takes the whole first line; the descriptor and
+     the address share the second, so nothing needs cutting short. */
+  @media (max-width:420px) {
+    .m-only .wrow { display:grid; grid-template-columns:4px auto minmax(0,1fr); grid-template-rows:auto auto;
+      column-gap:10px; align-items:center; padding-right:12px; }
+    .m-only .wrow .m-bar { grid-row:1 / 3; grid-column:1; align-self:stretch; }
+    .m-only .wrow .w-letter { grid-row:1 / 3; grid-column:2; }
+    .m-only .wrow .m-text { grid-row:1 / 3; grid-column:3; padding-block:5px; }
+    .m-only .wrow .m-sub { padding-right:92px; }
+    .m-only .wrow .w-addr { grid-row:2; grid-column:3; justify-self:end; align-self:end;
+      margin:0 0 6px; padding:0; font-size:11px; line-height:15px; }
+  }
+
+  @media (max-width:420px) {
+    .m-only .wrow .sub-note, .m-only .wrow .sub-sep { display:none; }
+    .m-only .wrow.nostatus .sub-note { display:inline; }
+    .m-only .wrow .m-sub { padding-right:0; }
+  }
 </style>
 </head>
 <body>
@@ -1561,6 +1721,40 @@ const LADDER_NAMES = {
   direct: "Lazarus wallet", one: "1 hop away", two: "2 hops away",
   three: "3 hops away", clean: "No known link",
 };
+/* The example wallets by letter, with labels limited to what is verified
+   about each address: its distance from the list, and for E what the
+   address publicly is. No invented identities or locations. */
+const WALLET_LETTER = { direct: "A", one: "B", two: "C", three: "D", clean: "E" };
+const WALLET_TITLE = {
+  direct: "Lazarus Group address", one: "Direct counterparty",
+  two: "Second-degree contact", three: "Third-degree contact",
+  clean: "Ethereum deposit contract",
+};
+const WALLET_NOTE = {
+  direct: "North Korea · on the list", one: "1 hop from Lazarus", two: "2 hops from Lazarus",
+  three: "3 hops from Lazarus", clean: "No known link",
+};
+/* Where each wallet sits on the map: its band, at its own angle, clear of
+   the ring labels stacked above the centre. */
+const WALLET_ANGLE = { direct: 90, one: 150, two: 25, three: 125, clean: 50 };
+function walletXY(key) {
+  const d = DIST[key];
+  const r = d === 0 ? COV_R[0] + 3 : (d === null || d === undefined) ? COV_R[3] + 22 : (COV_R[d - 1] + COV_R[d]) / 2;
+  const a = (WALLET_ANGLE[key] ?? 45) * Math.PI / 180;
+  return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
+}
+function walletStatus(d) {
+  return d === null || d === undefined || d === "" ? "" : Number(d) <= hops ? "covered" : "not covered";
+}
+function walletSub(key, d) {
+  const st = walletStatus(d);
+  return (WALLET_NOTE[key] || "") + (st ? " · " + st : "");
+}
+/** The descriptor as parts, so narrow phones can show just the status. */
+function walletSubHtml(key, d) {
+  const st = walletStatus(d);
+  return `<span class="sub-note">${esc(WALLET_NOTE[key] || "")}</span><span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
+}
 /* The last outcome per wallet, kept with the reach it was checked under, so
    a row only shows a result that is true of the current rule. */
 const outcomes = {};
@@ -1667,22 +1861,22 @@ function renderChain() {
           <stop offset="55%"  stop-color="#E2E0F3" stop-opacity=".92"/>
           <stop offset="100%" stop-color="#EEEDF9" stop-opacity=".95"/>
         </radialGradient>
-        <filter id="intro-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+        <radialGradient id="intro-halo-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="80%"  stop-color="#A9A5D6" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#A9A5D6" stop-opacity="0"/>
+        </radialGradient>
       </defs>
-      <circle class="cov-halo intro-cover" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(.001);filter:url(#intro-blur)"/>
-      <circle class="cov-disc intro-cover" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(.001);fill:url(#intro-grad)"/>
+      <circle class="cov-halo" id="intro-halo" cx="${c}" cy="${c}" r="0" style="fill:url(#intro-halo-grad)"/>
+      <circle class="cov-disc" id="intro-disc" cx="${c}" cy="${c}" r="0" style="fill:url(#intro-grad)"/>
       ${[1, 2, 3].map((n) => `<circle class="cov-ring out" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-      <g class="cov-sonar intro-sonar" style="--k:1">
-        <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
-      </g>
       <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
       ${pills}
       <line class="cov-ray" x1="${onRay(COV_R[0])[0].toFixed(1)}" y1="${onRay(COV_R[0])[1].toFixed(1)}"
         x2="${onRay(COV_R[3] + 20)[0].toFixed(1)}" y2="${onRay(COV_R[3] + 20)[1].toFixed(1)}"/>
-      <g class="cov-pick intro-pick" style="transform:translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)">
-        <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
+      <g class="cov-pick intro-pick" transform="translate(${px.toFixed(1)} ${py.toFixed(1)})">
+        <circle class="cov-pick-dot" r="8"/>
         <text class="intro-pick-label" x="16" y="5">Wallet you pay</text>
       </g>
     </svg>
@@ -1704,9 +1898,9 @@ function paintAct(n, animate = true) {
 
   const svg = document.getElementById("intro-map");
   if (svg) {
-    const k = a.cover === "all" ? 1 : a.cover === "core" ? (COV_R[0] + 10) / COV_R[3] : 0.001;
-    svg.querySelectorAll(".intro-cover").forEach((e) => { e.style.transform = `scale(${k})`; });
-    svg.querySelector(".intro-sonar")?.classList.toggle("on", a.cover === "all");
+    const r = a.cover === "all" ? COV_R[3] : a.cover === "core" ? COV_R[0] + 10 : 0;
+    tweenAttr(document.getElementById("intro-disc"), "r", r, animate ? 700 : 0);
+    tweenAttr(document.getElementById("intro-halo"), "r", r ? r + 16 : 0, animate ? 700 : 0);
     svg.querySelectorAll(".cov-ring").forEach((r) =>
       r.setAttribute("class", `cov-ring ${a.cover === "all" ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
@@ -1848,16 +2042,19 @@ function renderWalletList(ready, prefill, extra = "") {
         const inside = d !== null && d !== undefined && d <= hops;
         const out = outcomes[r.address.toLowerCase()];
         const tone = out && out.hops === hops ? out.tone : "";
-        const sub = rowSub(d);
+        const sub = walletSub(r.key, d);
         const chosen = r.address.toLowerCase() === chosenAddr;
-        return `<button class="m-row ${inside ? "in" : ""} ${chosen ? "chosen" : ""}"
-            type="button" role="listitem" data-addr="${esc(r.address)}" data-dist="${d ?? ""}"
-            aria-pressed="${chosen}" title="${esc(r.address)}">
+        return `<button class="m-row wrow ${inside ? "in" : ""} ${chosen ? "chosen" : ""} ${walletStatus(d) ? "" : "nostatus"}"
+            type="button" role="listitem" data-addr="${esc(r.address)}" data-dist="${d ?? ""}" data-key="${esc(r.key)}"
+            aria-pressed="${chosen}" title="${esc(r.address)}"
+            aria-label="Wallet ${esc(WALLET_LETTER[r.key] || "")}, ${esc(WALLET_TITLE[r.key] || "")}, ${esc(sub)}">
           <span class="m-bar" aria-hidden="true"></span>
+          <span class="w-letter" aria-hidden="true">${esc(WALLET_LETTER[r.key] || "")}</span>
           <span class="m-text">
-            <span class="m-name">${esc(LADDER_NAMES[r.key] || r.label || "")}</span>
-            <span class="m-sub">${esc(sub)}</span>
+            <span class="m-name">${esc(WALLET_TITLE[r.key] || r.label || "")}</span>
+            <span class="m-sub">${walletSubHtml(r.key, d)}</span>
           </span>
+          <span class="w-addr">${esc(short(r.address))}</span>
           <span class="m-dot ${tone}" aria-label="${tone === "block" ? "blocked last time" : tone === "warn" ? "allowed, exposure outside reach" : tone === "pass" ? "allowed last time" : ""}"></span>
         </button>`;
       }).join("")}
@@ -1904,7 +2101,7 @@ function rowSub(d) {
 }
 function coverageSummary(ready) {
   const covered = ready.filter((w) => isCovered(DIST[w.key])).length;
-  return `Covering <b>${hopWord(hops)}</b> · ${covered} of ${ready.length} example wallets covered`;
+  return `Screening <b>${hopWord(hops)}</b> out · ${covered} of ${ready.length} example wallets covered`;
 }
 function onRay(r) {
   const a = RAY_DEG * Math.PI / 180;
@@ -1918,6 +2115,70 @@ function rayRadius(d) {
   if (d === null || d === undefined) return COV_R[3] + 20;
   return (COV_R[d - 1] + COV_R[d]) / 2;
 }
+
+/* ── Map motion ──────────────────────────────────────────────────
+   Safari is unreliable with CSS animations and transitions on SVG shapes,
+   so the map never uses them. Sizes and positions are tweened from script,
+   the scan pulse uses SVG's own animation elements, and nothing loops until
+   a check starts. */
+const REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+const easeBack = (t) => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+function tweenAttr(el, attr, to, dur = 600, ease = easeBack) {
+  if (!el) return;
+  cancelAnimationFrame(el["_tw_" + attr] || 0);
+  const from = parseFloat(el.getAttribute(attr)) || 0;
+  if (REDUCED || !dur || Math.abs(from - to) < 0.01) { el.setAttribute(attr, to); return; }
+  const t0 = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / dur);
+    el.setAttribute(attr, (from + (to - from) * ease(t)).toFixed(2));
+    if (t < 1) el["_tw_" + attr] = requestAnimationFrame(step);
+  };
+  el["_tw_" + attr] = requestAnimationFrame(step);
+}
+function setPos(g, x, y) {
+  if (!g) return;
+  cancelAnimationFrame(g._twPos || 0);
+  g._pos = [x, y];
+  g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+}
+function tweenPos(g, x, y, dur = 450) {
+  if (!g) return;
+  const from = g._pos;
+  if (!from || REDUCED) { setPos(g, x, y); return; }
+  cancelAnimationFrame(g._twPos || 0);
+  const t0 = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / dur), e = easeBack(t);
+    const px = from[0] + (x - from[0]) * e, py = from[1] + (y - from[1]) * e;
+    g.setAttribute("transform", `translate(${px.toFixed(1)} ${py.toFixed(1)})`);
+    if (t < 1) g._twPos = requestAnimationFrame(step); else g._pos = [x, y];
+  };
+  g._twPos = requestAnimationFrame(step);
+}
+/** Three rings leaving the centre in turn, drawn with SVG animation. */
+function pulseRings(id, rTo) {
+  const c = COV_C, r0 = COV_R[0];
+  return `<g class="spulse" id="${id}" display="none">${[0, 1, 2].map((i) => {
+    const r = REDUCED ? (rTo * [1, .72, .46][i]).toFixed(1) : null;
+    return `<circle cx="${c}" cy="${c}" r="${REDUCED ? r : r0}" fill="none" stroke-width="2" stroke-opacity="0">
+      <animate attributeName="r" values="${REDUCED ? `${r};${r}` : `${r0};${rTo.toFixed(1)}`}" dur="3.6s"
+        begin="${(i * 1.2).toFixed(1)}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".2 .6 .3 1"/>
+      <animate attributeName="stroke-opacity" values="${REDUCED ? "0;.5;0" : "0;.7;0"}" keyTimes="${REDUCED ? "0;.5;1" : "0;.12;1"}"
+        dur="3.6s" begin="${(i * 1.2).toFixed(1)}s" repeatCount="indefinite"/>
+    </circle>`; }).join("")}</g>`;
+}
+function setPulseReach(g, rTo) {
+  if (!g) return;
+  g.querySelectorAll("circle").forEach((c, i) => {
+    const a = c.querySelector('animate[attributeName="r"]');
+    if (!a) return;
+    if (REDUCED) { const r = (rTo * [1, .72, .46][i]).toFixed(1); a.setAttribute("values", `${r};${r}`); }
+    else a.setAttribute("values", `${COV_R[0]};${rTo.toFixed(1)}`);
+  });
+}
+function beginAll(el) { el?.querySelectorAll("animate").forEach((a) => { try { a.beginElement(); } catch (_) {} }); }
 
 let mapMode = "console";
 function renderCoverage(ready, mode = "console") {
@@ -1940,40 +2201,52 @@ function renderCoverage(ready, mode = "console") {
             <stop offset="55%"  stop-color="#E2E0F3" stop-opacity=".92"/>
             <stop offset="100%" stop-color="#EEEDF9" stop-opacity=".95"/>
           </radialGradient>
-          <filter id="cov-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+          <radialGradient id="cov-halo-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="80%"  stop-color="#A9A5D6" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="#A9A5D6" stop-opacity="0"/>
+          </radialGradient>
         </defs>
-        <circle class="cov-halo" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
-        <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
+        <circle class="cov-halo" id="cov-halo" cx="${c}" cy="${c}" r="${COV_R[hops] + 16}"/>
+        <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-        <g class="cov-sonar" style="--k:${k.toFixed(3)}">
-          <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
-        </g>
-        <circle class="cov-ripple" id="cov-ripple" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
-        <g class="cov-scanpulse" id="cov-scanpulse" style="--k:${(COV_R[0] / COV_R[3]).toFixed(3)}">
-          <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
-        </g>
-        <circle class="cov-flash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
-        <circle class="cov-wave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[3]}"
-          style="transform:scale(${(COV_R[0] / COV_R[3]).toFixed(3)})"/>
+        ${mode === "scan" ? pulseRings("cov-spulse", COV_R[hops]) : ""}
+        <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0" stroke-width="2">
+          <animate attributeName="stroke-opacity" values=".9;0" dur=".6s" begin="indefinite" fill="freeze"/>
+          <animate attributeName="stroke-width" values="8;2" dur=".6s" begin="indefinite" fill="freeze"/>
+        </circle>
+        <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none"/>
         <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0] + 7}"/>
         <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
         ${pills}
-        <line class="cov-ray" id="cov-ray"
-          x1="${onRay(COV_R[0])[0].toFixed(1)}" y1="${onRay(COV_R[0])[1].toFixed(1)}"
-          x2="${onRay(COV_R[3] + 36)[0].toFixed(1)}" y2="${onRay(COV_R[3] + 36)[1].toFixed(1)}"/>
         <g class="cov-pick" id="cov-pick" style="opacity:0">
           <circle class="cov-pick-hit" r="24"/>
-          <circle class="cov-burst" r="10"/>
-          <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
+          <circle class="sburst" r="10" fill="none" stroke-width="3" stroke-opacity="0">
+            <animate attributeName="r" values="10;40" dur=".9s" begin="indefinite" repeatCount="2"/>
+            <animate attributeName="stroke-opacity" values="1;0" dur=".9s" begin="indefinite" repeatCount="2" fill="freeze"/>
+          </circle>
+          <circle class="spick-pulse" r="12" fill="none" stroke-width="2" stroke-opacity="0">
+            <animate attributeName="r" values="${REDUCED ? "14;14" : "9;24"}" dur="1.6s" begin="indefinite" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" values="${REDUCED ? ".2;.7;.2" : ".9;0"}" dur="1.6s" begin="indefinite" repeatCount="indefinite"/>
+          </circle>
+          <circle class="cov-pick-ring" r="17"/>
+          <circle class="cov-pick-dot" r="6"/>
         </g>
+        <g class="wdots">${ready.map((w) => {
+          const [x, y] = walletXY(w.key), dd = DIST[w.key];
+          const inside = dd === 0 || isCovered(dd);
+          return `<g class="wdot ${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
+            transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
+            ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
+            <circle r="13"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
+        }).join("")}</g>
       </svg>
       <div class="cov-foot">
         ${mode === "scan" ? `
         <p class="cov-status" id="cov-status">Scanning outward from the centre…</p>
-        <p class="cov-sum">Covering <b>${hopWord(hops)}</b></p>` : `
+        <p class="cov-sum">Radius <b>${hopWord(hops)}</b></p>` : `
         <div class="cov-seg" role="group" aria-label="Coverage">
           ${[1, 2, 3].map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}" type="button"
             data-hops="${n}" aria-pressed="${n === hops}"
@@ -1990,27 +2263,21 @@ function placePick(addr) {
   const g = document.getElementById("cov-pick");
   if (!g) return;
   const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
+  document.querySelectorAll("#cov-svg .wdot").forEach((el) =>
+    el.classList.toggle("chosen", (el.dataset.addr || "").toLowerCase() === pickAddr));
   if (!w) {
     document.getElementById("cov-core-pick")?.classList.remove("on");
-    if (mapMode === "console") {
-      const [x, y] = onRay(rayRadius(null));
-      g.setAttribute("class", "cov-pick idle");
-      g.style.opacity = "1";
-      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-    } else {
-      g.style.opacity = "0";
-    }
+    g.style.opacity = "0";
     return;
   }
   const d = DIST[w.key];
-  // The listed wallet is the centre itself: ring the centre, draw no dot.
   const ring = document.getElementById("cov-core-pick");
   if (ring) ring.classList.toggle("on", d === 0);
-  const [x, y] = onRay(rayRadius(d));
+  const [x, y] = walletXY(w.key);
   const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not");
   g.setAttribute("class", cls);
   g.style.opacity = "1";
-  g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  tweenPos(g, x, y);
 }
 
 /** Update everything that depends on the reach without redrawing, so the
@@ -2019,20 +2286,17 @@ function applyReach() {
   const ready = presets.filter((p) => p.address);
   const svg = document.getElementById("cov-svg");
   if (svg) {
-    const k = COV_R[hops] / COV_R[3];
-    svg.querySelectorAll(".cov-disc, .cov-halo").forEach((e) => { e.style.transform = `scale(${k})`; });
-    svg.querySelector(".cov-sonar")?.style.setProperty("--k", k.toFixed(3));
+    tweenAttr(document.getElementById("cov-disc"), "r", COV_R[hops]);
+    tweenAttr(document.getElementById("cov-halo"), "r", COV_R[hops] + 16);
     svg.querySelectorAll(".cov-ring").forEach((r) =>
       r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= hops ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
       g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= hops ? "on" : ""}`));
-    const ripple = document.getElementById("cov-ripple");
-    if (ripple) {
-      ripple.style.setProperty("--k", k);
-      ripple.setAttribute("class", "cov-ripple");
-      ripple.getBoundingClientRect();               // restart the animation
-      ripple.setAttribute("class", "cov-ripple go");
-    }
+    svg.querySelectorAll(".wdot").forEach((el) => {
+      const raw = el.dataset.dist, dd = raw === "" ? null : Number(raw);
+      el.classList.toggle("in", dd === 0 || isCovered(dd));
+      el.classList.toggle("out", !(dd === 0 || isCovered(dd)));
+    });
     svg.setAttribute("aria-valuenow", hops);
     svg.setAttribute("aria-valuetext", hopWord(hops));
     placePick(pickAddr);
@@ -2045,7 +2309,12 @@ function applyReach() {
     const d = raw === "" ? null : Number(raw);
     row.classList.toggle("in", isCovered(d));
     const sub = row.querySelector(".m-sub");
-    if (sub) sub.textContent = rowSub(d);
+    if (sub) {
+      if (row.dataset.key) {
+        sub.innerHTML = walletSubHtml(row.dataset.key, d);
+        row.classList.toggle("nostatus", !walletStatus(d));
+      } else sub.textContent = rowSub(d);
+    }
     const out = outcomes[(row.dataset.addr || "").toLowerCase()];
     const dot = row.querySelector(".m-dot");
     if (dot) dot.className = "m-dot " + (out && out.hops === hops ? out.tone : "");
@@ -2065,19 +2334,19 @@ function renderConsole(prefill = "", error = "", still = false) {
   stage.innerHTML = `
     <div class="console ${still ? "still" : ""}">
       <div class="col">
-        <div class="h6 muted">Coverage</div>
+        <div class="h6 muted step-kicker"><span class="kn">1</span>Choose the radius</div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready)}</div>
         </div>
       </div>
 
       <div class="col">
-        <div class="h6 muted">Screen a wallet</div>
+        <div class="h6 muted step-kicker"><span class="kn">2</span>Pick a wallet</div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}
             <div class="d-only try-wallet">
-              <span class="label">Try a wallet</span>
+              <span class="label">Example wallets</span>
               ${renderWalletList(ready, prefill, "d-only")}
             </div>
             <button class="d-only paste-link" type="button" id="d-paste">Paste any address</button>
@@ -2152,7 +2421,7 @@ function renderConsole(prefill = "", error = "", still = false) {
       const r = Math.max(COV_R[0] - 6, Math.min(COV_R[3] + 34,
         (q.x - COV_C) * Math.cos(a) + (q.y - COV_C) * Math.sin(a)));
       const [x, y] = onRay(r);
-      pick.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      setPos(pick, x, y);
       dragged = true;
       const band = bandFor(r);
       if (band !== current) {
@@ -2179,9 +2448,14 @@ function renderConsole(prefill = "", error = "", still = false) {
       const r = Math.hypot(q.x - COV_C, q.y - COV_C);
       return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
     };
+    svg.querySelectorAll(".wdot").forEach((el) => {
+      const choose = (e) => { e.stopPropagation(); selectAddress(el.dataset.addr); };
+      el.addEventListener("click", choose);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(e); } });
+    });
     svg.addEventListener("click", (ev) => {
       if (dragged) { dragged = false; return; }    // the end of a drag, not a tap
-      if (ev.target.closest && ev.target.closest("#cov-pick")) return;
+      if (ev.target.closest && ev.target.closest("#cov-pick, .wdot")) return;
       const n = bandAt(ev); if (n) setRule(n, usd);
     });
     svg.addEventListener("keydown", (e) => {
@@ -2253,33 +2527,21 @@ function scanMapController() {
   const svg = document.getElementById("cov-svg");
   const q = (sel) => svg && svg.querySelector(sel);
   const status = () => document.getElementById("cov-status");
-  const wave = q("#cov-wave");
-  const pulse = q("#cov-scanpulse");
-  const flash = q("#cov-flash");
-  const restart = (el, cls) => {
-    if (!el) return;
-    el.setAttribute("class", cls.split(" ")[0]);
-    el.getBoundingClientRect();
-    el.setAttribute("class", cls);
-  };
+  const wave = q("#cov-wave"), pulse = q("#cov-spulse"), flash = q("#cov-flash");
   const words = ["Checking the wallet itself…", "Scanning one hop out…",
                  "Scanning two hops out…", "Scanning three hops out…"];
   return {
-    /** While the network answers, pulse across the whole coverage. */
+    /** From the moment Run is pressed: pulse across the whole radius. */
     idle() {
-      if (pulse) {
-        pulse.style.setProperty("--k", (COV_R[hops] / COV_R[3]).toFixed(3));
-        pulse.setAttribute("class", "cov-scanpulse on");
-      }
+      if (!pulse) return;
+      setPulseReach(pulse, COV_R[hops]);
+      pulse.setAttribute("display", "inline");
     },
+    /** The front steps out to hop n; the pulses follow it. */
     reach(n) {
-      const k = ((n === 0 ? COV_R[0] + 14 : COV_R[n]) / COV_R[3]).toFixed(3);
-      if (wave) {
-        wave.style.transform = `scale(${k})`;
-        wave.setAttribute("class", "cov-wave on");
-      }
-      // Pulses keep firing from the centre out to wherever the front is.
-      if (pulse) { pulse.style.setProperty("--k", k); pulse.setAttribute("class", "cov-scanpulse on"); }
+      const r = n === 0 ? COV_R[0] + 14 : COV_R[n];
+      if (wave) { wave.setAttribute("class", "swave on"); tweenAttr(wave, "r", r, 500, easeOut); }
+      if (pulse) { setPulseReach(pulse, r); pulse.setAttribute("display", "inline"); }
       const st = status(); if (st) st.textContent = words[n] || "";
     },
     settle(n, state) {
@@ -2292,32 +2554,31 @@ function scanMapController() {
         return;
       }
       q(`.cband[data-band="${n}"]`)?.setAttribute("class", `cband ${state}`);
-      // A cleared ring flashes once at its edge.
-      if (state === "clear" && flash) {
-        flash.style.setProperty("--k", (COV_R[n] / COV_R[3]).toFixed(3));
-        restart(flash, "cov-flash go");
-      }
+      if (state === "clear" && flash) { flash.setAttribute("r", COV_R[n]); beginAll(flash); }
     },
     found(n, warn) {
       const g = document.getElementById("cov-pick");
       if (!g || n === 0) return;
-      const [x, y] = onRay((COV_R[n - 1] + COV_R[n]) / 2);
-      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      const known = presets.find((p) => p.address.toLowerCase() === pickAddr);
+      const [x, y] = known ? walletXY(known.key) : onRay((COV_R[n - 1] + COV_R[n]) / 2);
       g.style.opacity = "1";
+      tweenPos(g, x, y);
       g.setAttribute("class", `cov-pick found ${warn ? "warn" : ""}`);
-      restart(g.querySelector(".cov-burst"), "cov-burst go");
+      beginAll(g.querySelector(".sburst"));
+      beginAll(g.querySelector(".spick-pulse"));
     },
     clean() {
       const g = document.getElementById("cov-pick");
       if (!g) return;
-      const [x, y] = onRay(rayRadius(null));
-      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      const known = presets.find((p) => p.address.toLowerCase() === pickAddr);
+      const [x, y] = known ? walletXY(known.key) : onRay(rayRadius(null));
       g.style.opacity = "1";
+      tweenPos(g, x, y);
       g.setAttribute("class", "cov-pick not");
     },
     done(text) {
-      if (wave) wave.setAttribute("class", "cov-wave done");
-      if (pulse) pulse.setAttribute("class", "cov-scanpulse");
+      if (wave) wave.setAttribute("class", "swave done");
+      if (pulse) pulse.setAttribute("display", "none");
       const st = status(); if (st && text) st.textContent = text;
     },
   };
@@ -2330,13 +2591,13 @@ function renderChecking(address) {
   stage.innerHTML = `
     <div class="console still scan-shell">
       <div class="col">
-        <div class="h6 muted">Coverage</div>
+        <div class="h6 muted step-kicker"><span class="kn">1</span>Radius</div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "scan")}</div>
         </div>
       </div>
       <div class="col">
-        <div class="h6 muted">Result</div>
+        <div class="h6 muted step-kicker"><span class="kn">2</span>Result</div>
         <div class="card card-result" id="panel">
           <div class="result-body">
             <div class="right" id="right-slot">
