@@ -830,6 +830,62 @@
     .stats { margin-top:12px; }
     #actions-slot { margin-top:12px; }
   }
+
+  /* ── Wallet list beside the rings ─────────────────────────────────
+     The rings set the reach; the list beside them shows which example
+     wallets that reach covers. The same rows serve the phone layout. */
+  .reach-pair {
+    display:grid; grid-template-columns:minmax(0,230px) minmax(0,1fr);
+    gap:var(--s-3); align-items:center; margin-top:var(--s-2);
+  }
+  .reach-pair .reach-rings { max-width:none; margin:0; }
+  .reach-list .label { display:block; margin-bottom:var(--s-1); }
+  .m-ladder {
+    border:1px solid var(--ink-30); border-radius:var(--r-md); overflow:hidden;
+    background:var(--paper);
+  }
+  .m-row {
+    display:flex; align-items:stretch; gap:var(--s-15);
+    width:100%; min-height:48px; padding:0 var(--s-2) 0 0;
+    border:none; border-top:1px solid var(--ink-10);
+    background:transparent; text-align:left; cursor:pointer;
+    font-family:var(--sans); color:var(--ink-90); transition:background .15s;
+  }
+  .m-row:first-child { border-top:none; }
+  .m-bar { flex:0 0 4px; background:var(--ink-10); transition:background .25s; }
+  .m-row.in .m-bar { background:var(--block-edge); }
+  .m-text { flex:1; display:flex; flex-direction:column; justify-content:center; gap:1px; padding-block:6px; }
+  .m-name { font-size:15px; font-weight:500; }
+  .m-sub { font-size:12px; color:var(--ink-50); }
+  .m-row.in .m-sub { color:var(--block-edge); font-weight:500; }
+  @media (hover:hover) { .m-row:not(.chosen):hover { background:var(--ink-10); } }
+  .m-row.chosen { background:var(--ink-90); color:var(--paper); }
+  .m-row.chosen .m-sub { color:var(--ink-30); }
+  .m-row.chosen .m-bar { background:var(--paper); }
+  .m-dot { align-self:center; flex:0 0 10px; height:10px; border-radius:50%; }
+  .m-dot.pass  { background:var(--pass-edge); }
+  .m-dot.block { background:var(--block-edge); }
+
+  @media (max-width:620px) {
+    .d-only { display:none !important; }
+    /* On a phone the bar is the ink colour it was designed in. */
+    .m-row.in .m-bar { background:var(--ink-90); }
+    .m-row.in .m-sub { color:var(--ink-70); font-weight:400; }
+    .m-row { min-height:56px; }
+    .m-name { font-size:16px; }
+    .m-sub { font-size:13px; }
+  }
+
+  /* The policy card now carries the choosing, so it takes more of the
+     width, and the rings get room for readable labels. */
+  @media (min-width:861px) {
+    .console { grid-template-columns:minmax(0,3fr) minmax(0,2fr); }
+    .reach-pair { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--s-4); }
+  }
+  .ring-label { font-size:15px; }
+  .core-label { font-size:17px; }
+  /* The screening card sits its controls together rather than spread apart. */
+  .card-check .card-body { justify-content:flex-start; }
 </style>
 </head>
 <body>
@@ -1138,20 +1194,35 @@ function renderRail() {
   return `<div class="rail">${parts.join("")}</div>`;
 }
 
-/* The example wallets placed on the rings, marked inside or outside the
-   current reach, so the reach and the wallets read as one picture. */
-const RING_ANGLE = { one: -140, two: -35, three: 58 };
-function ringWallets(ready, chosen) {
-  const pick = String(chosen || "").trim().toLowerCase();
-  return ready.map((w) => {
-    const d = DIST[w.key];
-    const inside = d !== null && d !== undefined && d <= hops;
-    return {
-      dist: d === undefined ? null : d, angle: RING_ANGLE[w.key] ?? 0,
-      name: d === null ? "No link" : "", address: w.address, r: d === 0 ? 7 : 10,
-      cls: `${inside ? "in" : "out"} ${w.address.toLowerCase() === pick ? "chosen" : ""}`,
-    };
-  });
+
+/* The example wallets in order of distance, with a bar marking the ones the
+   current reach covers. Used beside the rings on desktop and on its own on a
+   phone, so both show the same picture. */
+function renderWalletList(ready, prefill, extra = "") {
+  const rows = [...ready].sort((a, b) => (DIST[a.key] ?? 99) - (DIST[b.key] ?? 99));
+  const chosenAddr = String(prefill || "").trim().toLowerCase();
+  return `
+    <div class="m-ladder ${extra}" role="list">
+      ${rows.map((r) => {
+        const d = DIST[r.key];
+        const inside = d !== null && d !== undefined && d <= hops;
+        const out = outcomes[r.address.toLowerCase()];
+        const tone = out && out.hops === hops ? out.tone : "";
+        const sub = d === 0 ? "on the list" : d === null ? "no path to the list"
+          : inside ? "inside reach" : "outside reach";
+        const chosen = r.address.toLowerCase() === chosenAddr;
+        return `<button class="m-row ${inside ? "in" : ""} ${chosen ? "chosen" : ""}"
+            type="button" role="listitem" data-addr="${esc(r.address)}"
+            aria-pressed="${chosen}" title="${esc(r.address)}">
+          <span class="m-bar" aria-hidden="true"></span>
+          <span class="m-text">
+            <span class="m-name">${esc(LADDER_NAMES[r.key] || r.label || "")}</span>
+            <span class="m-sub">${esc(sub)}</span>
+          </span>
+          <span class="m-dot ${tone}" aria-label="${tone === "block" ? "blocked last time" : tone === "warn" ? "allowed, exposure outside reach" : tone === "pass" ? "allowed last time" : ""}"></span>
+        </button>`;
+      }).join("")}
+    </div>`;
 }
 
 /* ── Phone ladder ────────────────────────────────────────────────
@@ -1176,27 +1247,7 @@ function renderLadder(ready, prefill) {
       </div>
       <p class="m-rule">Blocks any wallet inside the reach that connects to a known Lazarus address.</p>
     </div>
-    <div class="m-only m-ladder" role="list">
-      ${rows.map((r) => {
-        const d = DIST[r.key];
-        const inside = d !== null && d !== undefined && d <= hops;
-        const out = outcomes[r.address.toLowerCase()];
-        const tone = out && out.hops === hops ? out.tone : "";
-        const sub = d === 0 ? "on the list" : d === null ? "no path to the list"
-          : inside ? "inside reach" : "outside reach";
-        const chosen = r.address.toLowerCase() === chosenAddr;
-        return `<button class="m-row ${inside ? "in" : ""} ${chosen ? "chosen" : ""}"
-            type="button" role="listitem" data-addr="${esc(r.address)}"
-            aria-pressed="${chosen}" title="${esc(r.address)}">
-          <span class="m-bar" aria-hidden="true"></span>
-          <span class="m-text">
-            <span class="m-name">${esc(LADDER_NAMES[r.key] || r.label || "")}</span>
-            <span class="m-sub">${esc(sub)}</span>
-          </span>
-          <span class="m-dot ${tone}" aria-label="${tone ? (tone === "block" ? "blocked last time" : "allowed last time") : ""}"></span>
-        </button>`;
-      }).join("")}
-    </div>
+    ${renderWalletList(ready, prefill, "m-only")}
     <button class="m-only m-paste ${pasted ? "hide" : ""}" type="button" id="m-paste">
       Paste any address</button>`;
 }
@@ -1213,15 +1264,20 @@ function renderConsole(prefill = "", error = "", still = false) {
           <div class="card-body">
             <div class="h4">Lazarus Scan</div>
             <p class="rule">Block a wallet that reaches a known Lazarus address.</p>
-            <div class="reach-rings">
-              ${renderRings({ id: "console-rings", interactive: true,
-                wallets: ringWallets(ready, prefill),
-                ringClass: (n) => (n <= hops ? "in" : "out") })}
+            <div class="reach-pair">
+              <div class="reach-rings">
+                ${renderRings({ id: "console-rings", interactive: true,
+                  ringClass: (n) => (n <= hops ? "in" : "out") })}
+              </div>
+              <div class="reach-list">
+                <span class="label">Try a wallet</span>
+                ${renderWalletList(ready, prefill, "d-only")}
+              </div>
             </div>
-            <p class="p-sm muted rail-help" style="margin:var(--s-15) 0 0">
-              Click a ring to set the reach. Any wallet inside the shaded rings is blocked
-              if it connects to a known Lazarus address. Reach is set to
-              <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>.
+            <p class="p-sm muted rail-help" style="margin:var(--s-2) 0 0">
+              Click a ring to set the reach, now <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>.
+              Wallets marked by the bar are inside it, and are blocked if they connect to a
+              known Lazarus address.
             </p>
             <p class="reach-line">Scans up to <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
               · ${esc(RAIL_CAPTIONS[hops] || "")}</p>
@@ -1234,23 +1290,9 @@ function renderConsole(prefill = "", error = "", still = false) {
         <div class="card card-check ${prefill && !ready.some((r) => r.address.toLowerCase() === String(prefill).trim().toLowerCase()) ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}
-            ${ready.length ? `
-            <div class="picker-wrap">
-              <span class="label">Try one of these</span>
-              <div class="picker">
-                ${ready.map((p) => `
-                  <div class="pk-cell">
-                    <button class="pk ${DIST[p.key] !== null && DIST[p.key] !== undefined && DIST[p.key] <= hops ? "in" : "out"}" type="button" data-addr="${esc(p.address)}"
-                            title="${esc(p.address)}" aria-pressed="false">
-                      <span class="pk-name">${esc(LABELS[p.key] || p.label || "")}</span>
-                      <span class="pk-addr">${esc(short(p.address))}</span>
-                      <span class="pk-reach">${DIST[p.key] === null ? "no link" : DIST[p.key] <= hops ? "inside reach" : "outside reach"}</span>
-                    </button>
-                  </div>`).join("")}
-              </div>
-            </div>` : ""}
+
             <div class="addr-wrap">
-              <label class="label" for="addr">Enter any Ethereum address</label>
+              <label class="label" for="addr">Or paste any Ethereum address</label>
               <input class="field" id="addr" spellcheck="false" autocomplete="off"
                      placeholder="0x…" value="${esc(prefill)}" />
               <p class="err" id="err">${esc(error)}</p>
@@ -1301,13 +1343,6 @@ function renderConsole(prefill = "", error = "", still = false) {
     ring.addEventListener("click", go);
     ring.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
-    });
-  });
-  stage.querySelectorAll("#console-rings .wmark[data-addr]").forEach((g) => {
-    if (!g.dataset.addr) return;
-    g.addEventListener("click", (e) => { e.stopPropagation(); selectAddress(g.dataset.addr); });
-    g.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectAddress(g.dataset.addr); }
     });
   });
 
