@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Newton — Lazarus Scan</title>
 <meta name="description" content="Screen a wallet for its distance to a known Lazarus Group address, and have an operator quorum attest the decision onchain." />
+<!-- How the link unfurls when shared. Update og:url and og:image if the
+     demo moves to another domain; scrapers need absolute URLs. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Newton" />
+<meta property="og:title" content="Lazarus Scan · Newton" />
+<meta property="og:description" content="Screen a wallet by how close it sits to a known Lazarus Group address. Set the radius, run the check, and an operator quorum attests the decision onchain." />
+<meta property="og:url" content="https://lazarus-identitiy-checker.vercel.app/" />
+<meta property="og:image" content="https://lazarus-identitiy-checker.vercel.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Rings of coverage around a known Lazarus Group address, with example wallets at one, two and three hops." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Lazarus Scan · Newton" />
+<meta name="twitter:description" content="Screen a wallet by how close it sits to a known Lazarus Group address, attested onchain." />
+<meta name="twitter:image" content="https://lazarus-identitiy-checker.vercel.app/og.png" />
+<meta name="theme-color" content="#F0F0FA" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -1651,6 +1667,36 @@
     .m-only .wrow.nostatus .sub-note { display:inline; }
     .m-only .wrow .m-sub { padding-right:0; }
   }
+
+  /* The radius a hover would set: a dashed outline, and a summary that says
+     what it would cover. */
+  .cov-ghost {
+    fill:none; stroke:var(--ink-90); stroke-width:2; stroke-dasharray:6 6;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  .cov-ghost.on { opacity:.65; }
+
+  /* Notched phones: keep everything clear of the rounded corners and the
+     camera housing, including in landscape. */
+  body {
+    padding-left:max(var(--s-1), env(safe-area-inset-left));
+    padding-right:max(var(--s-1), env(safe-area-inset-right));
+  }
+  /* The inset is a floor on whatever padding the layout already uses, so a
+     phone without a notch keeps its tighter spacing. */
+  @media (max-width:620px) {
+    .mast { padding-left:max(var(--s-15), env(safe-area-inset-left)); padding-right:max(var(--s-15), env(safe-area-inset-right)); }
+    .console, .console.scan-shell, .intro, .checking, .verdict {
+      padding-left:max(12px, env(safe-area-inset-left));
+      padding-right:max(12px, env(safe-area-inset-right));
+    }
+  }
+  @media (max-width:620px) and (min-height:701px) {
+    .console, .console.scan-shell {
+      padding-left:max(var(--s-2), env(safe-area-inset-left));
+      padding-right:max(var(--s-2), env(safe-area-inset-right));
+    }
+  }
 </style>
 </head>
 <body>
@@ -1945,7 +1991,7 @@ function renderIntro() {
     </div>`;
 
   document.getElementById("go-console").onclick = () => {
-    stopAuto(); view = "console"; renderConsole();
+    stopAuto(); view = "console"; renderConsole(); syncUrl(true);
   };
   const next = document.getElementById("next-act");
   if (next) next.onclick = () => {
@@ -1998,6 +2044,7 @@ function setRule(nextHops, nextUsd) {
   usd = value;
   if (document.querySelector(".console")) applyReach();
   else renderConsole(document.getElementById("addr")?.value || "", "", true);
+  syncUrl();
 }
 
 /* The rail is the distance control: reach is what is lit. */
@@ -2180,6 +2227,86 @@ function setPulseReach(g, rTo) {
 }
 function beginAll(el) { el?.querySelectorAll("animate").forEach((a) => { try { a.beginElement(); } catch (_) {} }); }
 
+/* ── Radius preview and the opening demonstration ─────────────────
+   Hovering a ring or a switch shows what that radius would cover before
+   you commit to it. On first arrival the coverage sweeps out and back so
+   the control explains itself, then settles on the real setting. */
+let previewing = false;
+function previewReach(n) {
+  if (demoTimers.length) return;              // the demo is speaking
+  previewing = true;
+  const ghost = document.getElementById("cov-ghost");
+  if (ghost) { ghost.setAttribute("r", COV_R[n]); ghost.classList.add("on"); }
+  const ready = presets.filter((p) => p.address);
+  const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
+  const sum = document.getElementById("cov-sum");
+  if (sum) sum.innerHTML = `Would cover <b>${covered} of ${ready.length}</b> example wallets at ${hopWord(n)}`;
+}
+function endPreview() {
+  if (!previewing) return;
+  previewing = false;
+  document.getElementById("cov-ghost")?.classList.remove("on");
+  if (!demoTimers.length) paintReach(hops);
+}
+
+let radiusDemoShown = false;
+let demoTimers = [];
+function stopRadiusDemo(restore = true) {
+  if (!demoTimers.length) return;
+  demoTimers.forEach(clearTimeout);
+  demoTimers = [];
+  if (restore) applyReach();
+}
+/** Sweep the coverage out to three hops and back, then settle on the real
+ *  setting. First arrival only, and any interaction cancels it. */
+function playRadiusDemo() {
+  if (radiusDemoShown || REDUCED || !document.getElementById("cov-disc")) return;
+  radiusDemoShown = true;
+  const steps = [[1, 380], [3, 640], [1, 620], [hops, 640]];
+  let t = 0;
+  steps.forEach(([n, wait]) => {
+    t += wait;
+    demoTimers.push(setTimeout(() => drawRadius(n, 560), t));
+  });
+  demoTimers.push(setTimeout(() => { demoTimers = []; applyReach(); }, t + 640));
+}
+
+/* ── Shareable state ──────────────────────────────────────────────
+   The radius and the chosen wallet live in the address bar, so a link
+   carries the exact setup: ?wallet=D&hops=2. Entering the console and
+   reaching a result are history entries, so Back steps back. */
+function stateUrl() {
+  const p = new URLSearchParams();
+  p.set("hops", String(hops));
+  const addr = (document.getElementById("addr")?.value || "").trim();
+  const known = presets.find((w) => w.address.toLowerCase() === addr.toLowerCase());
+  if (known) p.set("wallet", WALLET_LETTER[known.key] || known.key);
+  else if (/^0x[0-9a-fA-F]{40}$/.test(addr)) p.set("wallet", addr);
+  return location.pathname + "?" + p.toString();
+}
+function syncUrl(push = false) {
+  try {
+    const u = stateUrl();
+    if (push) history.pushState({ view }, "", u);
+    else history.replaceState({ view }, "", u);
+  } catch (e) { /* file:// and private modes */ }
+}
+/** Read ?wallet= and ?hops= into a starting state. */
+function stateFromUrl() {
+  let params;
+  try { params = new URLSearchParams(location.search); } catch (e) { return null; }
+  const h = Number(params.get("hops"));
+  const w = (params.get("wallet") || "").trim();
+  if (!h && !w) return null;
+  const letter = w.length === 1 ? w.toUpperCase() : "";
+  const byLetter = Object.keys(WALLET_LETTER).find((k) => WALLET_LETTER[k] === letter);
+  const preset = byLetter ? presets.find((p) => p.key === byLetter) : null;
+  return {
+    hops: HOP_CHOICES.includes(h) ? h : null,
+    address: preset ? preset.address : (/^0x[0-9a-fA-F]{40}$/.test(w) ? w : ""),
+  };
+}
+
 let mapMode = "console";
 function renderCoverage(ready, mode = "console") {
   mapMode = mode;
@@ -2215,6 +2342,7 @@ function renderCoverage(ready, mode = "console") {
           <animate attributeName="stroke-opacity" values=".9;0" dur=".6s" begin="indefinite" fill="freeze"/>
           <animate attributeName="stroke-width" values="8;2" dur=".6s" begin="indefinite" fill="freeze"/>
         </circle>
+        <circle class="cov-ghost" id="cov-ghost" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none"/>
         <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0] + 7}"/>
@@ -2282,48 +2410,66 @@ function placePick(addr) {
 
 /** Update everything that depends on the reach without redrawing, so the
  *  disc, the knob and the rows can animate to their new state. */
-function applyReach() {
-  const ready = presets.filter((p) => p.address);
+/** Paint the map, the list and the switch as they would look at radius n.
+ *  Used for the real radius, for the hover preview and for the opening
+ *  demonstration. It never changes the policy itself. */
+function paintReach(n, ready) {
+  ready = ready || presets.filter((p) => p.address);
   const svg = document.getElementById("cov-svg");
   if (svg) {
-    tweenAttr(document.getElementById("cov-disc"), "r", COV_R[hops]);
-    tweenAttr(document.getElementById("cov-halo"), "r", COV_R[hops] + 16);
     svg.querySelectorAll(".cov-ring").forEach((r) =>
-      r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= hops ? "in" : "out"}`));
+      r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= n ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
-      g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= hops ? "on" : ""}`));
+      g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= n ? "on" : ""}`));
     svg.querySelectorAll(".wdot").forEach((el) => {
       const raw = el.dataset.dist, dd = raw === "" ? null : Number(raw);
-      el.classList.toggle("in", dd === 0 || isCovered(dd));
-      el.classList.toggle("out", !(dd === 0 || isCovered(dd)));
+      const inside = dd === 0 || (dd !== null && dd <= n);
+      el.classList.toggle("in", inside);
+      el.classList.toggle("out", !inside);
     });
+  }
+  const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
+  const sum = document.getElementById("cov-sum");
+  if (sum) sum.innerHTML = `Screening <b>${hopWord(n)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+  stage.querySelectorAll(".m-row").forEach((row) => {
+    const raw = row.dataset.dist, dd = raw === "" ? null : Number(raw);
+    const inside = dd !== null && dd !== undefined && dd <= n;
+    row.classList.toggle("in", inside);
+    const sub = row.querySelector(".m-sub");
+    if (sub && row.dataset.key) {
+      const st = dd === null || dd === undefined ? "" : inside ? "covered" : "not covered";
+      sub.innerHTML = `<span class="sub-note">${esc(WALLET_NOTE[row.dataset.key] || "")}</span>`
+        + `<span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
+      row.classList.toggle("nostatus", !st);
+    }
+    const dot = row.querySelector(".m-dot");
+    const out = outcomes[(row.dataset.addr || "").toLowerCase()];
+    if (dot) dot.className = "m-dot " + (out && out.hops === n ? out.tone : "");
+  });
+  stage.querySelectorAll(".m-seg-btn").forEach((b) => {
+    const on = Number(b.dataset.hops) === n;
+    b.classList.toggle("sel", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+}
+
+/** Move the coverage to radius n on the map. */
+function drawRadius(n, dur = 600) {
+  tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur);
+  tweenAttr(document.getElementById("cov-halo"), "r", COV_R[n] + 16, dur);
+  paintReach(n);
+}
+
+/** Update everything that depends on the reach without redrawing, so the
+ *  disc, the rows and the switch can animate to their new state. */
+function applyReach() {
+  const svg = document.getElementById("cov-svg");
+  drawRadius(hops);
+  if (svg) {
     svg.setAttribute("aria-valuenow", hops);
     svg.setAttribute("aria-valuetext", hopWord(hops));
     placePick(pickAddr);
   }
-  const sum = document.getElementById("cov-sum");
-  if (sum) sum.innerHTML = coverageSummary(ready);
-
-  stage.querySelectorAll(".m-row").forEach((row) => {
-    const raw = row.dataset.dist;
-    const d = raw === "" ? null : Number(raw);
-    row.classList.toggle("in", isCovered(d));
-    const sub = row.querySelector(".m-sub");
-    if (sub) {
-      if (row.dataset.key) {
-        sub.innerHTML = walletSubHtml(row.dataset.key, d);
-        row.classList.toggle("nostatus", !walletStatus(d));
-      } else sub.textContent = rowSub(d);
-    }
-    const out = outcomes[(row.dataset.addr || "").toLowerCase()];
-    const dot = row.querySelector(".m-dot");
-    if (dot) dot.className = "m-dot " + (out && out.hops === hops ? out.tone : "");
-  });
-  stage.querySelectorAll(".m-seg-btn").forEach((b) => {
-    const on = Number(b.dataset.hops) === hops;
-    b.classList.toggle("sel", on);
-    b.setAttribute("aria-pressed", String(on));
-  });
 }
 
 function renderConsole(prefill = "", error = "", still = false) {
@@ -2386,6 +2532,7 @@ function renderConsole(prefill = "", error = "", still = false) {
     document.getElementById("err").textContent = "";
     if (!opts.keepDot) placePick(addr);
     else pickAddr = String(addr).toLowerCase();
+    syncUrl();
     sync();
   };
 
@@ -2448,6 +2595,12 @@ function renderConsole(prefill = "", error = "", still = false) {
       const r = Math.hypot(q.x - COV_C, q.y - COV_C);
       return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
     };
+    // Hovering a ring shows what it would cover.
+    svg.querySelectorAll(".cov-ring").forEach((ring) => {
+      ring.addEventListener("pointerenter", () => { if (matchMedia("(hover:hover)").matches) previewReach(Number(ring.dataset.ring)); });
+      ring.addEventListener("pointerleave", endPreview);
+    });
+    svg.addEventListener("pointerleave", endPreview);
     svg.querySelectorAll(".wdot").forEach((el) => {
       const choose = (e) => { e.stopPropagation(); selectAddress(el.dataset.addr); };
       el.addEventListener("click", choose);
@@ -2467,7 +2620,16 @@ function renderConsole(prefill = "", error = "", still = false) {
   // The coverage switches, under the map on desktop and on the phone.
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
+    b.addEventListener("pointerenter", () => {
+      if (!b.disabled && matchMedia("(hover:hover)").matches) previewReach(Number(b.dataset.hops));
+    });
+    b.addEventListener("pointerleave", endPreview);
   });
+
+  // Any touch, click or key ends the opening demonstration.
+  ["pointerdown", "keydown", "wheel"].forEach((ev) =>
+    stage.addEventListener(ev, () => stopRadiusDemo(), { once: true, passive: true }));
+  playRadiusDemo();
   stage.querySelectorAll(".m-row").forEach((b) => {
     b.onclick = () => {
       stage.querySelector(".card-check")?.classList.remove("show-paste");
@@ -2714,6 +2876,7 @@ async function submit(address) {
   }
   inFlight = true;
   currentAddress = address.toLowerCase();
+  syncUrl(true);
   const search = renderChecking(address);
   try {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
@@ -2851,6 +3014,16 @@ document.getElementById("home").onclick = () => {
   view = "intro"; act = 0; renderIntro();
 };
 
+window.addEventListener("popstate", (e) => {
+  if (inFlight) return;
+  const v = e.state?.view;
+  if (!v || v === "intro") { view = "intro"; act = 0; renderIntro(); return; }
+  const s = stateFromUrl();
+  if (s?.hops) hops = s.hops;
+  view = "console";
+  renderConsole(s?.address || "", "", true);
+});
+
 (async function boot() {
   const wallets = fetch("data/demo_wallets.json")
     .then((r) => (r.ok ? r.json() : null))
@@ -2864,6 +3037,16 @@ document.getElementById("home").onclick = () => {
   const loaded = data?.wallets;
   if (!Array.isArray(loaded)) return;
   presets = loaded.filter((w) => w.address);
+  // A shared link names the radius and the wallet: open the console on it.
+  const shared = stateFromUrl();
+  if (shared && view === "intro" && !inFlight) {
+    if (shared.hops) hops = shared.hops;
+    stopAuto();
+    view = "console";
+    radiusDemoShown = true;            // the link already says what to look at
+    renderConsole(shared.address || "", "", true);
+    return;
+  }
   // If the reader is already on the console, give it the examples now.
   if (view === "console" && !inFlight && document.getElementById("addr")) {
     renderConsole(document.getElementById("addr").value || "", "", true);
