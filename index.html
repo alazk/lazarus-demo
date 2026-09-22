@@ -1425,6 +1425,34 @@
     .card-check .card-body + .btn-block { margin-top:var(--s-1); }
     .cov-status { min-height:36px; font-size:14px; }
   }
+
+  /* ── Scan pulse, the same as the picking screen's sonar ─────────────
+     Slow lavender waves, three per cycle, fading at the scan front. The
+     front itself holds steady and simply steps outward. */
+  .cov-scanpulse circle { stroke:var(--cov-edge); stroke-width:2; }
+  .cov-scanpulse.on circle { animation:scanPulse 3.6s cubic-bezier(.2,.6,.3,1) infinite; }
+  .cov-scanpulse.on circle:nth-child(2) { animation-delay:1.2s; }
+  .cov-scanpulse.on circle:nth-child(3) { animation-delay:2.4s; }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    12%  { opacity:.75; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
+  .cov-wave.on { animation:none; stroke-width:3; opacity:.6; }
+
+  /* ── Stats: three columns sized to their content, evenly spaced ──── */
+  .card-result .stats {
+    display:grid; grid-template-columns:repeat(3, max-content); justify-content:start;
+    column-gap:0;
+  }
+  .card-result .stat, .card-result .stat + .stat { border-top:none; padding:0; }
+  .card-result .stat + .stat {
+    border-left:1px solid var(--on-22);
+    padding-left:clamp(20px, 2.4vw, 36px); margin-left:clamp(20px, 2.4vw, 36px);
+  }
+  @media (max-width:620px) {
+    .card-result .stat + .stat { padding-left:14px; margin-left:14px; }
+  }
 </style>
 </head>
 <body>
