@@ -886,6 +886,86 @@
   .core-label { font-size:17px; }
   /* The screening card sits its controls together rather than spread apart. */
   .card-check .card-body { justify-content:flex-start; }
+
+  /* ── Coverage map ─────────────────────────────────────────────── */
+  @media (min-width:861px) {
+    .console { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  }
+  .card-cov .card-body { align-items:center; justify-content:center; }
+  .cov { width:100%; display:flex; flex-direction:column; align-items:center; }
+  .cov-svg {
+    width:100%; max-width:380px; overflow:visible; cursor:pointer;
+    touch-action:none; user-select:none; -webkit-user-select:none;
+  }
+  .cov-svg:focus { outline:none; }
+  .cov-svg:focus-visible .cov-knob circle { stroke-width:3.5; }
+  .cov-svg.dragging { cursor:grabbing; }
+
+  /* The disc and its glow scale from the centre with a small overshoot, so
+     a change of reach reads as the coverage springing out or pulling in. */
+  .cov-disc, .cov-halo, .cov-ripple {
+    transform-box:view-box; transform-origin:200px 200px;
+  }
+  .cov-disc { fill:url(#cov-grad); transition:transform .6s cubic-bezier(.34,1.35,.5,1); }
+  .cov-halo { fill:#F0A860; opacity:.28; filter:url(#cov-blur); transition:transform .6s cubic-bezier(.34,1.35,.5,1); }
+  .cov-ring { fill:none; stroke-width:1.5; transition:stroke .35s, stroke-dasharray .35s, opacity .35s; }
+  .cov-ring.in  { stroke:var(--block-edge); opacity:.75; }
+  .cov-ring.out { stroke:var(--ink-50); stroke-dasharray:2 6; opacity:.7; }
+  .cov-ripple { fill:none; stroke:var(--block-edge); stroke-width:2.5; opacity:0; pointer-events:none; }
+  .cov-ripple.go { animation:covRipple .75s ease-out; }
+  @keyframes covRipple {
+    from { transform:scale(.22); opacity:.7; }
+    to   { transform:scale(var(--k, 1)); opacity:0; }
+  }
+
+  /* Lazarus at the centre breathes, slowly. */
+  .cov-core { fill:var(--ink-90); }
+  .cov-core-glow {
+    fill:var(--ink-90); opacity:.18; transform-box:fill-box; transform-origin:center;
+    animation:coreBreath 3.2s ease-in-out infinite;
+  }
+  @keyframes coreBreath { 0%,100% { transform:scale(1); opacity:.18; } 50% { transform:scale(1.28); opacity:0; } }
+  .cov-core-label { font:600 15px var(--sans); fill:var(--paper); pointer-events:none; }
+
+  .cov-pill rect { fill:var(--paper); stroke:var(--ink-30); stroke-width:1.2; transition:fill .3s, stroke .3s; }
+  .cov-pill text { font:600 12px var(--sans); fill:var(--ink-50); transition:fill .3s; pointer-events:none; }
+  .cov-pill.on rect { fill:var(--ink-90); stroke:var(--ink-90); }
+  .cov-pill.on text { fill:var(--paper); }
+
+  /* The edge handle: slides round with the coverage, and invites a drag. */
+  .cov-knob { transition:transform .6s cubic-bezier(.34,1.35,.5,1); cursor:grab; }
+  .cov-knob circle { fill:var(--paper); stroke:var(--ink-90); stroke-width:2; filter:drop-shadow(0 2px 4px rgba(27,23,26,.25)); }
+  .cov-knob path { fill:none; stroke:var(--ink-90); stroke-width:1.8; stroke-linecap:round; }
+
+  /* The picked wallet, in its band: amber when covered, grey when not. */
+  .cov-pick { transition:transform .45s cubic-bezier(.34,1.3,.5,1), opacity .25s; pointer-events:none; color:var(--block-edge); }
+  .cov-pick.not { color:var(--ink-50); }
+  .cov-pick-dot { fill:currentColor; stroke:var(--paper); stroke-width:2.5; }
+  .cov-pick-pulse {
+    fill:none; stroke:currentColor; stroke-width:2; transform-box:fill-box; transform-origin:center;
+    animation:pickPulse 1.6s ease-out infinite;
+  }
+  @keyframes pickPulse { from { transform:scale(.55); opacity:.9; } to { transform:scale(1.6); opacity:0; } }
+
+  .cov-sum { margin:var(--s-2) 0 0; font-size:17px; line-height:26px; text-align:center; }
+  .cov-hint { margin:4px 0 0; font-size:13px; line-height:20px; color:var(--ink-50); text-align:center; }
+
+  /* The screening card: list, paste link, then Run. */
+  .try-wallet .label { display:block; margin-bottom:var(--s-1); }
+  .card-check .addr-wrap { display:none; }
+  .card-check.show-paste .addr-wrap { display:flex; }
+  .card-check.show-paste .paste-link, .card-check.show-paste .m-paste { display:none; }
+  .paste-link {
+    align-self:flex-start; padding:4px 0; border:none; background:none; cursor:pointer;
+    font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink-70);
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  .paste-link:hover { color:var(--ink-90); }
+
+  @media (prefers-reduced-motion:reduce) {
+    .cov-core-glow, .cov-pick-pulse, .cov-ripple.go { animation:none; }
+    .cov-disc, .cov-halo, .cov-knob, .cov-pick { transition:none; }
+  }
 </style>
 </head>
 <body>
@@ -1161,9 +1241,11 @@ function setRule(nextHops, nextUsd) {
     value = atHops.reduce((best, v) =>
       Math.abs(v - nextUsd) < Math.abs(best - nextUsd) ? v : best);
   }
+  if (nextHops === hops && value === usd) return;
   hops = nextHops;
   usd = value;
-  renderConsole(document.getElementById("addr")?.value || "", "", true);
+  if (document.querySelector(".console")) applyReach();
+  else renderConsole(document.getElementById("addr")?.value || "", "", true);
 }
 
 /* The rail is the distance control: reach is what is lit. */
@@ -1208,11 +1290,10 @@ function renderWalletList(ready, prefill, extra = "") {
         const inside = d !== null && d !== undefined && d <= hops;
         const out = outcomes[r.address.toLowerCase()];
         const tone = out && out.hops === hops ? out.tone : "";
-        const sub = d === 0 ? "on the list" : d === null ? "no path to the list"
-          : inside ? "inside reach" : "outside reach";
+        const sub = rowSub(d);
         const chosen = r.address.toLowerCase() === chosenAddr;
         return `<button class="m-row ${inside ? "in" : ""} ${chosen ? "chosen" : ""}"
-            type="button" role="listitem" data-addr="${esc(r.address)}"
+            type="button" role="listitem" data-addr="${esc(r.address)}" data-dist="${d ?? ""}"
             aria-pressed="${chosen}" title="${esc(r.address)}">
           <span class="m-bar" aria-hidden="true"></span>
           <span class="m-text">
@@ -1252,55 +1333,172 @@ function renderLadder(ready, prefill) {
       Paste any address</button>`;
 }
 
+/* ── Coverage map ────────────────────────────────────────────────
+   Lazarus at the centre, a ring per hop, and one coverage disc that grows
+   and shrinks to the reach. Drag its edge or tap a ring to change it. The
+   wallet you pick lands in its ring, so you see whether the coverage
+   reaches it. Reach changes update in place so the motion can play. */
+const COV_C = 200;
+const COV_R = [44, 96, 142, 188];          // core, then the outer edge of hops 1–3
+const KNOB_DEG = -40;
+const PICK_DEG = 128;
+let pickAddr = "";
+
+const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
+const isCovered = (d) => d !== null && d !== undefined && d !== "" && Number(d) <= hops;
+function rowSub(d) {
+  if (d === 0) return "on the list · covered";
+  if (d === null || d === undefined || d === "") return "outside every ring";
+  return Number(d) <= hops ? "covered" : "not covered";
+}
+function coverageSummary(ready) {
+  const covered = ready.filter((w) => isCovered(DIST[w.key])).length;
+  return `Covering <b>${hopWord(hops)}</b> · ${covered} of ${ready.length} example wallets covered`;
+}
+function knobXY(n = hops) {
+  const a = KNOB_DEG * Math.PI / 180;
+  return [COV_C + COV_R[n] * Math.cos(a), COV_C + COV_R[n] * Math.sin(a)];
+}
+
+function renderCoverage(ready) {
+  const c = COV_C, k = COV_R[hops] / COV_R[3];
+  const [kx, ky] = knobXY();
+  const pills = [1, 2, 3].map((n) => {
+    const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
+    return `<g class="cov-pill ${n <= hops ? "on" : ""}" data-ring="${n}" transform="translate(${c} ${y})">
+      <rect x="-32" y="-12" width="64" height="24" rx="12"/>
+      <text y="4" text-anchor="middle">${hopWord(n)}</text></g>`;
+  }).join("");
+  return `
+    <div class="cov">
+      <svg class="cov-svg" id="cov-svg" viewBox="0 0 400 400" tabindex="0" role="slider"
+           aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
+           aria-valuetext="${hopWord(hops)}">
+        <defs>
+          <radialGradient id="cov-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#F2B478" stop-opacity=".95"/>
+            <stop offset="55%"  stop-color="#F8D6AE" stop-opacity=".92"/>
+            <stop offset="100%" stop-color="#FBE6CC" stop-opacity=".95"/>
+          </radialGradient>
+          <filter id="cov-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+        </defs>
+        <circle class="cov-halo" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
+        <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(${k})"/>
+        ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+        <circle class="cov-ripple" id="cov-ripple" cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+        <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+        <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+        <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
+        ${pills}
+        <g class="cov-pick" id="cov-pick" style="opacity:0">
+          <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
+        </g>
+        <g class="cov-knob" id="cov-knob" style="transform:translate(${kx.toFixed(1)}px, ${ky.toFixed(1)}px)">
+          <circle r="16"/>
+          <path d="M-6 -2 L-2 -6 M-6 -2 L-2 2 M6 2 L2 -2 M6 2 L2 6" />
+        </g>
+      </svg>
+      <p class="cov-sum" id="cov-sum">${coverageSummary(ready)}</p>
+      <p class="cov-hint">Drag the edge or tap a ring to change the coverage.</p>
+    </div>`;
+}
+
+/** Place the picked wallet on the map, in the band for its distance. */
+function placePick(addr) {
+  pickAddr = String(addr || "").trim().toLowerCase();
+  const g = document.getElementById("cov-pick");
+  if (!g) return;
+  const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
+  if (!w) { g.style.opacity = "0"; return; }
+  const d = DIST[w.key];
+  let x = COV_C, y = COV_C, cls = "cov-pick";
+  if (d === null || d === undefined) {
+    x = COV_C + 172; y = COV_C + 150; cls += " not";
+  } else if (d > 0) {
+    const r = (COV_R[d - 1] + COV_R[d]) / 2, a = PICK_DEG * Math.PI / 180;
+    x = COV_C + r * Math.cos(a); y = COV_C + r * Math.sin(a);
+    if (d > hops) cls += " not";
+  }
+  g.setAttribute("class", cls);
+  g.style.opacity = "1";
+  g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+}
+
+/** Update everything that depends on the reach without redrawing, so the
+ *  disc, the knob and the rows can animate to their new state. */
+function applyReach() {
+  const ready = presets.filter((p) => p.address);
+  const svg = document.getElementById("cov-svg");
+  if (svg) {
+    const k = COV_R[hops] / COV_R[3];
+    svg.querySelectorAll(".cov-disc, .cov-halo").forEach((e) => { e.style.transform = `scale(${k})`; });
+    svg.querySelectorAll(".cov-ring").forEach((r) =>
+      r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= hops ? "in" : "out"}`));
+    svg.querySelectorAll(".cov-pill").forEach((g) =>
+      g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= hops ? "on" : ""}`));
+    const [kx, ky] = knobXY();
+    const knob = document.getElementById("cov-knob");
+    if (knob) knob.style.transform = `translate(${kx.toFixed(1)}px, ${ky.toFixed(1)}px)`;
+    const ripple = document.getElementById("cov-ripple");
+    if (ripple) {
+      ripple.style.setProperty("--k", k);
+      ripple.setAttribute("class", "cov-ripple");
+      ripple.getBoundingClientRect();               // restart the animation
+      ripple.setAttribute("class", "cov-ripple go");
+    }
+    svg.setAttribute("aria-valuenow", hops);
+    svg.setAttribute("aria-valuetext", hopWord(hops));
+    placePick(pickAddr);
+  }
+  const sum = document.getElementById("cov-sum");
+  if (sum) sum.innerHTML = coverageSummary(ready);
+
+  stage.querySelectorAll(".m-row").forEach((row) => {
+    const raw = row.dataset.dist;
+    const d = raw === "" ? null : Number(raw);
+    row.classList.toggle("in", isCovered(d));
+    const sub = row.querySelector(".m-sub");
+    if (sub) sub.textContent = rowSub(d);
+    const out = outcomes[(row.dataset.addr || "").toLowerCase()];
+    const dot = row.querySelector(".m-dot");
+    if (dot) dot.className = "m-dot " + (out && out.hops === hops ? out.tone : "");
+  });
+  stage.querySelectorAll(".m-seg-btn").forEach((b) => {
+    const on = Number(b.dataset.hops) === hops;
+    b.classList.toggle("sel", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+}
+
 function renderConsole(prefill = "", error = "", still = false) {
   document.title = "Lazarus Scan · Newton";
   const ready = presets.filter((p) => p.address);
+  const pasted = prefill && !ready.some((r) => r.address.toLowerCase() === String(prefill).trim().toLowerCase());
   stage.className = "stage";
   stage.innerHTML = `
     <div class="console ${still ? "still" : ""}">
       <div class="col">
-        <div class="h6 muted">Active policy</div>
-        <div class="card card-policy">
-          <div class="card-body">
-            <div class="h4">Lazarus Scan</div>
-            <p class="rule">Block a wallet that reaches a known Lazarus address.</p>
-            <div class="reach-pair">
-              <div class="reach-rings">
-                ${renderRings({ id: "console-rings", interactive: true,
-                  ringClass: (n) => (n <= hops ? "in" : "out") })}
-              </div>
-              <div class="reach-list">
-                <span class="label">Try a wallet</span>
-                ${renderWalletList(ready, prefill, "d-only")}
-              </div>
-            </div>
-            <p class="p-sm muted rail-help" style="margin:var(--s-2) 0 0">
-              Click a ring to set the reach, now <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>.
-              Wallets marked by the bar are inside it, and are blocked if they connect to a
-              known Lazarus address.
-            </p>
-            <p class="reach-line">Scans up to <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
-              · ${esc(RAIL_CAPTIONS[hops] || "")}</p>
-          </div>
+        <div class="h6 muted">Coverage</div>
+        <div class="card card-policy card-cov">
+          <div class="card-body">${renderCoverage(ready)}</div>
         </div>
       </div>
 
       <div class="col">
         <div class="h6 muted">Screen a wallet</div>
-        <div class="card card-check ${prefill && !ready.some((r) => r.address.toLowerCase() === String(prefill).trim().toLowerCase()) ? "show-paste" : ""}">
+        <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}
-
+            <div class="d-only try-wallet">
+              <span class="label">Try a wallet</span>
+              ${renderWalletList(ready, prefill, "d-only")}
+            </div>
+            <button class="d-only paste-link" type="button" id="d-paste">Paste any address</button>
             <div class="addr-wrap">
-              <label class="label" for="addr">Or paste any Ethereum address</label>
+              <label class="label" for="addr">Paste any Ethereum address</label>
               <input class="field" id="addr" spellcheck="false" autocomplete="off"
                      placeholder="0x…" value="${esc(prefill)}" />
               <p class="err" id="err">${esc(error)}</p>
-            </div>
-            <div class="flow">
-              ${flowSteps().map((t, i) => `<div class="flow-row">
-                <span class="flow-n">${i + 1}</span><span>${esc(t)}</span>
-              </div>`).join("")}
             </div>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="run">Run the check</button>
@@ -1330,6 +1528,7 @@ function renderConsole(prefill = "", error = "", still = false) {
     input.value = addr;
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
+    placePick(addr);
     sync();
   };
 
@@ -1337,14 +1536,37 @@ function renderConsole(prefill = "", error = "", still = false) {
     b.onclick = () => selectAddress(b.dataset.addr);
   });
 
-  // The rings set the reach; the markers on them pick a wallet.
-  stage.querySelectorAll("#console-rings .ring").forEach((ring) => {
-    const go = () => setRule(Number(ring.dataset.ring), usd);
-    ring.addEventListener("click", go);
-    ring.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+  // Coverage map: tap a ring or drag the edge; arrow keys step the reach.
+  const svg = document.getElementById("cov-svg");
+  if (svg) {
+    const bandAt = (ev) => {
+      const pt = svg.createSVGPoint();
+      pt.x = ev.clientX; pt.y = ev.clientY;
+      const m = svg.getScreenCTM();
+      if (!m) return null;
+      const q = pt.matrixTransform(m.inverse());
+      const r = Math.hypot(q.x - COV_C, q.y - COV_C);
+      return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
+    };
+    let dragging = false;
+    svg.addEventListener("pointerdown", (ev) => {
+      dragging = true;
+      svg.setPointerCapture?.(ev.pointerId);
+      svg.classList.add("dragging");
+      const n = bandAt(ev); if (n) setRule(n, usd);
     });
-  });
+    svg.addEventListener("pointermove", (ev) => {
+      if (!dragging) return;
+      const n = bandAt(ev); if (n && n !== hops) setRule(n, usd);
+    });
+    const stop = () => { dragging = false; svg.classList.remove("dragging"); };
+    svg.addEventListener("pointerup", stop);
+    svg.addEventListener("pointercancel", stop);
+    svg.addEventListener("keydown", (e) => {
+      if (["ArrowRight", "ArrowUp"].includes(e.key)) { e.preventDefault(); setRule(Math.min(3, hops + 1), usd); }
+      if (["ArrowLeft", "ArrowDown"].includes(e.key)) { e.preventDefault(); setRule(Math.max(1, hops - 1), usd); }
+    });
+  }
 
   // Phone ladder: reach, rows and the paste link.
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
@@ -1356,6 +1578,18 @@ function renderConsole(prefill = "", error = "", still = false) {
       selectAddress(b.dataset.addr);
     };
   });
+  const openPaste = () => {
+    stage.querySelectorAll(".m-row").forEach((x) => {
+      x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+    });
+    stage.querySelector(".card-check")?.classList.add("show-paste");
+    input.value = "";
+    placePick("");
+    sync();
+    input.focus();
+  };
+  const dPaste = document.getElementById("d-paste");
+  if (dPaste) dPaste.onclick = openPaste;
   const paste = document.getElementById("m-paste");
   if (paste) paste.onclick = () => {
     stage.querySelectorAll(".m-row").forEach((x) => {
@@ -1373,6 +1607,7 @@ function renderConsole(prefill = "", error = "", still = false) {
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
     const typed = input.value.trim().toLowerCase();
+    placePick(typed);
     stage.querySelectorAll(".pk, .m-row").forEach((x) => {
       const on = (x.dataset.addr || "").toLowerCase() === typed;
       x.classList.toggle("chosen", on);
@@ -1382,6 +1617,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   };
   input.onkeydown = (e) => { if (e.key === "Enter" && !run.disabled) run.click(); };
   run.onclick = () => submit(String(input.value ?? "").trim());
+  placePick(prefill);
   sync();
   if (window.matchMedia("(min-width: 861px)").matches) input.focus();
 }
