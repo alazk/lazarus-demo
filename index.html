@@ -635,7 +635,8 @@
     #act-copy { min-height:200px; }
   }
 
-  /* ── Phone ladder ─────────────────────────────────────────────── */
+  
+/* ── Phone ladder ─────────────────────────────────────────────── */
   .addr-wrap { display:flex; flex-direction:column; gap:var(--s-1); }
   .m-only { display:none; }
   @media (max-width:620px) {
@@ -710,6 +711,125 @@
       text-decoration:underline; text-underline-offset:3px; cursor:pointer;
     }
   }
+
+  /* ── Reach inside the scan ────────────────────────────────────────
+     Rows past the reach are drawn but sit outside it: dashed and quiet,
+     so the reach is visible in the scan itself. */
+  .step.beyond {
+    border-style:dashed; border-color:var(--ink-30); background:transparent;
+    color:var(--ink-50);
+  }
+  .step.beyond .step-note { color:var(--ink-50); font-weight:500; }
+  .step.beyond .step-icon { border-style:dashed; background:transparent; }
+  .arrow.beyond { color:var(--ink-30); }
+  .reach-edge {
+    display:flex; align-items:center; gap:var(--s-1); margin:2px 0;
+    font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-70);
+  }
+  .reach-edge::before, .reach-edge::after { content:''; flex:1; height:1px; background:var(--ink-50); }
+  .verdict.settled .reach-edge { color:var(--on-62); }
+  .verdict.settled .reach-edge::before, .verdict.settled .reach-edge::after { background:var(--on-35); }
+
+  /* Exposure past the reach: amber outline and a triangle, never green. */
+  .step.warn {
+    border-style:solid; border-color:var(--block-edge);
+    background:rgba(255,255,255,.6); color:var(--ink-90);
+  }
+  .step.warn .step-note { color:#8a4a12; font-weight:600; }
+  .step.warn .step-icon {
+    border:none; border-radius:0; background:var(--block-edge); color:var(--paper);
+    clip-path:polygon(50% 6%, 97% 94%, 3% 94%);
+    width:22px; height:20px; font-size:11px; padding-top:4px;
+  }
+  .step.warn .step-icon::before { content:'!'; }
+
+  .warnline {
+    display:flex; align-items:flex-start; gap:10px; margin-top:var(--s-2);
+    padding:12px 14px; border-radius:var(--r-sm);
+    background:rgba(255,255,255,.62); border:1px solid var(--block-edge);
+    font-size:15px; line-height:22px; color:var(--ink-90); max-width:44ch;
+  }
+  .warn-icon { flex:0 0 20px; width:20px; height:20px; color:var(--block-edge); margin-top:1px; }
+  .m-dot.warn {
+    border-radius:0; background:var(--block-edge);
+    clip-path:polygon(50% 0, 100% 100%, 0 100%); width:12px; height:11px; flex-basis:12px;
+  }
+
+  /* ── Rings ─────────────────────────────────────────────────────── */
+  .rings { width:100%; height:auto; display:block; overflow:visible; }
+  .ring {
+    fill:var(--paper); stroke:var(--ink-30); stroke-width:1.5;
+    transition:fill .45s ease, stroke .45s ease;
+  }
+  .ring.off  { fill:var(--paper); stroke:var(--ink-30); stroke-dasharray:4 5; }
+  .ring.pass { fill:var(--pass-a); stroke:var(--pass-edge); }
+  .ring.hit  { fill:var(--block-a); stroke:var(--block-edge); }
+  /* In the console: inside the reach is covered, outside is dashed. */
+  .ring.in   { fill:var(--block-a); stroke:var(--block-edge); stroke-dasharray:none; }
+  .ring.out  { fill:var(--paper); stroke:var(--ink-30); stroke-dasharray:4 5; }
+  .core { fill:var(--ink-90); stroke:var(--ink-90); stroke-width:1.5; transition:fill .45s, stroke .45s; }
+  .core.hit { fill:var(--block-edge); stroke:var(--block-edge); }
+  .core-label { font:600 13px var(--sans); fill:var(--paper); pointer-events:none; }
+  .ring-label {
+    font:600 11px var(--sans); letter-spacing:.06em; text-transform:uppercase;
+    fill:var(--ink-70); pointer-events:none;
+  }
+  .wdot { fill:var(--paper); stroke:var(--ink-90); stroke-width:2; transition:fill .2s, stroke .2s; }
+  .wmark.you .wdot { fill:var(--ink-90); }
+  .wname { font:600 12px var(--sans); fill:var(--ink-90); pointer-events:none; }
+  .ring-fig { width:100%; max-width:440px; margin:0 auto; }
+  .ring-note {
+    margin:var(--s-2) auto 0; max-width:36ch; text-align:center;
+    font-size:14px; line-height:21px; color:var(--ink-70); min-height:42px;
+  }
+
+  /* ── Console rings ──────────────────────────────────────────────── */
+  .reach-rings { max-width:300px; margin:var(--s-2) auto 0; }
+  #console-rings .ring { cursor:pointer; }
+  @media (hover:hover) {
+    #console-rings .ring.out:hover { fill:var(--ink-10); stroke:var(--ink-70); }
+    #console-rings .ring.in:hover { stroke:var(--ink-90); }
+  }
+  #console-rings .ring:focus-visible { outline:none; stroke:var(--ink-90); stroke-width:3; }
+  #console-rings .wmark[data-addr] { cursor:pointer; }
+  #console-rings .wmark.in .wdot { stroke:var(--block-edge); }
+  #console-rings .wmark.out .wdot { stroke:var(--ink-50); }
+  #console-rings .wmark.out .wname { fill:var(--ink-50); }
+  #console-rings .wmark.chosen .wdot { fill:var(--ink-90); stroke:var(--ink-90); }
+  /* The Lazarus example sits on the core, so it reads against the dark disc. */
+  #console-rings .wmark:first-of-type .wdot { stroke:var(--paper); }
+
+  /* Chips say whether the current reach covers them. */
+  .pk-reach { font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-top:2px; }
+  .pk.in .pk-reach { color:var(--block-edge); }
+  .pk.out .pk-reach { color:var(--ink-50); }
+  .pk.chosen .pk-reach { color:var(--ink-30); }
+  .pk.in { border-color:var(--block-edge); }
+
+  /* Phones: the rings figure scales to the room it has. */
+  @media (max-width:620px) {
+    .ring-fig { max-width:min(320px, 38vh); }
+    .ring-note { font-size:13px; line-height:19px; min-height:0; margin-top:var(--s-1); }
+    .reach-edge { font-size:10px; margin:0; }
+    .warnline { margin-top:var(--s-15); padding:10px 12px; font-size:14px; line-height:20px; }
+  }
+  /* Short phones: the warning line already says what the reason says, so the
+     reason steps aside, and the rows tighten a little. */
+  @media (max-width:620px) and (max-height:700px) {
+    .ring-fig { max-width:min(240px, 34vh); }
+    .intro-grid { gap:16px; }
+    #act-copy { min-height:180px; }
+    .act .h2 { font-size:26px; }
+    .act p { font-size:15px; line-height:22px; margin-top:12px; }
+    .warnline ~ .reason { display:none; }
+    .step { min-height:38px; padding-block:4px; }
+    .steps { gap:2px; }
+    .arrow { font-size:11px; line-height:11px; }
+    .h1 { font-size:28px; }
+    .stats { margin-top:12px; }
+    #actions-slot { margin-top:12px; }
+  }
 </style>
 </head>
 <body>
@@ -763,6 +883,10 @@ const STEP_LABELS = [
   "Looking two hops out",
   "Looking three hops out",
 ];
+const WARN_ICON = `<svg class="warn-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 3.2 22.4 20.6H1.6Z" fill="currentColor"/>
+  <rect x="11" y="9" width="2" height="6.4" rx="1" fill="#fff"/>
+  <circle cx="12" cy="17.7" r="1.2" fill="#fff"/></svg>`;
 const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three hops out"];
 
 /* Captions say where the wallet sits without naming the verdict. */
@@ -798,25 +922,23 @@ const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
     body: "A North Korean state hacking operation. They have taken billions from "
         + "exchanges and bridges, and their addresses are designated by OFAC.",
-    marks: ["known", "off", "off", "off"],
-    captions: ["on the list", "", "", "the wallet you pay"] },
+    core: "known", rings: ["off", "off", "off"],
+    note: "Lazarus at the centre. Each ring is one transfer further out." },
 
   { kicker: "The gap", title: "A list checks one address.",
     body: "It compares the wallet you are paying against a set of designated "
         + "addresses. But the money moved along a path. The wallet is not on "
         + "the list, it is one transfer from a wallet that is, and a list check "
         + "cannot tell you that.",
-    marks: ["hit", "pass", "pass", "pass"],
-    captions: ["caught", "clears", "clears", "clears the list"],
-    bracket: { span: 1, label: "What a list covers" } },
+    core: "hit", rings: ["pass", "pass", "pass"],
+    note: "What a list covers: the centre only. Every ring around it clears." },
 
   { kicker: "The policy", title: "Screen the path, not the address.",
     body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
         + "paying and reports how far a known address sits, and how much moved "
         + "along the way.",
-    marks: ["hit", "hit", "hit", "hit"],
-    captions: ["flagged", "traced", "traced", "blocked, 3 hops"],
-    bracket: { span: 4, label: "What the policy covers" } },
+    core: "hit", rings: ["hit", "hit", "hit"],
+    note: "What the policy covers: every ring inside the reach you set." },
 ];
 
 const flowSteps = () => [
@@ -826,23 +948,51 @@ const flowSteps = () => [
   "An operator quorum attests the decision onchain.",
 ];
 
-/* The chain is built once and then only its classes change, so the nodes
-   transition between acts instead of being replaced. Re-rendering the markup
-   would restart every element and nothing would animate. */
+/* Concentric rings: the Lazarus address at the centre, one ring per hop.
+   A ring's state says whether a rule covers it, which is the whole idea of
+   reach drawn as distance. */
+const RING_R = [42, 86, 130, 172];     // core, 1 hop, 2 hops, 3 hops (outer edge)
+function renderRings({ id = "rings", interactive = false, wallets = [], ringClass = () => "" } = {}) {
+  const c = 190;
+  const ringCircles = [3, 2, 1].map((n) => `
+    <circle class="ring r${n} ${ringClass(n)}" data-ring="${n}" cx="${c}" cy="${c}" r="${RING_R[n]}"
+      ${interactive ? `role="button" tabindex="0" aria-label="Set reach to ${n} ${n === 1 ? "hop" : "hops"}"` : ""}/>`).join("");
+  const labels = [1, 2, 3].map((n) => {
+    const y = c - (RING_R[n - 1] + RING_R[n]) / 2 + 4;
+    return `<text class="ring-label" data-label="${n}" x="${c}" y="${y}" text-anchor="middle">${n} ${n === 1 ? "hop" : "hops"}</text>`;
+  }).join("");
+  // Wallet markers sit in the band for their distance.
+  const marks = wallets.map((w) => {
+    const d = w.dist;
+    let x, y;
+    if (d === null) { x = c + 176; y = c + 150; }
+    else if (d === 0) { x = c; y = c + 18; }
+    else {
+      const rr = (RING_R[d - 1] + RING_R[d]) / 2;
+      const ang = w.angle * Math.PI / 180;
+      x = c + rr * Math.cos(ang); y = c + rr * Math.sin(ang);
+    }
+    return `<g class="wmark ${w.cls || ""}" data-addr="${esc(w.address || "")}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
+        ${interactive && w.address ? `role="button" tabindex="0" aria-label="${esc(w.name)}"` : ""}>
+      <circle class="wdot" r="${w.r || 8}"/>
+      ${w.name ? `<text class="wname" y="${(w.r || 8) + 15}" text-anchor="middle">${esc(w.name)}</text>` : ""}
+    </g>`;
+  }).join("");
+  return `<svg class="rings" id="${id}" viewBox="0 0 400 400" role="img" aria-label="Distance from a known Lazarus address, in rings">
+    ${ringCircles}
+    <circle class="core" cx="${c}" cy="${c}" r="${RING_R[0]}"/>
+    <text class="core-label" x="${c}" y="${c - 6}" text-anchor="middle">Lazarus</text>
+    ${labels}
+    ${marks}
+  </svg>`;
+}
+
 function renderChain() {
-  const cells = CHAIN.map((label, i) => `
-    <div class="cn-cell">
-      <div class="cn" data-node="${i}">${esc(label)}</div>
-      <div class="cn-cap" data-cap="${i}"></div>
-    </div>`);
-  const row = cells.reduce((acc, cell, i) =>
-    i === 0 ? cell : acc + '<span class="cn-link"></span>' + cell, "");
-  return `<div class="chain">
-    <div class="cn-row">${row}</div>
-    <div class="cn-bracket" id="bracket" style="--span:0">
-      <span class="cn-rule"></span>
-      <span class="cn-blabel" id="blabel"></span>
-    </div>
+  return `<div class="ring-fig">
+    ${renderRings({ id: "intro-rings", wallets: [
+      { dist: 3, angle: 38, name: "Wallet you pay", cls: "you", r: 9 },
+    ] })}
+    <p class="ring-note" id="ring-note"></p>
   </div>`;
 }
 
@@ -864,27 +1014,21 @@ function paintAct(n, animate = true) {
     setTimeout(apply, 220);
   } else if (copy) { apply(); }
 
-  // The nodes carry their own transition, so setting the class is the whole
-  // animation. Staggering makes the chain read left to right.
-  CHAIN.forEach((_, i) => {
-    const node = stage.querySelector(`[data-node="${i}"]`);
-    const cap = stage.querySelector(`[data-cap="${i}"]`);
-    const set = () => {
-      if (node) node.className = "cn " + a.marks[i];
-      if (cap) cap.textContent = a.captions[i] || "";
-    };
-    animate ? setTimeout(set, 90 * i) : set();
-  });
-
-  const bracket = document.getElementById("bracket");
-  const blabel = document.getElementById("blabel");
-  const b = a.bracket;
-  const settle = () => {
-    bracket.style.setProperty("--span", b ? b.span : 0);
-    bracket.classList.toggle("on", Boolean(b));
-    blabel.textContent = b ? b.label : "";
-  };
-  if (bracket) animate ? setTimeout(settle, 90 * CHAIN.length) : settle();
+  // The rings carry their own transitions, so setting a class is the whole
+  // animation. They fill from the centre outward.
+  const svg = document.getElementById("intro-rings");
+  if (svg) {
+    const core = svg.querySelector(".core");
+    const setCore = () => { if (core) core.setAttribute("class", "core " + a.core); };
+    animate ? setTimeout(setCore, 60) : setCore();
+    [1, 2, 3].forEach((n) => {
+      const ring = svg.querySelector(`.ring.r${n}`);
+      const set = () => { if (ring) ring.setAttribute("class", `ring r${n} ${a.rings[n - 1]}`); };
+      animate ? setTimeout(set, 60 + 140 * n) : set();
+    });
+  }
+  const note = document.getElementById("ring-note");
+  if (note) note.textContent = a.note || "";
 
   stage.querySelectorAll(".act-dot").forEach((d, i) => {
     d.classList.toggle("on", i === n);
@@ -994,6 +1138,22 @@ function renderRail() {
   return `<div class="rail">${parts.join("")}</div>`;
 }
 
+/* The example wallets placed on the rings, marked inside or outside the
+   current reach, so the reach and the wallets read as one picture. */
+const RING_ANGLE = { one: -140, two: -35, three: 58 };
+function ringWallets(ready, chosen) {
+  const pick = String(chosen || "").trim().toLowerCase();
+  return ready.map((w) => {
+    const d = DIST[w.key];
+    const inside = d !== null && d !== undefined && d <= hops;
+    return {
+      dist: d === undefined ? null : d, angle: RING_ANGLE[w.key] ?? 0,
+      name: d === null ? "No link" : "", address: w.address, r: d === 0 ? 7 : 10,
+      cls: `${inside ? "in" : "out"} ${w.address.toLowerCase() === pick ? "chosen" : ""}`,
+    };
+  });
+}
+
 /* ── Phone ladder ────────────────────────────────────────────────
    On a phone the reach control and the example wallets are one thing: the
    wallets are listed in order of distance, and a bar marks which ones the
@@ -1053,9 +1213,15 @@ function renderConsole(prefill = "", error = "", still = false) {
           <div class="card-body">
             <div class="h4">Lazarus Scan</div>
             <p class="rule">Block a wallet that reaches a known Lazarus address.</p>
-            ${renderRail()}
-            <p class="p-sm muted rail-help" style="margin:var(--s-2) 0 0">
-              Each step is one transfer. Click a hop to set how far the scan reaches.
+            <div class="reach-rings">
+              ${renderRings({ id: "console-rings", interactive: true,
+                wallets: ringWallets(ready, prefill),
+                ringClass: (n) => (n <= hops ? "in" : "out") })}
+            </div>
+            <p class="p-sm muted rail-help" style="margin:var(--s-15) 0 0">
+              Click a ring to set the reach. Any wallet inside the shaded rings is blocked
+              if it connects to a known Lazarus address. Reach is set to
+              <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>.
             </p>
             <p class="reach-line">Scans up to <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
               · ${esc(RAIL_CAPTIONS[hops] || "")}</p>
@@ -1074,10 +1240,11 @@ function renderConsole(prefill = "", error = "", still = false) {
               <div class="picker">
                 ${ready.map((p) => `
                   <div class="pk-cell">
-                    <button class="pk" type="button" data-addr="${esc(p.address)}"
+                    <button class="pk ${DIST[p.key] !== null && DIST[p.key] !== undefined && DIST[p.key] <= hops ? "in" : "out"}" type="button" data-addr="${esc(p.address)}"
                             title="${esc(p.address)}" aria-pressed="false">
                       <span class="pk-name">${esc(LABELS[p.key] || p.label || "")}</span>
                       <span class="pk-addr">${esc(short(p.address))}</span>
+                      <span class="pk-reach">${DIST[p.key] === null ? "no link" : DIST[p.key] <= hops ? "inside reach" : "outside reach"}</span>
                     </button>
                   </div>`).join("")}
               </div>
@@ -1106,18 +1273,42 @@ function renderConsole(prefill = "", error = "", still = false) {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
   });
 
+  // One selection shared by the chips, the ring markers and the phone rows.
+  const selectAddress = (addr) => {
+    const a = String(addr || "").toLowerCase();
+    stage.querySelectorAll(".pk, .m-row").forEach((x) => {
+      const on = (x.dataset.addr || "").toLowerCase() === a;
+      x.classList.toggle("chosen", on);
+      x.setAttribute("aria-pressed", String(on));
+    });
+    stage.querySelectorAll("#console-rings .wmark").forEach((g) => {
+      const on = (g.dataset.addr || "").toLowerCase() === a;
+      g.setAttribute("class", g.getAttribute("class").replace(/\s*chosen/g, "") + (on ? " chosen" : ""));
+    });
+    input.value = addr;
+    input.classList.remove("invalid");
+    document.getElementById("err").textContent = "";
+    sync();
+  };
+
   stage.querySelectorAll(".pk").forEach((b) => {
-    b.onclick = () => {
-      stage.querySelectorAll(".pk").forEach((x) => {
-        x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
-      });
-      b.classList.add("chosen");
-      b.setAttribute("aria-pressed", "true");
-      input.value = b.dataset.addr;
-      input.classList.remove("invalid");
-      document.getElementById("err").textContent = "";
-      sync();
-    };
+    b.onclick = () => selectAddress(b.dataset.addr);
+  });
+
+  // The rings set the reach; the markers on them pick a wallet.
+  stage.querySelectorAll("#console-rings .ring").forEach((ring) => {
+    const go = () => setRule(Number(ring.dataset.ring), usd);
+    ring.addEventListener("click", go);
+    ring.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+    });
+  });
+  stage.querySelectorAll("#console-rings .wmark[data-addr]").forEach((g) => {
+    if (!g.dataset.addr) return;
+    g.addEventListener("click", (e) => { e.stopPropagation(); selectAddress(g.dataset.addr); });
+    g.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectAddress(g.dataset.addr); }
+    });
   });
 
   // Phone ladder: reach, rows and the paste link.
@@ -1126,16 +1317,8 @@ function renderConsole(prefill = "", error = "", still = false) {
   });
   stage.querySelectorAll(".m-row").forEach((b) => {
     b.onclick = () => {
-      stage.querySelectorAll(".m-row").forEach((x) => {
-        x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
-      });
-      b.classList.add("chosen");
-      b.setAttribute("aria-pressed", "true");
       stage.querySelector(".card-check")?.classList.remove("show-paste");
-      input.value = b.dataset.addr;
-      input.classList.remove("invalid");
-      document.getElementById("err").textContent = "";
-      sync();
+      selectAddress(b.dataset.addr);
     };
   });
   const paste = document.getElementById("m-paste");
@@ -1154,8 +1337,9 @@ function renderConsole(prefill = "", error = "", still = false) {
   input.oninput = () => {
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
-    stage.querySelectorAll(".pk").forEach((x) => {
-      const on = x.dataset.addr === input.value.trim();
+    const typed = input.value.trim().toLowerCase();
+    stage.querySelectorAll(".pk, .m-row").forEach((x) => {
+      const on = (x.dataset.addr || "").toLowerCase() === typed;
       x.classList.toggle("chosen", on);
       x.setAttribute("aria-pressed", String(on));
     });
@@ -1181,12 +1365,13 @@ function renderChecking(address) {
         <div class="left">
           <div class="left-stack">
             <div class="steps">
-              ${STEP_LABELS.filter((_, n) => n <= hops).map((label, n) => `
-                ${n ? '<span class="arrow" aria-hidden="true"></span>' : ""}
-                <div class="step ${n === 0 ? "active" : "idle"}" data-step="${n}">
+              ${STEP_LABELS.map((label, n) => `
+                ${n ? `<span class="arrow ${n > hops ? "beyond" : ""}" aria-hidden="true"></span>` : ""}
+                ${n === hops + 1 ? `<div class="reach-edge"><span>Your reach ends here</span></div>` : ""}
+                <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
                   <span class="step-icon" aria-hidden="true"></span>
                   <span class="step-label"><span class="lbl-long">${esc(label)}</span><span class="lbl-short">${esc(STEP_SHORT[n])}</span></span>
-                  <span class="step-note"></span>
+                  <span class="step-note">${n > hops ? "outside reach" : ""}</span>
                 </div>`).join("")}
             </div>
           </div>
@@ -1205,18 +1390,19 @@ function renderChecking(address) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   return {
-    /** Walk outward. Clean steps go green; the step that finds the path goes
-     *  peach, or grey when a path exists but sits below the threshold. */
+    /** Walk the rows inside the reach. The step that finds a path inside
+     *  the reach goes amber and stops the walk. A path found past the reach
+     *  is marked on its own row with a warning: it exists, and the rule you
+     *  set does not cover it. */
     async settle(hitAt, kind) {
       const list = rows();
       if (!list.length) return;
-      const arrows = [...stage.querySelectorAll(".steps .arrow")];
-      const hit = hitAt === null || hitAt === undefined ? list.length : hitAt;
+      const inside = list.filter((r) => Number(r.dataset.step) <= hops);
+      const arrows = [...stage.querySelectorAll(".steps .arrow:not(.beyond)")];
+      const hit = hitAt === null || hitAt === undefined ? null : hitAt;
 
-      for (let n = 0; n < list.length; n++) {
-        const row = list[n];
-        // The connector into this row lights first, so the scan reads as
-        // travelling down the column rather than jumping between rows.
+      for (let n = 0; n < inside.length; n++) {
+        const row = inside[n];
         if (n > 0 && arrows[n - 1]) {
           arrows[n - 1].classList.add("lit");
           await wait(140);
@@ -1226,11 +1412,10 @@ function renderChecking(address) {
         await wait(560);
         row.classList.remove("active");
 
-        if (n === hit) {
-          row.classList.add(kind, "resolved");
-          row.querySelector(".step-note").textContent =
-            kind === "below" ? "below threshold" : "exposure found";
-          list.slice(n + 1).forEach((r) => r.classList.add("idle"));
+        if (kind === "hit" && n === hit) {
+          row.classList.add("hit", "resolved");
+          row.querySelector(".step-note").textContent = "exposure found";
+          inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
           await wait(500);
           row.classList.add("waiting");
           return;
@@ -1239,8 +1424,18 @@ function renderChecking(address) {
         row.querySelector(".step-note").textContent = "clear";
         await wait(120);
       }
+
+      if (kind === "warn" && hit !== null && list[hit]) {
+        await wait(260);
+        const row = list[hit];
+        row.classList.add("warn", "resolved");
+        row.querySelector(".step-note").innerHTML = 'outside reach';
+        await wait(500);
+        row.classList.add("waiting");
+        return;
+      }
       await wait(300);
-      const last = list[list.length - 1];
+      const last = inside[inside.length - 1];
       if (last) {
         const note = last.querySelector(".step-note");
         if (note) note.textContent = "waiting on quorum";
@@ -1273,10 +1468,12 @@ async function submit(address) {
 
     // A path found but allowed means the policy's value floor let it through:
     // its own outcome, not a plain pass.
-    const belowThreshold = result.exposure && result.decision === "ALLOW";
+    // Exposure the policy allowed means it sits past the reach you set.
+    const outsideReach = result.exposure && result.decision === "ALLOW"
+      && typeof result.hop_count === "number" && result.hop_count > hops;
     await search.settle(result.exposure ? result.hop_count : null,
-                        belowThreshold ? "below" : "hit");
-    await fillVerdict(result, belowThreshold);
+                        outsideReach ? "warn" : "hit");
+    await fillVerdict(result, outsideReach);
   } catch (e) {
     await fillVerdict({
       wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
@@ -1318,7 +1515,7 @@ function renderStats(r) {
 
 /** Fill the panel the scan is already sitting in: colour it, write the right
  *  column, add the path below the settled steps. The steps do not move. */
-async function fillVerdict(r, belowThreshold) {
+async function fillVerdict(r, outsideReach) {
   const panel = document.getElementById("panel");
   const right = document.getElementById("right-slot");
 
@@ -1326,7 +1523,6 @@ async function fillVerdict(r, belowThreshold) {
   if (!panel || !right) return;
 
   const max = r.dataset?.max_hops ?? hops;
-  const floor = r.dataset?.min_exposure_usd ?? usd;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
   let tone, headline, reason;
 
@@ -1338,11 +1534,12 @@ async function fillVerdict(r, belowThreshold) {
     tone = "fail"; headline = "Not attested";
     reason = "The wallet was screened, but the decision could not be attested, "
            + "so the policy denies by default.";
-  } else if (belowThreshold) {
+  } else if (outsideReach) {
+    // Allowed, and it should not read as clean: the exposure is real, the
+    // rule you chose just does not reach it.
     tone = "pass"; headline = "Compliant";
-    reason = `A path exists at ${hopWord(r.hop_count)}, but its smallest transfer `
-           + `of ${money(r.exposure_usd)} is below the ${money(floor)} floor this `
-           + "policy acts on.";
+    reason = `Allowed under your reach of ${hopWord(max)}. The policy only blocks `
+           + "exposure inside the reach you set.";
   } else if (r.exposure) {
     tone = "block"; headline = "Non Compliant";
     reason = r.direct_match
@@ -1358,22 +1555,25 @@ async function fillVerdict(r, belowThreshold) {
   await new Promise((r) => setTimeout(r, 220));
   panel.classList.add(tone, "settled");
   if (currentAddress && tone !== "fail") {
-    outcomes[currentAddress] = { tone, hops: r.dataset?.max_hops ?? hops };
+    outcomes[currentAddress] = { tone: outsideReach ? "warn" : tone, hops: r.dataset?.max_hops ?? hops };
   }
   document.title = `${headline} · Lazarus Scan`;
   // The scan's last note said it was waiting; the verdict answers that.
   stage.querySelectorAll(".step.waiting").forEach((row) => {
     row.classList.remove("waiting");
     const note = row.querySelector(".step-note");
-    if (note && note.textContent === "waiting on quorum") {
+    if (note && note.textContent === "waiting on quorum" && !row.classList.contains("warn")) {
       note.textContent = row.classList.contains("hit") ? "exposure found"
-        : row.classList.contains("below") ? "below threshold" : "clear";
+        : "clear";
     }
   });
 
   const detail = r.detail || r.attestation?.detail;
   right.innerHTML = `
     <div class="h1">${esc(headline)}</div>
+    ${outsideReach ? `<div class="warnline" role="note">${WARN_ICON}
+      <span><b>Exposure found ${esc(hopWord(r.hop_count))} out</b>, outside your reach
+      of ${esc(hopWord(max))}.</span></div>` : ""}
     <p class="reason p-lg">${esc(reason)}</p>
     ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}`;
