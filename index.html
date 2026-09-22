@@ -634,6 +634,82 @@
     .card { padding:16px; }
     #act-copy { min-height:200px; }
   }
+
+  /* ── Phone ladder ─────────────────────────────────────────────── */
+  .addr-wrap { display:flex; flex-direction:column; gap:var(--s-1); }
+  .m-only { display:none; }
+  @media (max-width:620px) {
+    .m-only { display:block; }
+
+    /* The desktop reach card and chip row give way to the ladder. */
+    .console > .col:first-child, .picker-wrap, .flow { display:none; }
+    .card-check .addr-wrap { display:none; }
+    .card-check.show-paste .addr-wrap { display:flex; }
+    .card-check.show-paste .m-paste { display:none; }
+    .m-paste.hide { display:none; }
+
+    /* One column that fills the screen, Run pinned to the bottom. */
+    .console { display:flex; flex-direction:column; align-content:stretch; padding:var(--s-2); gap:0; }
+    .console > .col:last-child { flex:1 1 auto; min-height:0; }
+    .card-check { height:100%; display:flex; flex-direction:column; }
+    .card-check .card-body { flex:1 1 auto; min-height:0; gap:var(--s-2); }
+    .card-check .btn-block { margin-top:var(--s-2); }
+
+    .m-reach-top { display:flex; align-items:center; justify-content:space-between; gap:var(--s-15); }
+    .m-rule { margin:var(--s-15) 0 0; font-size:14px; line-height:20px; color:var(--ink-70); }
+    .m-reach .label { font-size:14px; }
+    .m-seg {
+      display:flex; padding:3px; gap:3px;
+      background:var(--ink-10); border-radius:var(--r-sm);
+    }
+    .m-seg-btn {
+      min-width:64px; height:40px; padding:0 var(--s-15);
+      border:none; border-radius:6px; background:transparent; cursor:pointer;
+      font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ink-70);
+      transition:background .15s, color .15s;
+    }
+    .m-seg-btn.sel { background:var(--paper); color:var(--ink-90); box-shadow:0 1px 2px rgba(27,23,26,.12); }
+    .m-seg-btn:disabled { opacity:.35; }
+
+    /* The ladder: one bordered list, rows in order of distance. */
+    .m-ladder {
+      border:1px solid var(--ink-30); border-radius:var(--r-md); overflow:hidden;
+      background:var(--paper);
+    }
+    .m-row {
+      display:flex; align-items:stretch; gap:var(--s-15);
+      width:100%; min-height:56px; padding:0 var(--s-2) 0 0;
+      border:none; border-top:1px solid var(--ink-10);
+      background:transparent; text-align:left; cursor:pointer;
+      font-family:var(--sans); color:var(--ink-90);
+      transition:background .15s;
+    }
+    .m-row:first-child { border-top:none; }
+    /* The bar down the left: dark for every wallet the reach covers, so the
+       reach reads as one continuous line down the list. */
+    .m-bar { flex:0 0 4px; background:var(--ink-10); transition:background .25s; }
+    .m-row.in .m-bar { background:var(--ink-90); }
+    .m-text { flex:1; display:flex; flex-direction:column; justify-content:center; gap:2px; padding-block:var(--s-1); }
+    .m-name { font-size:16px; font-weight:500; }
+    .m-sub { font-size:13px; color:var(--ink-50); }
+    .m-row.in .m-sub { color:var(--ink-70); }
+    .m-row.chosen { background:var(--ink-90); color:var(--paper); }
+    .m-row.chosen .m-sub { color:var(--ink-30); }
+    .m-row.chosen .m-bar { background:var(--paper); }
+    .m-row:active { background:var(--ink-10); }
+    .m-row.chosen:active { background:var(--ink-90); }
+    /* Last outcome under the current reach. */
+    .m-dot { align-self:center; flex:0 0 10px; height:10px; border-radius:50%; }
+    .m-dot.pass  { background:var(--pass-edge); }
+    .m-dot.block { background:var(--block-edge); }
+    .m-row.chosen .m-dot { box-shadow:0 0 0 2px var(--ink-90), 0 0 0 3px var(--paper); }
+
+    .m-paste {
+      align-self:flex-start; padding:var(--s-1) 0; border:none; background:none;
+      font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink-70);
+      text-decoration:underline; text-underline-offset:3px; cursor:pointer;
+    }
+  }
 </style>
 </head>
 <body>
@@ -691,9 +767,18 @@ const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three h
 
 /* Captions say where the wallet sits without naming the verdict. */
 const LABELS = {
-  direct: "Wallet A", one: "Wallet B", two: "Wallet C",
-  three: "Wallet D", clean: "Wallet E",
+  direct: "Lazarus", one: "1 hop", two: "2 hops", three: "3 hops", clean: "Clean",
 };
+/* Phone ladder: each example wallet with its known distance. */
+const DIST = { direct: 0, one: 1, two: 2, three: 3, clean: null };
+const LADDER_NAMES = {
+  direct: "Lazarus wallet", one: "1 hop away", two: "2 hops away",
+  three: "3 hops away", clean: "No known link",
+};
+/* The last outcome per wallet, kept with the reach it was checked under, so
+   a row only shows a result that is true of the current rule. */
+const outcomes = {};
+let currentAddress = "";
 
 let view = "intro";
 let act = 0;
@@ -909,6 +994,53 @@ function renderRail() {
   return `<div class="rail">${parts.join("")}</div>`;
 }
 
+/* ── Phone ladder ────────────────────────────────────────────────
+   On a phone the reach control and the example wallets are one thing: the
+   wallets are listed in order of distance, and a bar marks which ones the
+   current reach covers, so what the rule catches is visible before a check
+   runs. */
+function renderLadder(ready, prefill) {
+  const rows = [...ready].sort((a, b) =>
+    (DIST[a.key] ?? 99) - (DIST[b.key] ?? 99));
+  const chosenAddr = String(prefill || "").trim().toLowerCase();
+  const pasted = chosenAddr && !rows.some((r) => r.address.toLowerCase() === chosenAddr);
+  return `
+    <div class="m-only m-reach">
+      <div class="m-reach-top">
+        <span class="label">Reach</span>
+        <div class="m-seg" role="group" aria-label="How far the scan reaches">
+          ${HOP_SHOWN.map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}"
+            type="button" data-hops="${n}" aria-pressed="${n === hops}"
+            ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${n} ${n === 1 ? "hop" : "hops"}</button>`).join("")}
+        </div>
+      </div>
+      <p class="m-rule">Blocks any wallet inside the reach that connects to a known Lazarus address.</p>
+    </div>
+    <div class="m-only m-ladder" role="list">
+      ${rows.map((r) => {
+        const d = DIST[r.key];
+        const inside = d !== null && d !== undefined && d <= hops;
+        const out = outcomes[r.address.toLowerCase()];
+        const tone = out && out.hops === hops ? out.tone : "";
+        const sub = d === 0 ? "on the list" : d === null ? "no path to the list"
+          : inside ? "inside reach" : "outside reach";
+        const chosen = r.address.toLowerCase() === chosenAddr;
+        return `<button class="m-row ${inside ? "in" : ""} ${chosen ? "chosen" : ""}"
+            type="button" role="listitem" data-addr="${esc(r.address)}"
+            aria-pressed="${chosen}" title="${esc(r.address)}">
+          <span class="m-bar" aria-hidden="true"></span>
+          <span class="m-text">
+            <span class="m-name">${esc(LADDER_NAMES[r.key] || r.label || "")}</span>
+            <span class="m-sub">${esc(sub)}</span>
+          </span>
+          <span class="m-dot ${tone}" aria-label="${tone ? (tone === "block" ? "blocked last time" : "allowed last time") : ""}"></span>
+        </button>`;
+      }).join("")}
+    </div>
+    <button class="m-only m-paste ${pasted ? "hide" : ""}" type="button" id="m-paste">
+      Paste any address</button>`;
+}
+
 function renderConsole(prefill = "", error = "", still = false) {
   document.title = "Lazarus Scan · Newton";
   const ready = presets.filter((p) => p.address);
@@ -933,23 +1065,24 @@ function renderConsole(prefill = "", error = "", still = false) {
 
       <div class="col">
         <div class="h6 muted">Screen a wallet</div>
-        <div class="card card-check">
+        <div class="card card-check ${prefill && !ready.some((r) => r.address.toLowerCase() === String(prefill).trim().toLowerCase()) ? "show-paste" : ""}">
           <div class="card-body">
+            ${renderLadder(ready, prefill)}
             ${ready.length ? `
-            <div>
+            <div class="picker-wrap">
               <span class="label">Try one of these</span>
               <div class="picker">
                 ${ready.map((p) => `
                   <div class="pk-cell">
                     <button class="pk" type="button" data-addr="${esc(p.address)}"
                             title="${esc(p.address)}" aria-pressed="false">
-                      <span class="pk-name"><span class="pk-w">Wallet </span>${esc((LABELS[p.key] || p.label || "").replace(/^Wallet /, ""))}</span>
+                      <span class="pk-name">${esc(LABELS[p.key] || p.label || "")}</span>
                       <span class="pk-addr">${esc(short(p.address))}</span>
                     </button>
                   </div>`).join("")}
               </div>
             </div>` : ""}
-            <div style="display:flex;flex-direction:column;gap:var(--s-1)">
+            <div class="addr-wrap">
               <label class="label" for="addr">Enter any Ethereum address</label>
               <input class="field" id="addr" spellcheck="false" autocomplete="off"
                      placeholder="0x…" value="${esc(prefill)}" />
@@ -980,15 +1113,41 @@ function renderConsole(prefill = "", error = "", still = false) {
       });
       b.classList.add("chosen");
       b.setAttribute("aria-pressed", "true");
-      if (!window.matchMedia("(min-width: 861px)").matches) {
-        run.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
       input.value = b.dataset.addr;
       input.classList.remove("invalid");
       document.getElementById("err").textContent = "";
       sync();
     };
   });
+
+  // Phone ladder: reach, rows and the paste link.
+  stage.querySelectorAll(".m-seg-btn").forEach((b) => {
+    b.onclick = () => setRule(Number(b.dataset.hops), usd);
+  });
+  stage.querySelectorAll(".m-row").forEach((b) => {
+    b.onclick = () => {
+      stage.querySelectorAll(".m-row").forEach((x) => {
+        x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+      });
+      b.classList.add("chosen");
+      b.setAttribute("aria-pressed", "true");
+      stage.querySelector(".card-check")?.classList.remove("show-paste");
+      input.value = b.dataset.addr;
+      input.classList.remove("invalid");
+      document.getElementById("err").textContent = "";
+      sync();
+    };
+  });
+  const paste = document.getElementById("m-paste");
+  if (paste) paste.onclick = () => {
+    stage.querySelectorAll(".m-row").forEach((x) => {
+      x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+    });
+    stage.querySelector(".card-check")?.classList.add("show-paste");
+    input.value = "";
+    sync();
+    input.focus();
+  };
 
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
   const sync = () => { run.disabled = !valid(input.value); };
@@ -1104,6 +1263,7 @@ async function submit(address) {
     return;
   }
   inFlight = true;
+  currentAddress = address.toLowerCase();
   const search = renderChecking(address);
   try {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
@@ -1197,6 +1357,9 @@ async function fillVerdict(r, belowThreshold) {
   right.classList.add("swapping");
   await new Promise((r) => setTimeout(r, 220));
   panel.classList.add(tone, "settled");
+  if (currentAddress && tone !== "fail") {
+    outcomes[currentAddress] = { tone, hops: r.dataset?.max_hops ?? hops };
+  }
   document.title = `${headline} · Lazarus Scan`;
   // The scan's last note said it was waiting; the verdict answers that.
   stage.querySelectorAll(".step.waiting").forEach((row) => {
