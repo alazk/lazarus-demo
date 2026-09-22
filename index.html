@@ -1697,6 +1697,26 @@
       padding-right:max(var(--s-2), env(safe-area-inset-right));
     }
   }
+
+  /* The map is one hover surface: the pointer anywhere inside it previews
+     that band, so the cursor reads as "this sets the radius". */
+  .cov-svg:not(.scanning) { cursor:pointer; }
+  .cov-svg:not(.scanning) .wdot { cursor:pointer; }
+  .cov-ghost.on { opacity:.7; }
+
+  /* Clicking should not leave a focus ring. Safari draws its blue ring on
+     plain :focus, so that is cleared everywhere a pointer can land, and a
+     keyboard focus ring is drawn in our own colours instead. */
+  .wdot:focus, .m-row:focus, .pk:focus, .cov-svg:focus, .m-seg-btn:focus,
+  .cov-ring:focus, .rail-node:focus, .act-dot:focus, .paste-link:focus,
+  .m-paste:focus, .btn:focus, .field:focus { outline:none; }
+  .m-row:focus-visible, .m-seg-btn:focus-visible, .paste-link:focus-visible,
+  .m-paste:focus-visible, .btn:focus-visible {
+    outline:2px solid var(--ink-90); outline-offset:2px;
+  }
+  .m-row:focus-visible { outline-offset:-2px; }
+  .field:focus-visible { outline:2px solid var(--ink-90); outline-offset:1px; }
+  .wdot:focus-visible circle, .cov-svg:focus-visible .cov-ring.in { stroke:var(--ink-90); stroke-width:3; }
 </style>
 </head>
 <body>
@@ -2232,9 +2252,12 @@ function beginAll(el) { el?.querySelectorAll("animate").forEach((a) => { try { a
    you commit to it. On first arrival the coverage sweeps out and back so
    the control explains itself, then settles on the real setting. */
 let previewing = false;
+let previewAt = 0;
 function previewReach(n) {
   if (demoTimers.length) return;              // the demo is speaking
+  if (previewing && previewAt === n) return;  // already showing this one
   previewing = true;
+  previewAt = n;
   const ghost = document.getElementById("cov-ghost");
   if (ghost) { ghost.setAttribute("r", COV_R[n]); ghost.classList.add("on"); }
   const ready = presets.filter((p) => p.address);
@@ -2245,6 +2268,7 @@ function previewReach(n) {
 function endPreview() {
   if (!previewing) return;
   previewing = false;
+  previewAt = 0;
   document.getElementById("cov-ghost")?.classList.remove("on");
   if (!demoTimers.length) paintReach(hops);
 }
@@ -2257,18 +2281,17 @@ function stopRadiusDemo(restore = true) {
   demoTimers = [];
   if (restore) applyReach();
 }
-/** Sweep the coverage out to three hops and back, then settle on the real
- *  setting. First arrival only, and any interaction cancels it. */
+/** One slow pass: the coverage draws in to a single hop, opens back out to
+ *  three, and settles on the real setting. Smooth, no overshoot, and the
+ *  list and the summary stay put so only the coverage moves. */
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 function playRadiusDemo() {
   if (radiusDemoShown || REDUCED || !document.getElementById("cov-disc")) return;
   radiusDemoShown = true;
-  const steps = [[1, 380], [3, 640], [1, 620], [hops, 640]];
-  let t = 0;
-  steps.forEach(([n, wait]) => {
-    t += wait;
-    demoTimers.push(setTimeout(() => drawRadius(n, 560), t));
-  });
-  demoTimers.push(setTimeout(() => { demoTimers = []; applyReach(); }, t + 640));
+  const smooth = { ease: easeInOut, mapOnly: true };
+  const legs = [[1, 500, 900], [3, 1500, 1000], [hops, 2620, 700]];
+  legs.forEach(([n, at, dur]) => demoTimers.push(setTimeout(() => drawRadius(n, dur, smooth), at)));
+  demoTimers.push(setTimeout(() => { demoTimers = []; applyReach(); }, 3400));
 }
 
 /* ── Shareable state ──────────────────────────────────────────────
@@ -2413,7 +2436,7 @@ function placePick(addr) {
 /** Paint the map, the list and the switch as they would look at radius n.
  *  Used for the real radius, for the hover preview and for the opening
  *  demonstration. It never changes the policy itself. */
-function paintReach(n, ready) {
+function paintReach(n, ready, opts = {}) {
   ready = ready || presets.filter((p) => p.address);
   const svg = document.getElementById("cov-svg");
   if (svg) {
@@ -2430,7 +2453,8 @@ function paintReach(n, ready) {
   }
   const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
   const sum = document.getElementById("cov-sum");
-  if (sum) sum.innerHTML = `Screening <b>${hopWord(n)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+  if (sum && !opts.mapOnly) sum.innerHTML = `Screening <b>${hopWord(n)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+  if (opts.mapOnly) return;
   stage.querySelectorAll(".m-row").forEach((row) => {
     const raw = row.dataset.dist, dd = raw === "" ? null : Number(raw);
     const inside = dd !== null && dd !== undefined && dd <= n;
@@ -2454,10 +2478,11 @@ function paintReach(n, ready) {
 }
 
 /** Move the coverage to radius n on the map. */
-function drawRadius(n, dur = 600) {
-  tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur);
-  tweenAttr(document.getElementById("cov-halo"), "r", COV_R[n] + 16, dur);
-  paintReach(n);
+function drawRadius(n, dur = 600, opts = {}) {
+  const ease = opts.ease || easeBack;
+  tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur, ease);
+  tweenAttr(document.getElementById("cov-halo"), "r", COV_R[n] + 16, dur, ease);
+  paintReach(n, null, opts);
 }
 
 /** Update everything that depends on the reach without redrawing, so the
@@ -2595,12 +2620,18 @@ function renderConsole(prefill = "", error = "", still = false) {
       const r = Math.hypot(q.x - COV_C, q.y - COV_C);
       return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
     };
-    // Hovering a ring shows what it would cover.
-    svg.querySelectorAll(".cov-ring").forEach((ring) => {
-      ring.addEventListener("pointerenter", () => { if (matchMedia("(hover:hover)").matches) previewReach(Number(ring.dataset.ring)); });
-      ring.addEventListener("pointerleave", endPreview);
-    });
-    svg.addEventListener("pointerleave", endPreview);
+    // Hovering anywhere over the map previews the radius under the pointer.
+    // The rings themselves are outlines, so hovering their 1.5px stroke was
+    // next to impossible; the band under the pointer is what counts.
+    if (matchMedia("(hover:hover)").matches) {
+      svg.addEventListener("pointermove", (ev) => {
+        if (ev.pointerType === "touch") return;
+        stopRadiusDemo();                 // the reader is driving now
+        const n = bandAt(ev);
+        if (n) previewReach(n);
+      });
+      svg.addEventListener("pointerleave", endPreview);
+    }
     svg.querySelectorAll(".wdot").forEach((el) => {
       const choose = (e) => { e.stopPropagation(); selectAddress(el.dataset.addr); };
       el.addEventListener("click", choose);
@@ -2621,7 +2652,9 @@ function renderConsole(prefill = "", error = "", still = false) {
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
     b.addEventListener("pointerenter", () => {
-      if (!b.disabled && matchMedia("(hover:hover)").matches) previewReach(Number(b.dataset.hops));
+      if (b.disabled || !matchMedia("(hover:hover)").matches) return;
+      stopRadiusDemo();
+      previewReach(Number(b.dataset.hops));
     });
     b.addEventListener("pointerleave", endPreview);
   });
