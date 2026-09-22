@@ -1157,6 +1157,67 @@
     .card-result .actions .btn { width:auto; }
     .card-result .actions .btn-primary { flex:1 1 auto; }
   }
+
+  /* ── Coverage colour: a cool ink-lavender, so amber keeps one meaning,
+     exposure found, and green keeps another, clear. ── */
+  :root { --cov-edge:#6F6C93; --cov-soft:#E2E0F3; }
+  .cov-halo { fill:#A9A5D6; opacity:.3; }
+  .cov-ring.in { stroke:var(--cov-edge); opacity:.7; }
+  .cov-ripple { stroke:var(--cov-edge); }
+  .cov-sonar circle { stroke:var(--cov-edge); }
+  .cov-core-pick { stroke:var(--cov-edge); }
+  .m-row.in .m-bar { background:var(--cov-edge); }
+  .m-row.in .m-sub { color:var(--cov-edge); }
+  .cov-pick { color:var(--cov-edge); }
+  .cov-pick-dot { fill:var(--ink-90); }
+  .cov-pick.not .cov-pick-dot { fill:var(--ink-50); }
+  /* Found keeps the amber meaning. */
+  .cov-pick.found { color:var(--block-edge); }
+
+  /* ── The wallet line and its draggable dot ── */
+  .cov-ray {
+    stroke:var(--ink-50); stroke-width:1.5; stroke-dasharray:1 5; stroke-linecap:round;
+    opacity:.55; pointer-events:none; transition:opacity .2s, stroke .2s;
+  }
+  .cov-svg.ray-active .cov-ray { opacity:1; stroke:var(--ink-90); }
+  .cov-svg.scanning .cov-ray { opacity:.3; }
+  .cov-pick-hit { fill:transparent; }
+  .cov-svg:not(.scanning) .cov-pick { pointer-events:auto; cursor:grab; touch-action:none; }
+  .cov-pick.dragging { transition:none; cursor:grabbing; }
+  .cov-pick.dragging .cov-pick-dot { transform:scale(1.25); transform-box:fill-box; transform-origin:center; }
+  .cov-pick.idle .cov-pick-dot { fill:var(--paper); stroke:var(--ink-70); stroke-width:2; stroke-dasharray:3 3; }
+  .cov-pick.idle .cov-pick-pulse { display:none; }
+
+  /* ── Intro: acts stacked in one cell, so nothing below them moves ── */
+  #act-copy { display:grid; min-height:0 !important; }
+  .act-panel {
+    grid-area:1 / 1; opacity:0; visibility:hidden;
+    transition:opacity .28s ease, visibility 0s linear .28s;
+  }
+  .act-panel.on { opacity:1; visibility:visible; transition:opacity .28s ease .08s, visibility 0s; }
+
+  /* The intro map uses the dashboard's styling; only its behaviour differs. */
+  .intro-map { cursor:default; max-width:420px; }
+  .intro-map .cov-disc, .intro-map .cov-halo { transition:transform .7s cubic-bezier(.34,1.3,.5,1); }
+  .intro-sonar { opacity:0; transition:opacity .4s; }
+  .intro-sonar.on { opacity:1; }
+  .intro-pick { pointer-events:none; }
+  .intro-pick.plain .cov-pick-pulse { display:none; }
+  .intro-pick-label { font:600 13px var(--sans); fill:var(--ink-90); }
+  .intro-pick.not .intro-pick-label { fill:var(--ink-50); }
+
+  /* Very short phones: the stacked acts hold the longest act's height, so
+     the figure gives a little back. */
+  @media (max-width:620px) and (max-height:680px) {
+    .ring-fig { max-width:min(210px, 31vh); }
+    .ring-note { font-size:12px; line-height:17px; }
+    .intro-grid { gap:12px; }
+  }
+
+  @media (max-width:620px) and (max-height:680px) {
+    .ring-fig { max-width:min(190px, 28vh); }
+    .intro { padding-block:12px; }
+  }
 </style>
 </head>
 <body>
@@ -1250,7 +1311,7 @@ const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
     body: "A North Korean state hacking operation. They have taken billions from "
         + "exchanges and bridges, and their addresses are designated by OFAC.",
-    core: "known", rings: ["off", "off", "off"],
+    cover: "none",
     note: "Lazarus at the centre. Each ring is one transfer out." },
 
   { kicker: "The gap", title: "A list checks one address.",
@@ -1258,14 +1319,14 @@ const ACTS = [
         + "addresses. But the money moved along a path. The wallet is not on "
         + "the list, it is one transfer from a wallet that is, and a list check "
         + "cannot tell you that.",
-    core: "hit", rings: ["pass", "pass", "pass"],
-    note: "A list covers the centre only." },
+    cover: "core",
+    note: "A list covers the centre only. The wallet you pay clears." },
 
   { kicker: "The policy", title: "Screen the path, not the address.",
     body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
         + "paying and reports how far a known address sits, and how much moved "
         + "along the way.",
-    core: "hit", rings: ["hit", "hit", "hit"],
+    cover: "all",
     note: "The policy covers every ring inside your reach." },
 ];
 
@@ -1316,10 +1377,42 @@ function renderRings({ id = "rings", interactive = false, wallets = [], ringClas
 }
 
 function renderChain() {
+  const c = COV_C;
+  const [px, py] = onRay(rayRadius(3));
+  const pills = [1, 2, 3].map((n) => {
+    const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
+    return `<g class="cov-pill" data-ring="${n}" transform="translate(${c} ${y})">
+      <rect x="-32" y="-12" width="64" height="24" rx="12"/>
+      <text y="4" text-anchor="middle">${hopWord(n)}</text></g>`;
+  }).join("");
   return `<div class="ring-fig">
-    ${renderRings({ id: "intro-rings", wallets: [
-      { dist: 3, angle: 38, name: "Wallet you pay", cls: "you", r: 9 },
-    ] })}
+    <svg class="cov-svg intro-map" id="intro-map" viewBox="0 0 400 400" role="img"
+         aria-label="Coverage from a known Lazarus address, in rings">
+      <defs>
+        <radialGradient id="intro-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#CFCCEB" stop-opacity=".95"/>
+          <stop offset="55%"  stop-color="#E2E0F3" stop-opacity=".92"/>
+          <stop offset="100%" stop-color="#EEEDF9" stop-opacity=".95"/>
+        </radialGradient>
+        <filter id="intro-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+      </defs>
+      <circle class="cov-halo intro-cover" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(.001);filter:url(#intro-blur)"/>
+      <circle class="cov-disc intro-cover" cx="${c}" cy="${c}" r="${COV_R[3]}" style="transform:scale(.001);fill:url(#intro-grad)"/>
+      ${[1, 2, 3].map((n) => `<circle class="cov-ring out" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+      <g class="cov-sonar intro-sonar" style="--k:1">
+        <circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/><circle cx="${c}" cy="${c}" r="${COV_R[3]}"/>
+      </g>
+      <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+      <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
+      <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
+      ${pills}
+      <line class="cov-ray" x1="${onRay(COV_R[0])[0].toFixed(1)}" y1="${onRay(COV_R[0])[1].toFixed(1)}"
+        x2="${onRay(COV_R[3] + 20)[0].toFixed(1)}" y2="${onRay(COV_R[3] + 20)[1].toFixed(1)}"/>
+      <g class="cov-pick intro-pick" style="transform:translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)">
+        <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
+        <text class="intro-pick-label" x="16" y="5">Wallet you pay</text>
+      </g>
+    </svg>
     <p class="ring-note" id="ring-note"></p>
   </div>`;
 }
@@ -1329,31 +1422,25 @@ function paintAct(n, animate = true) {
   act = n;
   const a = ACTS[n];
 
-  const copy = document.getElementById("act-copy");
-  const apply = () => {
-    copy.innerHTML = `
-      <div class="h6">${esc(a.kicker)}</div>
-      <div class="h2">${esc(a.title)}</div>
-      <p class="p-lg">${esc(a.body)}</p>`;
-    copy.classList.remove("fading");
-  };
-  if (animate && copy) {
-    copy.classList.add("fading");
-    setTimeout(apply, 220);
-  } else if (copy) { apply(); }
+  // All three acts share one grid cell, so the block is always as tall as the
+  // longest act and the buttons below it never move.
+  stage.querySelectorAll(".act-panel").forEach((p, i) => {
+    p.classList.toggle("on", i === n);
+    p.setAttribute("aria-hidden", String(i !== n));
+  });
 
-  // The rings carry their own transitions, so setting a class is the whole
-  // animation. They fill from the centre outward.
-  const svg = document.getElementById("intro-rings");
+  const svg = document.getElementById("intro-map");
   if (svg) {
-    const core = svg.querySelector(".core");
-    const setCore = () => { if (core) core.setAttribute("class", "core " + a.core); };
-    animate ? setTimeout(setCore, 60) : setCore();
-    [1, 2, 3].forEach((n) => {
-      const ring = svg.querySelector(`.ring.r${n}`);
-      const set = () => { if (ring) ring.setAttribute("class", `ring r${n} ${a.rings[n - 1]}`); };
-      animate ? setTimeout(set, 60 + 140 * n) : set();
-    });
+    const k = a.cover === "all" ? 1 : a.cover === "core" ? (COV_R[0] + 10) / COV_R[3] : 0.001;
+    svg.querySelectorAll(".intro-cover").forEach((e) => { e.style.transform = `scale(${k})`; });
+    svg.querySelector(".intro-sonar")?.classList.toggle("on", a.cover === "all");
+    svg.querySelectorAll(".cov-ring").forEach((r) =>
+      r.setAttribute("class", `cov-ring ${a.cover === "all" ? "in" : "out"}`));
+    svg.querySelectorAll(".cov-pill").forEach((g) =>
+      g.setAttribute("class", `cov-pill ${a.cover === "all" ? "on" : ""}`));
+    // The wallet you pay: outside the list's coverage, inside the policy's.
+    svg.querySelector(".intro-pick")?.setAttribute("class",
+      `cov-pick intro-pick ${a.cover === "all" ? "" : a.cover === "core" ? "not" : "plain"}`);
   }
   const note = document.getElementById("ring-note");
   if (note) note.textContent = a.note || "";
@@ -1370,7 +1457,13 @@ function renderIntro() {
     <div class="intro">
       <div class="intro-grid">
         <div class="act">
-          <div id="act-copy"></div>
+          <div id="act-copy">
+            ${ACTS.map((a, i) => `<div class="act-panel ${i === 0 ? "on" : ""}" aria-hidden="${i !== 0}">
+              <div class="h6">${esc(a.kicker)}</div>
+              <div class="h2">${esc(a.title)}</div>
+              <p class="p-lg">${esc(a.body)}</p>
+            </div>`).join("")}
+          </div>
           <div class="intro-foot">
             <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
             <button class="btn btn-tertiary btn-md" id="next-act">Next</button>
@@ -1556,12 +1649,14 @@ function onRay(r) {
  *  the listed address, the middle of its band otherwise, and just past the
  *  last ring for a wallet with no known link. */
 function rayRadius(d) {
-  if (d === 0) return COV_R[0] - 10;
+  if (d === 0) return COV_R[0] + 3;
   if (d === null || d === undefined) return COV_R[3] + 20;
   return (COV_R[d - 1] + COV_R[d]) / 2;
 }
 
+let mapMode = "console";
 function renderCoverage(ready, mode = "console") {
+  mapMode = mode;
   const c = COV_C, k = COV_R[hops] / COV_R[3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
@@ -1576,9 +1671,9 @@ function renderCoverage(ready, mode = "console") {
            aria-valuetext="${hopWord(hops)}">
         <defs>
           <radialGradient id="cov-grad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stop-color="#F2B478" stop-opacity=".95"/>
-            <stop offset="55%"  stop-color="#F8D6AE" stop-opacity=".92"/>
-            <stop offset="100%" stop-color="#FBE6CC" stop-opacity=".95"/>
+            <stop offset="0%"   stop-color="#CFCCEB" stop-opacity=".95"/>
+            <stop offset="55%"  stop-color="#E2E0F3" stop-opacity=".92"/>
+            <stop offset="100%" stop-color="#EEEDF9" stop-opacity=".95"/>
           </radialGradient>
           <filter id="cov-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
         </defs>
@@ -1597,7 +1692,11 @@ function renderCoverage(ready, mode = "console") {
         <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
         ${pills}
+        <line class="cov-ray" id="cov-ray"
+          x1="${onRay(COV_R[0])[0].toFixed(1)}" y1="${onRay(COV_R[0])[1].toFixed(1)}"
+          x2="${onRay(COV_R[3] + 36)[0].toFixed(1)}" y2="${onRay(COV_R[3] + 36)[1].toFixed(1)}"/>
         <g class="cov-pick" id="cov-pick" style="opacity:0">
+          <circle class="cov-pick-hit" r="24"/>
           <circle class="cov-pick-pulse" r="15"/><circle class="cov-pick-dot" r="8"/>
         </g>
       </svg>
@@ -1622,15 +1721,21 @@ function placePick(addr) {
   if (!g) return;
   const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
   if (!w) {
-    g.style.opacity = "0";
     document.getElementById("cov-core-pick")?.classList.remove("on");
+    if (mapMode === "console") {
+      const [x, y] = onRay(rayRadius(null));
+      g.setAttribute("class", "cov-pick idle");
+      g.style.opacity = "1";
+      g.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    } else {
+      g.style.opacity = "0";
+    }
     return;
   }
   const d = DIST[w.key];
   // The listed wallet is the centre itself: ring the centre, draw no dot.
   const ring = document.getElementById("cov-core-pick");
   if (ring) ring.classList.toggle("on", d === 0);
-  if (d === 0) { g.style.opacity = "0"; return; }
   const [x, y] = onRay(rayRadius(d));
   const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not");
   g.setAttribute("class", cls);
@@ -1726,7 +1831,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   });
 
   // One selection shared by the chips, the ring markers and the phone rows.
-  const selectAddress = (addr) => {
+  const selectAddress = (addr, opts = {}) => {
     const a = String(addr || "").toLowerCase();
     stage.querySelectorAll(".pk, .m-row").forEach((x) => {
       const on = (x.dataset.addr || "").toLowerCase() === a;
@@ -1740,7 +1845,8 @@ function renderConsole(prefill = "", error = "", still = false) {
     input.value = addr;
     input.classList.remove("invalid");
     document.getElementById("err").textContent = "";
-    placePick(addr);
+    if (!opts.keepDot) placePick(addr);
+    else pickAddr = String(addr).toLowerCase();
     sync();
   };
 
@@ -1748,9 +1854,52 @@ function renderConsole(prefill = "", error = "", still = false) {
     b.onclick = () => selectAddress(b.dataset.addr);
   });
 
-  // Coverage map: tap a ring or drag the edge; arrow keys step the reach.
+  // Coverage map: tap a ring to set the coverage; drag the wallet dot along
+  // its line to move between wallets; arrow keys step the coverage.
   const svg = document.getElementById("cov-svg");
+  let dragged = false;
   if (svg) {
+    const pick = document.getElementById("cov-pick");
+    const byDist = new Map(ready.map((w) => [DIST[w.key] ?? null, w.address]));
+    const toSvg = (ev) => {
+      const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+      const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : null;
+    };
+    const bandFor = (r) => r < COV_R[0] + 14 ? 0 : r < COV_R[1] ? 1 : r < COV_R[2] ? 2 : r < COV_R[3] ? 3 : null;
+    let dragging = false, current;
+    pick?.addEventListener("pointerdown", (ev) => {
+      ev.stopPropagation(); ev.preventDefault();
+      dragging = true; dragged = false;
+      pick.setPointerCapture?.(ev.pointerId);
+      pick.classList.add("dragging"); svg.classList.add("ray-active");
+      current = undefined;
+    });
+    pick?.addEventListener("pointermove", (ev) => {
+      if (!dragging) return;
+      const q = toSvg(ev); if (!q) return;
+      const a = RAY_DEG * Math.PI / 180;
+      // Project the pointer onto the ray, so the dot only moves along it.
+      const r = Math.max(COV_R[0] - 6, Math.min(COV_R[3] + 34,
+        (q.x - COV_C) * Math.cos(a) + (q.y - COV_C) * Math.sin(a)));
+      const [x, y] = onRay(r);
+      pick.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      dragged = true;
+      const band = bandFor(r);
+      if (band !== current) {
+        current = band;
+        const addr = byDist.get(band);
+        if (addr) selectAddress(addr, { keepDot: true });
+      }
+    });
+    const drop = () => {
+      if (!dragging) return;
+      dragging = false;
+      pick.classList.remove("dragging"); svg.classList.remove("ray-active");
+      placePick(input.value);                       // snap into the band
+    };
+    pick?.addEventListener("pointerup", drop);
+    pick?.addEventListener("pointercancel", drop);
+
     const bandAt = (ev) => {
       const pt = svg.createSVGPoint();
       pt.x = ev.clientX; pt.y = ev.clientY;
@@ -1761,6 +1910,8 @@ function renderConsole(prefill = "", error = "", still = false) {
       return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
     };
     svg.addEventListener("click", (ev) => {
+      if (dragged) { dragged = false; return; }    // the end of a drag, not a tap
+      if (ev.target.closest && ev.target.closest("#cov-pick")) return;
       const n = bandAt(ev); if (n) setRule(n, usd);
     });
     svg.addEventListener("keydown", (e) => {
