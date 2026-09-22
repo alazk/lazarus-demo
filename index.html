@@ -40,6 +40,15 @@
     height:100vh; height:100dvh; overflow:hidden;
   }
   :focus-visible { outline:2px solid var(--ink-90); outline-offset:2px; }
+
+  /* iOS Safari eats taps three ways; each is closed off here.
+     1. Double-tap-to-zoom delays or swallows a single tap on a button.
+     2. A tap on a span inside a button can resolve to the span, not the
+        button, so the child takes no pointer events.
+     3. Hover styles stick after a tap on touch screens; they only apply on
+        devices that genuinely hover. */
+  button, a, .pk, .rail-node, .act-dot { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  .pk *, .btn *, .rail-node * { pointer-events:none; }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
 
   .h1, .h2, .rule, .reason { text-wrap:balance; }
@@ -169,8 +178,9 @@
     overflow-wrap:anywhere; hyphens:auto;
     transition:border-color .12s, background .12s, color .12s;
   }
-  .pk:hover:not(.chosen) { border-color:var(--ink-90); }
+  @media (hover:hover) { .pk:hover:not(.chosen) { border-color:var(--ink-90); } }
   .pk.chosen { border-color:var(--ink-90); background:var(--ink-90); color:var(--paper); }
+  .pk:active { transform:scale(.98); }
   .pk-name { font-size:14px; font-weight:600; }
   .pk-addr { font-family:var(--mono); font-size:11px; color:var(--ink-50); }
   .pk.chosen .pk-addr { color:var(--ink-30); }
@@ -227,7 +237,7 @@
   .rail-node.end { background:var(--ink-90); border-color:var(--ink-90); color:var(--paper); }
   button.rail-node { cursor:pointer; transition:border-color .12s, background .12s, color .12s; }
   span.rail-node { cursor:default; }
-  button.rail-node:hover:not(.sel) { background:var(--ink-10); }
+  @media (hover:hover) { button.rail-node:hover:not(.sel) { background:var(--ink-10); } }
   .rail-link {
     flex:1 1 auto; height:1px; background:var(--ink-30);
     min-width:var(--s-1); margin-top:var(--s-2);
@@ -270,10 +280,10 @@
   .btn-lg { min-height:48px; padding:var(--s-15) var(--s-4); font-size:16px; }
   .btn-md { min-height:44px; padding:var(--s-15) var(--s-3); font-size:14px; }
   .btn-primary { background:var(--ink-90); color:var(--paper); }
-  .btn-primary:hover { background:var(--black); }
+  @media (hover:hover) { .btn-primary:hover { background:var(--black); } }
   .btn-primary[disabled] { background:var(--ink-50); cursor:default; }
   .btn-tertiary { background:transparent; color:var(--ink-90); border:1px solid var(--ink-90); }
-  .btn-tertiary:hover { background:var(--ink-10); }
+  @media (hover:hover) { .btn-tertiary:hover { background:var(--ink-10); } }
   .btn-block { width:100%; margin-top:var(--s-2); flex-shrink:0; }
 
   /* ── Scan and verdict share one frame ───────────────────────── */
@@ -861,6 +871,9 @@ function renderConsole(prefill = "", error = "", still = false) {
       });
       b.classList.add("chosen");
       b.setAttribute("aria-pressed", "true");
+      if (!window.matchMedia("(min-width: 861px)").matches) {
+        run.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       input.value = b.dataset.addr;
       input.classList.remove("invalid");
       document.getElementById("err").textContent = "";
@@ -1098,7 +1111,7 @@ async function fillVerdict(r, belowThreshold) {
     <span class="line"></span>
     <button class="btn btn-tertiary btn-md" id="again">New check</button>
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-       target="_blank" rel="noopener">View attestation<span class="btn-long">&nbsp;on the Newton explorer</span> ↗</a>` : ""}`;
+       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}`;
   actions.classList.add("on");
   document.getElementById("again").onclick = () => renderConsole(r.wallet || "");
 }
@@ -1115,10 +1128,19 @@ document.getElementById("home").onclick = () => {
   const wallets = fetch("data/demo_wallets.json")
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
-  const data = await Promise.race([wallets, new Promise((r) => setTimeout(() => r(null), 1200))]);
-  const loaded = data?.wallets;
-  if (Array.isArray(loaded)) presets = loaded.filter((w) => w.address);
+  // The intro paints straight away and does not need the wallets, so there
+  // is nothing to wait for. The wallets arrive whenever the file does: a slow
+  // mobile connection used to miss a fixed deadline and the late response was
+  // thrown away, leaving the console with no examples for the whole session.
   renderIntro();
+  const data = await wallets;
+  const loaded = data?.wallets;
+  if (!Array.isArray(loaded)) return;
+  presets = loaded.filter((w) => w.address);
+  // If the reader is already on the console, give it the examples now.
+  if (view === "console" && !inFlight && document.getElementById("addr")) {
+    renderConsole(document.getElementById("addr").value || "", "", true);
+  }
 })();
 </script>
 </body>
