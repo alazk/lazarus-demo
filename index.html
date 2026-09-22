@@ -1343,6 +1343,88 @@
     12%  { opacity:.75; }
     100% { transform:scale(var(--k, .3)); opacity:0; }
   }
+
+  /* ── Phones: the map is the header of every screen ────────────────
+     Compact coverage map with its switch, then one card below: the wallet
+     list and Run in the console, the result during and after a check. The
+     map keeps its position from Run to the verdict, as on desktop. */
+  @media (max-width:620px) {
+    .console, .console.scan-shell {
+      display:flex; flex-direction:column; gap:var(--s-1);
+      padding:var(--s-15) var(--s-15) var(--s-15);
+    }
+    .console > .col:first-child { display:flex !important; flex:0 0 auto; }
+    .console > .col:last-child { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+    .console > .col > .h6 { display:none; }
+
+    /* The map card loses its frame and becomes the header visual. */
+    .card-cov { border:none; background:transparent; padding:0; box-shadow:none; }
+    .card-cov .card-body { padding:0; gap:0; }
+    .cov-svg { width:min(58vw, 26vh, 230px); max-width:none; }
+    .cov-foot { height:auto; min-height:48px; justify-content:center; }
+    .cov-foot .cov-sum { display:none; }
+    .cov-seg { margin-top:var(--s-1); }
+    .cov-seg .m-seg-btn { min-width:0; flex:1 1 0; height:44px; padding:0 var(--s-15); font-size:14px; }
+    .cov-seg { width:min(100%, 320px); }
+    .cov-status { margin-top:var(--s-1); min-height:44px; font-size:15px; }
+    .cov-pill text { font-size:13px; }
+
+    /* Console card: list header with the paste link, rows, Run at the foot. */
+    .card-check { height:auto; flex:1 1 auto; min-height:0; overflow-y:auto; padding:var(--s-15) var(--s-2) var(--s-2); }
+    .card-check .card-body { gap:var(--s-15); }
+    .m-list-head { display:flex; align-items:center; justify-content:space-between; }
+    .m-list-head .label { font-size:14px; }
+    .m-list-head .m-paste { padding:10px 0 10px 12px; min-height:44px; font-size:14px; }
+    .card-check.show-paste .m-list-head .m-paste { display:none; }
+    .m-only .m-row { min-height:clamp(44px, 6.3vh, 54px); }
+    .m-only .m-text { padding-block:5px; }
+    .m-only .m-name { font-size:15px; }
+    .m-only .m-sub { font-size:12px; }
+    .card-check .btn-block { margin-top:auto; min-height:50px; }
+    .card-check .card-body + .btn-block { margin-top:var(--s-15); }
+
+    /* Result card under the map: the map shows the scan, so the tiles go. */
+    .card-result { height:auto; flex:1 1 auto; min-height:0; padding:var(--s-15) var(--s-2) var(--s-2); }
+    .card-result .trail { display:none; }
+    .result-body { gap:var(--s-15); margin-block:auto; }
+    .card-result .h1 { font-size:30px; }
+    .card-result .reason { font-size:15px; line-height:22px; margin-top:var(--s-1); white-space:normal; }
+    .card-result .warnline { font-size:13px; line-height:18px; padding:8px 10px; margin-top:var(--s-1); }
+    .card-result .stats { margin-top:var(--s-1); }
+    .card-result .stat-v { font-size:18px; }
+    .card-result .actions .btn { min-height:48px; }
+    .result-addr { margin-top:var(--s-1); font-size:12px; }
+  }
+  /* Short phones: the map and rows give a little back; a warned verdict
+     lets its warning line stand in for the longer sentence. */
+  @media (max-width:620px) and (max-height:700px) {
+    .cov-svg { width:min(52vw, 24vh, 190px); }
+    .cov-seg .m-seg-btn { height:40px; }
+    .card-result .warnline ~ .reason { display:none; }
+    .card-result .h1 { font-size:26px; }
+  }
+
+  @media (max-width:620px) {
+    /* If the list ever runs out of room it scrolls in place, never under Run. */
+    .card-check .card-body { flex:1 1 auto; min-height:0; overflow-y:auto; }
+    .card-check .btn-block { flex:none; }
+    /* Buttons keep their labels on one line. */
+    .card-result .actions .btn { white-space:nowrap; padding-inline:var(--s-2); }
+    .card-result .actions .btn-tertiary { flex:0 0 auto; }
+    /* The home badge is a button: a full-size hit area around it. */
+    #home { position:relative; }
+    #home::after { content:''; position:absolute; inset:-10px -6px; }
+  }
+  /* Very short phones: a smaller map so all five wallets fit above Run. */
+  @media (max-width:620px) and (max-height:700px) {
+    .cov-svg { width:min(40vw, 19vh, 132px); }
+    .console, .console.scan-shell { padding:var(--s-1) var(--s-15) var(--s-15); gap:6px; }
+    .card-check { padding:10px var(--s-15) var(--s-15); }
+    .card-check .card-body { gap:var(--s-1); }
+    .m-list-head .m-paste { min-height:40px; padding-block:8px; }
+    .card-check .card-body + .btn-block { margin-top:var(--s-1); }
+    .cov-status { min-height:36px; font-size:14px; }
+  }
 </style>
 </head>
 <body>
@@ -1727,20 +1809,12 @@ function renderLadder(ready, prefill) {
   const chosenAddr = String(prefill || "").trim().toLowerCase();
   const pasted = chosenAddr && !rows.some((r) => r.address.toLowerCase() === chosenAddr);
   return `
-    <div class="m-only m-reach">
-      <div class="m-reach-top">
-        <span class="label">Reach</span>
-        <div class="m-seg" role="group" aria-label="How far the scan reaches">
-          ${HOP_SHOWN.map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}"
-            type="button" data-hops="${n}" aria-pressed="${n === hops}"
-            ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${n} ${n === 1 ? "hop" : "hops"}</button>`).join("")}
-        </div>
-      </div>
-      <p class="m-rule">Blocks any wallet inside the reach that connects to a known Lazarus address.</p>
+    <div class="m-only m-list-head">
+      <span class="label">Try a wallet</span>
+      <button class="m-paste ${pasted ? "hide" : ""}" type="button" id="m-paste">Paste address</button>
     </div>
     ${renderWalletList(ready, prefill, "m-only")}
-    <button class="m-only m-paste ${pasted ? "hide" : ""}" type="button" id="m-paste">
-      Paste any address</button>`;
+`;
 }
 
 /* ── Coverage map ────────────────────────────────────────────────
