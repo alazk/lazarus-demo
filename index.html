@@ -527,6 +527,89 @@
     .step-label { font-size:15px; }
     .field { font-size:16px; }
   }
+
+  /* The reach summary only exists for phones. */
+  .reach-line { display:none; }
+
+  /* ── Phones: every state fits one screen ─────────────────────────
+     Appended last so it wins over the earlier phone rules. The page is
+     locked to the viewport like desktop; each state trims to what the
+     step actually needs, and the stage scrolls internally only as a
+     last resort on very short screens. */
+  @media (max-width:620px) {
+    html, body { height:100%; overflow:hidden; }
+    body { height:100dvh; min-height:0; padding:var(--s-1); gap:var(--s-1); }
+    .stage { flex:1 1 auto; min-height:0; overflow-y:auto; }
+    .mast { padding:var(--s-1) var(--s-15); }
+    .intro, .console, .checking, .verdict { min-height:0; }
+
+    /* Intro */
+    .intro { padding:var(--s-3) var(--s-2); justify-content:center; }
+    .intro-grid { gap:var(--s-3); }
+    #act-copy { min-height:196px; }
+    .act .h2 { font-size:26px; margin-top:var(--s-1); }
+    .act p { margin-top:var(--s-15); font-size:15px; line-height:23px; }
+    .intro-foot { margin-top:var(--s-2); }
+    .intro-foot .btn-lg { min-height:44px; padding:var(--s-1) var(--s-3); font-size:15px; }
+    /* The chain goes back to one row of four compact stops. */
+    .cn-row { flex-direction:row; align-items:flex-start; gap:0; }
+    .cn-link { display:block; flex:0 0 var(--s-1); margin-top:var(--s-3); }
+    .cn { min-height:44px; padding:var(--s-05); font-size:11px; line-height:13px; }
+    .cn-cap { font-size:10px; min-height:0; }
+    .cn-cap:empty { display:block; min-height:12px; }
+    .cn-blabel { font-size:10px; }
+
+    /* Console: one card's worth of controls, nothing to scroll past */
+    .console { padding:var(--s-2); gap:var(--s-2); align-content:center; }
+    .col { gap:0; }
+    .col > .h6 { display:none; }
+    .card { padding:var(--s-2); }
+    .card-policy .h4, .rail-help, .flow { display:none; }
+    .card-policy .rule { margin-top:0; font-size:17px; line-height:25px; }
+    .pk-w { display:none; }
+    .pk-name { font-size:15px; }
+    .reach-line {
+      display:block; margin:var(--s-1) 0 0; font-size:13px; color:var(--ink-70);
+    }
+    /* Horizontal rail again, numbers only; the line above names the stop. */
+    .rail { flex-direction:row; align-items:center; margin-top:var(--s-15); }
+    .rail-cell { flex-direction:column; gap:0; }
+    .rail-cap { display:none; }
+    .rail-node { min-width:0; height:40px; padding:0 var(--s-15); font-size:14px; }
+    .rail-link { flex:1 1 auto; width:auto; height:1.5px; margin:0; min-width:var(--s-05); }
+    .card-check .card-body { gap:var(--s-2); }
+    .picker { flex-wrap:nowrap; gap:var(--s-05); margin-top:var(--s-1); }
+    .pk-cell { flex:1 1 0; }
+    .pk { min-height:44px; padding:var(--s-05); }
+    .pk-name { font-size:13px; }
+    .pk-addr { display:none; }
+    .field { height:44px; }
+    .err:empty { display:none; }
+    .btn-block { margin-top:var(--s-2); min-height:48px; }
+
+    /* Checking and verdict */
+    .checking, .verdict { padding:var(--s-2); justify-content:flex-start; }
+    .grid { gap:var(--s-2); }
+    .steps { gap:2px; }
+    .step { min-height:40px; padding:var(--s-05) var(--s-15); }
+    .arrow { font-size:12px; line-height:12px; margin-left:var(--s-2); }
+    .right { min-height:0; }
+    .h1 { font-size:30px; }
+    .reason { margin-top:var(--s-1); font-size:15px; line-height:22px; }
+    /* Three figures as one row, not a stack of three. */
+    .stats { grid-template-columns:repeat(3, minmax(0,1fr)); gap:0; margin-top:var(--s-2); }
+    .stat, .stat + .stat { padding:0 var(--s-1); border-top:none; }
+    .stat:first-child { padding-left:0; }
+    .stat + .stat { border-left:1px solid var(--on-22); }
+    .stat-k { font-size:12px; }
+    .stat-v { font-size:17px; }
+    /* Both actions on one line. */
+    #actions-slot { margin-top:var(--s-2); }
+    .actions { flex-direction:row; align-items:stretch; gap:var(--s-1); }
+    .actions .line { display:none; }
+    .actions .btn { width:auto; min-height:44px; }
+    .actions .btn-primary { flex:1 1 auto; }
+  }
 </style>
 </head>
 <body>
@@ -810,14 +893,16 @@ function renderConsole(prefill = "", error = "", still = false) {
     <div class="console ${still ? "still" : ""}">
       <div class="col">
         <div class="h6 muted">Active policy</div>
-        <div class="card">
+        <div class="card card-policy">
           <div class="card-body">
             <div class="h4">Lazarus Scan</div>
             <p class="rule">Block a wallet that reaches a known Lazarus address.</p>
             ${renderRail()}
-            <p class="p-sm muted" style="margin:var(--s-2) 0 0">
+            <p class="p-sm muted rail-help" style="margin:var(--s-2) 0 0">
               Each step is one transfer. Click a hop to set how far the scan reaches.
             </p>
+            <p class="reach-line">Scans up to <b>${hops} ${hops === 1 ? "hop" : "hops"}</b>
+              · ${esc(RAIL_CAPTIONS[hops] || "")}</p>
           </div>
         </div>
       </div>
@@ -834,7 +919,7 @@ function renderConsole(prefill = "", error = "", still = false) {
                   <div class="pk-cell">
                     <button class="pk" type="button" data-addr="${esc(p.address)}"
                             title="${esc(p.address)}" aria-pressed="false">
-                      <span class="pk-name">${esc(LABELS[p.key] || p.label)}</span>
+                      <span class="pk-name"><span class="pk-w">Wallet </span>${esc((LABELS[p.key] || p.label || "").replace(/^Wallet /, ""))}</span>
                       <span class="pk-addr">${esc(short(p.address))}</span>
                     </button>
                   </div>`).join("")}
