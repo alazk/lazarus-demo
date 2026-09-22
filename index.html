@@ -49,7 +49,11 @@
         devices that genuinely hover. */
   button, a, .pk, .rail-node, .act-dot { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
   .pk *, .btn *, .rail-node * { pointer-events:none; }
-  @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
+  /* Reduce Motion stills the interface. The map keeps a calm, in-place
+     pulse of its own, defined with the map's styles. */
+  @media (prefers-reduced-motion:reduce) {
+    *:not(.cov-svg *) { transition:none !important; animation:none !important; }
+  }
 
   .h1, .h2, .rule, .reason { text-wrap:balance; }
   .h1 { font-size:clamp(34px,4.4vw,60px); line-height:1.04; font-weight:700; letter-spacing:-.025em; }
@@ -1452,6 +1456,40 @@
   }
   @media (max-width:620px) {
     .card-result .stat + .stat { padding-left:14px; margin-left:14px; }
+  }
+
+  /* ── Reduce Motion: calmer, not frozen ─────────────────────────────
+     Nothing grows, zooms or travels. The pulses stay, as rings that fade in
+     and out where they are, and colour changes still mark the scan. */
+  @media (prefers-reduced-motion:reduce) {
+    .cov-sonar circle, .intro-sonar circle {
+      animation:fadePulse 3.6s ease-in-out infinite;
+      transform:scale(var(--k, 1));
+    }
+    .cov-sonar circle:nth-child(2), .intro-sonar circle:nth-child(2) { animation-delay:1.2s; transform:scale(calc(var(--k, 1) * .72)); }
+    .cov-sonar circle:nth-child(3), .intro-sonar circle:nth-child(3) { animation-delay:2.4s; transform:scale(calc(var(--k, 1) * .46)); }
+    .cov-scanpulse.on circle { animation:fadePulse 3.6s ease-in-out infinite; transform:scale(var(--k, .3)); }
+    .cov-scanpulse.on circle:nth-child(2) { animation-delay:1.2s; }
+    .cov-scanpulse.on circle:nth-child(3) { animation-delay:2.4s; }
+    @keyframes fadePulse { 0%, 100% { opacity:0; } 50% { opacity:.5; } }
+
+    .cov-core-glow { animation:glowFade 3.2s ease-in-out infinite; transform:scale(1.18); }
+    @keyframes glowFade { 0%, 100% { opacity:.05; } 50% { opacity:.2; } }
+    .cov-pick-pulse, .cov-pick.found .cov-pick-pulse { animation:glowFade 1.8s ease-in-out infinite; transform:scale(1.2); }
+    .cov-core-pick.on { animation:glowFade 1.8s ease-in-out infinite; }
+
+    /* Colour still settles the rings; the flash and burst become fades. */
+    .cband { transition:fill .45s ease; }
+    .cov-flash.go { animation:ringFlash .6s ease-out; }
+    .cov-burst.go { animation:burstFade .9s ease-out 2; transform:scale(2.2); }
+    @keyframes burstFade { 0% { opacity:.9; } 100% { opacity:0; } }
+    .cov-wave { transition:opacity .35s; }
+  }
+
+  @media (prefers-reduced-motion:reduce) {
+    /* No zooming or sliding inside the map: size and position change at once. */
+    .cov-disc, .cov-halo, .intro-map .cov-disc, .intro-map .cov-halo { transition:none; }
+    .cov-pick, .cov-wave { transition:opacity .3s; }
   }
 </style>
 </head>
