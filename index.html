@@ -1723,6 +1723,15 @@
   .intro-pick-label { font:600 12px var(--sans); fill:var(--ink-70); stroke:none; }
   .intro-pick.in .intro-pick-label { fill:var(--ink-90); }
   .intro-pick { pointer-events:none; }
+
+  /* Wallet A sits on the dark centre: light dot, dark letter, and a light
+     highlight ring when it is the one being scanned. */
+  .wdot.on-core circle { fill:var(--paper); stroke:none; }
+  .wdot.on-core text { fill:var(--ink-90); }
+  .wdot.on-core.chosen circle { fill:var(--cov-edge); stroke:var(--paper); stroke-width:2; }
+  .wdot.on-core.chosen text { fill:var(--paper); }
+  .cov-pick.on-core .cov-pick-ring { stroke:var(--paper); }
+  .cov-pick.on-core .cov-pick-dot { fill:none; }
 </style>
 </head>
 <body>
@@ -1800,18 +1809,18 @@ const WALLET_LETTER = { direct: "A", one: "B", two: "C", three: "D", clean: "E" 
 const WALLET_TITLE = {
   direct: "Lazarus Group address", one: "Direct counterparty",
   two: "Second-degree contact", three: "Third-degree contact",
-  clean: "Ethereum deposit contract",
+  clean: "Clean wallet",
 };
 const WALLET_NOTE = {
   direct: "North Korea · on the list", one: "1 hop from Lazarus", two: "2 hops from Lazarus",
-  three: "3 hops from Lazarus", clean: "No known link",
+  three: "3 hops from Lazarus", clean: "No known link to the list",
 };
 /* Where each wallet sits on the map: its band, at its own angle, clear of
    the ring labels stacked above the centre. */
 const WALLET_ANGLE = { direct: 90, one: 150, two: 25, three: 125, clean: 50 };
 function walletXY(key) {
   const d = DIST[key];
-  const r = d === 0 ? COV_R[0] + 3 : (d === null || d === undefined) ? COV_R[3] + 22 : (COV_R[d - 1] + COV_R[d]) / 2;
+  const r = d === 0 ? COV_R[0] - 16 : (d === null || d === undefined) ? COV_R[3] + 22 : (COV_R[d - 1] + COV_R[d]) / 2;
   const a = (WALLET_ANGLE[key] ?? 45) * Math.PI / 180;
   return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
 }
@@ -2183,7 +2192,7 @@ function onRay(r) {
  *  the listed address, the middle of its band otherwise, and just past the
  *  last ring for a wallet with no known link. */
 function rayRadius(d) {
-  if (d === 0) return COV_R[0] + 3;
+  if (d === 0) return COV_R[0] - 16;
   if (d === null || d === undefined) return COV_R[3] + 20;
   return (COV_R[d - 1] + COV_R[d]) / 2;
 }
@@ -2393,7 +2402,7 @@ function renderCoverage(ready, mode = "console") {
         <g class="wdots">${ready.map((w) => {
           const [x, y] = walletXY(w.key), dd = DIST[w.key];
           const inside = dd === 0 || isCovered(dd);
-          return `<g class="wdot ${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
+          return `<g class="wdot ${inside ? "in" : "out"} ${dd === 0 ? "on-core" : ""}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
             ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
             <circle r="13"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
@@ -2430,7 +2439,7 @@ function placePick(addr) {
   const ring = document.getElementById("cov-core-pick");
   if (ring) ring.classList.toggle("on", d === 0);
   const [x, y] = walletXY(w.key);
-  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not");
+  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not") + (d === 0 ? " on-core" : "");
   g.setAttribute("class", cls);
   g.style.opacity = "1";
   tweenPos(g, x, y);
@@ -2517,7 +2526,7 @@ function renderConsole(prefill = "", error = "", still = false) {
       </div>
 
       <div class="col">
-        <div class="h6 muted step-kicker"><span class="kn">2</span>Pick a wallet</div>
+        <div class="h6 muted step-kicker"><span class="kn">2</span>Scan a wallet</div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}
