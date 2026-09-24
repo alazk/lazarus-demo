@@ -33,6 +33,14 @@
   .wdot.in.outside.chosen circle + text, .wdot.out.outside.chosen circle + text {
     fill:var(--color-white);
   }
+  /* Wallet A sits on the dark centre: light dot, dark letter, and a light
+     highlight ring when it is the one being scanned. */
+  .wdot.on-core circle { fill:var(--color-white); stroke:none; }
+  .wdot.on-core text { fill:var(--color-ink-100); }
+  .wdot.on-core.chosen circle { fill:var(--cov-edge); stroke:var(--color-white); stroke-width:2; }
+  .wdot.on-core.chosen text { fill:var(--color-white); }
+  .cov-pick.on-core .cov-pick-ring { stroke:var(--color-white); }
+  .cov-pick.on-core .cov-pick-dot { fill:none; }
   .cov-svg:not(.scanning) .wdot { cursor:pointer; }
   @media (hover:hover) {
     .cov-svg:not(.scanning) .wdot:not(.chosen):hover circle,

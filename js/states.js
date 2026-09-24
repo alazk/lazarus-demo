@@ -66,7 +66,8 @@ function syncCoverageRings(svg) {
     const inside = d === 0 || (d !== null && d <= hops);
     const state = n ? hopOutcome(band, n, hasResult, inside) : "";
     const chosen = el.classList.contains("chosen") ? " chosen" : "";
-    el.setAttribute("class", `wdot ${inside ? "in" : "out"}${state ? " " + state : ""}${chosen}`);
+    const core = d === 0 ? " on-core" : "";
+    el.setAttribute("class", `wdot ${inside ? "in" : "out"}${core}${state ? " " + state : ""}${chosen}`);
   });
 }
 function paintBands(spec) {

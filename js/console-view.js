@@ -13,7 +13,7 @@ function renderConsole(prefill = "", error = "", still = false) {
       </div>
 
       <div class="col">
-        <div class="text-label muted step-kicker"><span class="kn">2</span>Pick a wallet</div>
+        <div class="text-label muted step-kicker"><span class="kn">2</span>Scan a wallet</div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}

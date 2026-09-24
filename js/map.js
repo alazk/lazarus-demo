@@ -29,7 +29,7 @@ function onRay(r) {
  *  the listed address, the middle of its band otherwise, and just past the
  *  last ring for a wallet with no known link. */
 function rayRadius(d) {
-  if (d === 0) return COV_R[0] + 3;
+  if (d === 0) return COV_R[0] - 16;
   if (d === null || d === undefined) return COV_R[3] + 20;
   return (COV_R[d - 1] + COV_R[d]) / 2;
 }

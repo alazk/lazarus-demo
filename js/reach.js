@@ -96,7 +96,7 @@ function renderCoverage(ready, mode = "console") {
         <g class="wdots">${ready.map((w) => {
           const [x, y] = walletXY(w.key), dd = DIST[w.key];
           const inside = dd === 0 || isCovered(dd);
-          return `<g class="wdot ${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
+          return `<g class="wdot ${inside ? "in" : "out"}${dd === 0 ? " on-core" : ""}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
             ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
             <circle r="13"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
@@ -129,7 +129,7 @@ function placePick(addr) {
   const ring = document.getElementById("cov-core-pick");
   if (ring) ring.classList.toggle("on", d === 0);
   const [x, y] = walletXY(w.key);
-  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not");
+  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not") + (d === 0 ? " on-core" : "");
   g.setAttribute("class", cls);
   g.style.opacity = "1";
   tweenPos(g, x, y);

@@ -59,18 +59,18 @@ const WALLET_LETTER = { direct: "A", one: "B", two: "C", three: "D", clean: "E" 
 const WALLET_TITLE = {
   direct: "Lazarus Group address", one: "Direct counterparty",
   two: "Second-degree contact", three: "Third-degree contact",
-  clean: "Ethereum deposit contract",
+  clean: "Clean wallet",
 };
 const WALLET_NOTE = {
   direct: "North Korea · on the list", one: "1 hop from Lazarus", two: "2 hops from Lazarus",
-  three: "3 hops from Lazarus", clean: "No known link",
+  three: "3 hops from Lazarus", clean: "No known link to the list",
 };
 /* Where each wallet sits on the map: its band, on 45° compass points,
    clear of the hop labels stacked above the centre (270°). */
 const WALLET_ANGLE = { direct: 90, one: 180, two: 0, three: 135, clean: 45 };
 function walletXY(key) {
   const d = DIST[key];
-  const r = d === 0 ? COV_R[0] + 3 : (d === null || d === undefined) ? COV_R[3] + 22 : (COV_R[d - 1] + COV_R[d]) / 2;
+  const r = d === 0 ? COV_R[0] - 16 : (d === null || d === undefined) ? COV_R[3] + 22 : (COV_R[d - 1] + COV_R[d]) / 2;
   const a = (WALLET_ANGLE[key] ?? 45) * Math.PI / 180;
   return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
 }
