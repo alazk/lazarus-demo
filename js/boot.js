@@ -1,0 +1,66 @@
+/* ── Boot ────────────────────────────────────────────────────────
+   Wait for the example wallets before the first paint, with a cap so a slow
+   file cannot hold the page blank. Painting twice shows an empty console. */
+document.getElementById("home").onclick = () => {
+  const leavingKit = kitActive || document.body.classList.contains("is-states");
+  document.body.classList.remove("is-states", "is-building", "is-reduced");
+  clearKitOutcomes();
+  freezeUrl = false;
+  if (view === "intro" && !leavingKit) return;
+  if (leavingKit) kitActive = false;
+  view = "intro"; act = 0;
+  document.title = "Newton — Lazarus Scan";
+  try { history.replaceState({ view: "intro" }, "", location.pathname); } catch (e) {}
+  renderIntro();
+};
+
+window.addEventListener("popstate", (e) => {
+  if (inFlight) return;
+  const v = e.state?.view;
+  if (!v || v === "intro") { view = "intro"; act = 0; renderIntro(); return; }
+  const s = stateFromUrl();
+  if (s?.hops) hops = s.hops;
+  view = "console";
+  renderConsole(s?.address || "", "", true);
+});
+
+(async function boot() {
+  const wallets = fetch("data/demo_wallets.json")
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+  // The intro paints straight away and does not need the wallets, so there
+  // is nothing to wait for. The wallets arrive whenever the file does: a slow
+  // mobile connection used to miss a fixed deadline and the late response was
+  // thrown away, leaving the console with no examples for the whole session.
+  const wantStates = () => {
+    try { return new URLSearchParams(location.search).has("states"); }
+    catch (e) { return false; }
+  };
+  if (!wantStates()) renderIntro();
+  const data = await wallets;
+  const loaded = data?.wallets;
+  if (wantStates()) {
+    if (Array.isArray(loaded)) presets = loaded.filter((w) => w.address);
+    stopAuto();
+    radiusDemoShown = true;
+    freezeUrl = true;
+    await renderStates();
+    return;
+  }
+  if (!Array.isArray(loaded)) return;
+  presets = loaded.filter((w) => w.address);
+  // A shared link names the radius and the wallet: open the console on it.
+  const shared = stateFromUrl();
+  if (shared && view === "intro" && !inFlight) {
+    if (shared.hops) hops = shared.hops;
+    stopAuto();
+    view = "console";
+    radiusDemoShown = true;            // the link already says what to look at
+    renderConsole(shared.address || "", "", true);
+    return;
+  }
+  // If the reader is already on the console, give it the examples now.
+  if (view === "console" && !inFlight && document.getElementById("addr")) {
+    renderConsole(document.getElementById("addr").value || "", "", true);
+  }
+})();
