@@ -112,6 +112,13 @@
   .cov-pill.held rect { fill:var(--color-white); stroke:var(--color-accent); }
   .cov-pill.held text { fill:var(--color-accent); }
 
+  /* TEMP: hop-button shadow, no stroke. Delete this block to reverse. */
+  #cov-svg .cov-pill rect,
+  #cov-svg .wdot circle {
+    stroke: none;
+    filter: drop-shadow(0 1px 2px rgba(27, 23, 26, .14));
+  }
+
   /* The edge handle: slides round with the coverage, and invites a drag. */
   .cov-knob { transition:transform var(--duration-emphasis) var(--ease-newton); cursor:grab; }
   .cov-knob circle { fill:var(--color-white); stroke:var(--color-ink-70); stroke-width:1.5; filter:drop-shadow(0 1px 2px var(--coal-alpha-20)); }
