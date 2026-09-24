@@ -1,0 +1,192 @@
+  /* ── Phones: the map is the header of every screen ────────────────
+     Compact coverage map with its switch, then one card below: the wallet
+     list and Run in the console, the result during and after a check. The
+     map keeps its position from Run to the verdict, as on desktop. */
+  @media (max-width:639px) {
+    .console, .console.scan-shell {
+      display:flex; flex-direction:column; gap:var(--space-inline);
+      padding:var(--space-snug) var(--space-snug) var(--space-snug);
+    }
+    .console > .col:first-child { display:flex !important; flex:0 0 auto; }
+    .console > .col:last-child { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+    .step-kicker { display:none; }
+
+    /* The map card loses its frame and becomes the header visual. */
+    .card-cov { border:none; background:transparent; padding:0; box-shadow:none; }
+    .card-cov .card-body { padding:0; gap:0; }
+    .cov-svg { width:min(58vw, 26vh, 230px); max-width:none; }
+    .cov-foot { height:auto; min-height:48px; justify-content:center; }
+    .cov-foot .cov-sum { display:none; }
+    .cov-seg { margin:0 0 var(--space-inline); }
+    .cov-seg .m-seg-btn { min-width:0; flex:1 1 0; height:44px; padding:0 var(--space-snug); font-size:var(--type-body-size); }
+    .cov-seg { width:min(100%, 320px); }
+    .cov-status { margin-top:var(--space-inline); min-height:44px; font-size:var(--type-body-size); }
+    .cov-pill text { font-size:var(--type-body-size); }
+
+    /* Console card: list header with the paste link, rows, Run at the foot. */
+    .card-check { height:auto; flex:1 1 auto; min-height:0; overflow-y:auto; padding:var(--space-snug) var(--space-group) var(--space-group); }
+    .card-check .card-body { gap:var(--space-snug); }
+    .m-list-head { display:flex; align-items:center; justify-content:space-between; }
+    .m-list-head .label { font-size:var(--type-body-size); }
+    .m-list-head .m-paste { padding:var(--space-snug) 0 var(--space-snug) var(--space-snug); min-height:44px; font-size:var(--type-body-size); }
+    .card-check.show-paste .m-list-head .m-paste { display:none; }
+    .m-only .m-row { min-height:clamp(44px, 6.3vh, 54px); }
+    .m-only .m-text { padding-block:var(--space-tight); }
+    .m-only .m-name { font-size:var(--type-body-size); }
+    .m-only .m-sub { font-size:var(--type-caption-size); }
+    .card-check .btn-block { margin-top:auto; min-height:50px; }
+    .card-check .card-body + .btn-block { margin-top:var(--space-snug); }
+
+    /* Result card under the map. Spacing stays on the space scale; the
+       card's own container query stacks tiles and figures when it is narrow. */
+    .card-result { height:auto; flex:1 1 auto; min-height:0; padding:var(--space-card); }
+    .card-result .warnline {
+      font-size:var(--type-body-size); line-height:var(--type-body-leading);
+      padding:var(--space-snug) var(--space-group);
+    }
+    .card-result .actions .btn { min-height:48px; }
+    .result-addr { font-size:var(--type-caption-size); }
+  }
+  @media (max-width:639px) and (max-height:700px) {
+    .cov-svg { width:min(52vw, 24vh, 190px); }
+    .cov-seg .m-seg-btn { height:40px; }
+  }
+
+  @media (max-width:639px) {
+    /* If the list ever runs out of room it scrolls in place, never under Run. */
+    .card-check .card-body { flex:1 1 auto; min-height:0; overflow-y:auto; }
+    .card-check .btn-block { flex:none; }
+    /* Buttons keep their labels on one line. */
+    .card-result .actions .btn { white-space:nowrap; padding-inline:var(--space-group); }
+    .card-result .actions .btn-tertiary { flex:0 0 auto; }
+    /* The home badge is a button: a full-size hit area around it. */
+    #home { position:relative; }
+    #home::after { content:''; position:absolute; inset:-10px -6px; }
+  }
+  /* Very short phones: a smaller map so all five wallets fit above Run. */
+  @media (max-width:639px) and (max-height:700px) {
+    .cov-svg { width:min(40vw, 19vh, 132px); }
+    .console, .console.scan-shell { padding:var(--space-inline) var(--space-snug) var(--space-snug); gap:var(--space-inline); }
+    .card-check { padding:var(--space-snug) var(--space-snug) var(--space-snug); }
+    .card-check .card-body { gap:var(--space-inline); }
+    .m-list-head .m-paste { min-height:40px; padding-block:var(--space-inline); }
+    .card-check .card-body + .btn-block { margin-top:var(--space-inline); }
+    .cov-status { min-height:36px; font-size:var(--type-body-size); }
+  }
+
+  /* ── Scan pulse, the same as the picking screen's sonar ─────────────
+     Slow lavender waves, three per cycle, fading at the scan front. The
+     front itself holds steady and simply steps outward. */
+  .cov-scanpulse circle { stroke:var(--cov-edge); stroke-width:2; }
+  .cov-scanpulse.on circle { animation:scanPulse var(--duration-cycle) var(--ease-newton) infinite;  }
+  .cov-scanpulse.on circle:nth-child(2) { animation-delay:var(--duration-beat);  }
+  .cov-scanpulse.on circle:nth-child(3) { animation-delay:calc(var(--duration-beat) * 2);  }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    12%  { opacity:.75; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
+  .cov-wave.on { animation:none;  stroke-width:3; opacity:.6; }
+
+  /* Stats layout lives with the result card, including the narrow-card stack. */
+
+  /* ── Reduce Motion: calmer, not frozen ─────────────────────────────
+     Nothing grows, zooms or travels. The pulses stay, as rings that fade in
+     and out where they are, and colour changes still mark the scan. */
+  @media (prefers-reduced-motion:reduce) {
+    .cov-sonar circle, .intro-sonar circle { animation:fadePulse var(--duration-cycle) var(--ease-newton) infinite;
+      
+      transform:scale(var(--k, 1));
+    }
+    .cov-sonar circle:nth-child(2), .intro-sonar circle:nth-child(2) { animation-delay:var(--duration-beat);  transform:scale(calc(var(--k, 1) * .72)); }
+    .cov-sonar circle:nth-child(3), .intro-sonar circle:nth-child(3) { animation-delay:calc(var(--duration-beat) * 2);  transform:scale(calc(var(--k, 1) * .46)); }
+    .cov-scanpulse.on circle { animation:fadePulse var(--duration-cycle) var(--ease-newton) infinite;  transform:scale(var(--k, .3)); }
+    .cov-scanpulse.on circle:nth-child(2) { animation-delay:var(--duration-beat);  }
+    .cov-scanpulse.on circle:nth-child(3) { animation-delay:calc(var(--duration-beat) * 2);  }
+    @keyframes fadePulse { 0%, 100% { opacity:0; } 50% { opacity:.5; } }
+
+    .cov-core-glow { animation:glowFade var(--duration-cycle) var(--ease-newton) infinite;  transform:scale(1.18); }
+    @keyframes glowFade { 0%, 100% { opacity:.05; } 50% { opacity:.2; } }
+    .cov-pick-pulse, .cov-pick.found .cov-pick-pulse { animation:glowFade calc(var(--duration-interaction) * 6) var(--ease-newton) infinite;  transform:scale(1.2); }
+    .cov-core-pick.on { animation:glowFade calc(var(--duration-interaction) * 6) var(--ease-newton) infinite;  }
+
+    /* Colour still settles the rings; the flash and burst become fades. */
+    .cband { transition:fill var(--duration-emphasis) var(--ease-newton); }
+    .cov-flash.go { animation:ringFlash var(--duration-emphasis) var(--ease-newton);  }
+    .cov-burst.go { animation:burstFade calc(var(--duration-interaction) * 3) var(--ease-newton) 2;  transform:scale(2.2); }
+    @keyframes burstFade { 0% { opacity:.9; } 100% { opacity:0; } }
+    .cov-wave { transition:opacity var(--duration-interaction); }
+  }
+
+  @media (prefers-reduced-motion:reduce) {
+    /* No zooming or sliding inside the map: size and position change at once. */
+    .cov-disc, .cov-halo, .intro-map .cov-disc, .intro-map .cov-halo { transition:none; }
+    .cov-pick, .cov-wave { transition:opacity var(--duration-interaction); }
+  }
+
+  /* ── Map: no CSS animation or transform transitions ───────────────
+     Motion inside the map is SVG animation and script tweens only (see Map
+     motion in the script). Colours may still fade. */
+  .cov-svg, .cov-svg * { animation:none !important;  }
+  .cov-svg * { transition-property:fill, stroke, opacity, stroke-dasharray !important; transition-duration:var(--duration-interaction); }
+  /* Positioned groups (the wallet dot, the pills) keep their transform
+     attribute, which a CSS transform would override. */
+  .cov-disc, .cov-halo, .cov-pick-dot, .cov-core-glow, .cov-core-pick { transform:none !important; }
+  .cov-halo { display:none; }
+  .cov-core-glow { display:none; }
+  .cov-core-pick,
+  .cov-core-pick.on { opacity:0; }
+
+  .spulse circle { stroke:var(--cov-edge); pointer-events:none; }
+  .sflash { stroke:var(--tone-pass-edge); pointer-events:none; }
+  .swave { stroke:var(--color-ink-100); stroke-width:3; opacity:0; pointer-events:none; }
+  .swave.on { opacity:.6; }
+  .swave.done { opacity:0; }
+  .sburst { stroke:var(--tone-block-edge); pointer-events:none; }
+  .spick-pulse { stroke:currentColor; pointer-events:none; }
+  .cov-pick-dot { transition-property:fill, stroke !important; }
+  .cov-pick.dragging .cov-pick-dot { stroke:var(--color-white); stroke-width:3; }
+
+  /* ── Step headings ─────────────────────────────────────────────── */
+  .step-kicker {
+    display:flex; align-items:center; gap:var(--space-inline); color:var(--color-ink-100);
+    font-size:var(--type-body-size); letter-spacing:var(--tracking-label);
+  }
+  .step-kicker .kn {
+    width:20px; height:20px; border-radius:50%; background:var(--color-ink-100); color:var(--color-white);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:var(--type-caption-size); letter-spacing:0; flex:none;
+  }
+
+  /* ── Phones: even gutters, full-width pickers, single-line rows ───── */
+  @media (max-width:639px) {
+    .console, .console.scan-shell { padding:var(--space-snug) var(--space-group) var(--space-group); gap:var(--space-snug); }
+    .cov { width:100%; }
+    .cov-foot { width:100%; }
+    .cov-seg { width:100%; margin:0 0 var(--space-snug); padding:var(--space-tight); border-radius:var(--radius-control); }
+    .cov-seg .m-seg-btn { height:44px; border-radius:var(--radius-control); font-size:var(--type-body-size); }
+    .card-check { padding:var(--space-snug) var(--space-group) var(--space-group); }
+    .m-list-head { padding-inline:2px; }
+    /* One line per wallet: the name, and whether the radius reaches it. */
+    .m-only .m-row { min-height:48px; padding-right:var(--space-snug); }
+    .m-only .m-text { flex-direction:row; align-items:center; justify-content:space-between; gap:var(--space-inline); padding-block:0; }
+    .m-only .m-name { font-size:var(--type-body-size); }
+    .m-only .m-sub { font-size:var(--type-caption-size); text-align:right; white-space:nowrap; }
+    .card-result { padding:var(--space-card); }
+  }
+  /* Taller phones have room to show the two steps. */
+  @media (max-width:639px) and (min-height:740px) {
+    .console > .col > .step-kicker { display:flex; margin:0 0 var(--space-inline) 2px; }
+  }
+  @media (max-width:639px) and (max-height:700px) {
+    .console, .console.scan-shell { padding:var(--space-inline) var(--space-snug) var(--space-snug); gap:var(--space-inline); }
+    .m-only .m-row { min-height:44px; }
+    .cov-seg .m-seg-btn { height:40px; }
+  }
+
+  /* Where the step heading shows on a phone, the list label would repeat it. */
+  @media (max-width:639px) and (min-height:740px) {
+    .m-list-head { justify-content:flex-end; }
+    .m-list-head .label { display:none; }
+  }
+

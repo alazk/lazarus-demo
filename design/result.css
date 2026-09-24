@@ -1,0 +1,286 @@
+  /* ── The result card ───────────────────────────────────────────
+     One measure for the verdict, the scan, and the actions. Gaps come
+     from the space scale. The card is a container so tiles, stats, and
+     actions reflow with the card, not the viewport. */
+  .card-result {
+    container-type:inline-size;
+    container-name:result;
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
+    gap:var(--space-block);
+    padding:var(--space-card);
+    overflow-y:auto;
+    transition:background var(--duration-emphasis) var(--ease-newton),
+      border-color var(--duration-emphasis) var(--ease-newton);
+  }
+  .card-result.clear { background:var(--color-white); border-color:var(--tone-pass-edge); }
+  .card-result.listed, .card-result.exposed { background:var(--color-white); border-color:var(--tone-block-edge); }
+  .card-result.outside { background:var(--color-white); border-color:var(--tone-caution-edge); }
+  .card-result.failed, .card-result.unattested { background:var(--color-white); border-color:var(--tone-neutral-edge); }
+  .result-body,
+  .card-result .actions,
+  .card-result #actions-slot {
+    width:100%; max-width:36rem; margin-inline:auto;
+  }
+  .result-body {
+    display:flex; flex-direction:column; gap:var(--space-block);
+    flex:1 1 auto; min-height:min-content;
+  }
+  .card-result .right {
+    display:flex; flex-direction:column; gap:var(--space-card); min-height:0;
+  }
+  .card-result .right > * { margin:0; }
+  .result-addr { word-break:break-all; color:var(--color-ink-70); }
+  .path-strip {
+    display:flex; flex-wrap:wrap; align-items:center;
+    gap:var(--space-group) var(--space-inline);
+  }
+  .path-hop { display:inline-flex; align-items:center; gap:var(--space-inline); max-width:100%; }
+  .path-node { display:flex; flex-direction:column; gap:var(--space-tight); min-width:0; }
+  .path-edge { overflow-wrap:anywhere; }
+  .path-role { font-size:var(--type-label-size); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-ink-50); }
+  .path-edge { color:var(--color-accent); text-decoration:none; }
+  .attest {
+    display:flex; align-items:center; gap:var(--space-inline); margin-top:var(--space-group);
+    padding:var(--space-snug) var(--space-group); border:1px solid var(--color-ink-30); border-radius:var(--radius-control);
+  }
+  .attest-label { font-size:var(--type-body-size); font-weight:500; }
+  .attest-note { margin-left:auto; font-size:var(--type-caption-size); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-ink-50); }
+  .attest.attested { border-color:var(--tone-pass-edge); }
+  .attest.attested .attest-note { color:var(--tone-pass-edge); }
+  .attest.failed { border-color:var(--tone-neutral-edge); }
+  .attest.signing .attest-note { color:var(--color-ink-70); }
+
+  /* The scan as a row of four tiles. */
+  .trail-label {
+    display:block; margin-bottom:var(--space-snug); font-size:var(--type-caption-size); font-weight:500;
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-ink-70);
+  }
+  .card-result.settled .trail-label { color:var(--color-on-surface-muted); }
+  .trail .steps { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:var(--space-snug); }
+  .trail .step {
+    display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:var(--space-inline); row-gap:var(--space-tight);
+    align-items:center; min-width:0; min-height:0;
+    padding:var(--space-snug); border-radius:var(--radius-control);
+  }
+  .trail .step-icon { width:16px; height:16px; font-size:var(--type-label-size); grid-row:1; }
+  .trail .step.outside .step-icon { width:18px; height:16px; font-size:var(--type-label-size); padding-top:var(--space-tight); }
+  .trail .step-label {
+    font-size:var(--type-body-size); font-weight:500; line-height:var(--type-ui-leading);
+    grid-row:1; min-width:0;
+  }
+  .trail .step-note {
+    grid-column:1 / -1; font-size:var(--type-label-size); letter-spacing:var(--tracking-label);
+    line-height:var(--type-caption-leading); min-height:1.4em;
+  }
+
+  .card-result .actions {
+    justify-content:flex-start; align-items:center;
+    flex-wrap:wrap; gap:var(--space-inline);
+    margin-top:auto;
+  }
+  .card-result .actions .line { display:none; }
+  .card-result .actions .btn-primary,
+  .card-result .actions .btn-tertiary { flex:0 1 auto; }
+
+  /* One-line intro caption where there is room for it. */
+  @media (min-width:640px) { .ring-note { max-width:none; white-space:nowrap; } }
+
+  /* Phones: the result grows with its content and the stage scrolls. */
+  @media (max-width:639px) {
+    .card-result { height:auto; }
+    .console.scan-shell > .col:last-child { flex:1 1 auto; min-height:0; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .cov-sonar circle { animation:none;  }
+    .cov-wave, .cband { transition:none; }
+  }
+
+  /* Tiles use the card's full width; the vertical list's cap does not apply. */
+  .trail .steps { width:100%; max-width:none; }
+  /* The one-line caption needs one line of height, not two. */
+  @media (min-width:640px) { .ring-note { min-height:0; } }
+
+  /* ── Coverage colour: a cool ink-lavender, so amber keeps one meaning,
+     exposure found, and green keeps another, clear. ── */
+  .cov-halo { fill:var(--color-coverage-mid); opacity:.12; }
+  .cov-ring.in { stroke:var(--color-accent); opacity:1; }
+  /* Hover: blue dashed outline only. No fill, so inner rings stay visible. */
+  .cov-ring.held, .cov-ring.in.held, .cov-ring.out.held {
+    fill:none; stroke:var(--color-accent);
+    stroke-width:1.5; stroke-dasharray:2 6; opacity:1;
+  }
+  .cov-ring.clear { stroke:var(--tone-pass-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.listed, .cov-ring.exposed { stroke:var(--tone-block-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.outside { stroke:var(--tone-caution-edge); stroke-dasharray:5 4; opacity:1; }
+  .cov-ring.in.clear, .cov-ring.out.clear { stroke:var(--tone-pass-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.in.listed, .cov-ring.out.listed,
+  .cov-ring.in.exposed, .cov-ring.out.exposed { stroke:var(--tone-block-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.in.outside, .cov-ring.out.outside { stroke:var(--tone-caution-edge); stroke-dasharray:5 4; opacity:1; }
+  .cov-ripple { stroke:var(--cov-edge); }
+  .cov-sonar circle { stroke:var(--cov-edge); }
+  .cov-core-pick { stroke:var(--cov-edge); }
+  .m-row.in .m-bar { background:var(--cov-edge); }
+  .m-row.in .m-sub { color:var(--cov-edge); }
+  .cov-pick { color:var(--cov-edge); }
+  .cov-pick-dot { fill:var(--color-ink-100); }
+  .cov-pick.not .cov-pick-dot { fill:var(--color-ink-50); }
+  /* Found is ruby. Outside reach is gold, set on .cov-pick.outside. */
+  .cov-pick.found { color:var(--tone-block-edge); }
+  .cov-pick.outside { color:var(--tone-caution-edge); }
+
+  /* ── The wallet line and its draggable dot ── */
+  .cov-ray {
+    stroke:var(--color-ink-50); stroke-width:1.5; stroke-dasharray:1 5; stroke-linecap:round;
+    opacity:.55; pointer-events:none; transition:opacity var(--duration-interaction), stroke var(--duration-interaction);
+  }
+  .cov-svg.ray-active .cov-ray { opacity:1; stroke:var(--color-ink-100); }
+  .cov-svg.scanning .cov-ray { opacity:.3; }
+  .cov-pick-hit { fill:transparent; }
+  .cov-svg:not(.scanning) .cov-pick { pointer-events:auto; cursor:grab; touch-action:none; }
+  .cov-pick.dragging { transition:none; cursor:grabbing; }
+  .cov-pick.dragging .cov-pick-dot { transform:scale(1.25); transform-box:fill-box; transform-origin:center; }
+  .cov-pick.idle .cov-pick-dot { fill:var(--color-white); stroke:var(--color-ink-70); stroke-width:2; stroke-dasharray:3 3; }
+  .cov-pick.idle .cov-pick-pulse { display:none; }
+
+  /* ── Intro: acts stacked in one cell, so nothing below them moves ── */
+  #act-copy { display:grid; min-height:0 !important; }
+  .act-panel {
+    grid-area:1 / 1; opacity:0; visibility:hidden;
+    transition:opacity var(--duration-interaction) var(--ease-newton), visibility 0s linear var(--duration-interaction);
+  }
+  .act-panel.on { opacity:1; visibility:visible; transition:opacity var(--duration-interaction) var(--ease-newton) 0s, visibility 0s; }
+
+  /* The intro map uses the dashboard's styling; only its behaviour differs. */
+  .intro-map { cursor:default; max-width:420px; }
+  .intro-map .cov-disc, .intro-map .cov-halo { transition:transform var(--duration-emphasis) var(--ease-newton); }
+  .intro-sonar { opacity:0; transition:opacity var(--duration-emphasis); }
+  .intro-sonar.on { opacity:1; }
+  .intro-pick { pointer-events:none; }
+  .intro-pick.plain .cov-pick-pulse { display:none; }
+  .intro-pick-label { font:500 var(--type-body-size) var(--font-sans); fill:var(--color-ink-100); }
+  .intro-pick.not .intro-pick-label { fill:var(--color-ink-50); }
+
+  /* Very short phones: the stacked acts hold the longest act's height, so
+     the figure gives a little back. */
+  @media (max-width:639px) and (max-height:680px) {
+    .ring-fig { max-width:min(210px, 31vh); }
+    .ring-note { font-size:var(--type-caption-size); line-height:var(--type-title-leading)7px; }
+    .intro-grid { gap:var(--space-snug); }
+  }
+
+  @media (max-width:639px) and (max-height:680px) {
+    .ring-fig { max-width:min(190px, 28vh); }
+    .intro-grid { padding-block:var(--space-snug); }
+  }
+
+  /* ── Result figures. Three columns when the card is wide. ──────── */
+  .warnline { max-width:none; margin:0; white-space:normal; align-items:flex-start; }
+  .card-result .stats {
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:var(--space-group); margin:0; max-width:none;
+  }
+  .card-result .stat,
+  .card-result .stat + .stat { border-top:none; padding:0; margin:0; }
+  .card-result .stat + .stat {
+    border-left:1px solid var(--color-surface-alt-strong);
+    padding-left:var(--space-group);
+  }
+  .card-result .stat-k { white-space:normal; }
+  .card-result .stat-v { margin-top:var(--space-tight); }
+  .trail .step-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-result #actions-slot { margin-top:auto; margin-inline:auto; width:100%; max-width:36rem; }
+
+  /* ── Wallet card: one centred group with even padding ─────────────
+     The list, the paste link and Run sit together in the middle of the
+     card instead of Run being stranded at the bottom. */
+  @media (min-width:640px) {
+    .card-check {
+      display:flex; flex-direction:column; justify-content:flex-start; overflow-y:auto;
+      padding:clamp(24px, 4.2vh, 44px) clamp(24px, 3vw, 44px);
+    }
+    .card-check .card-body { flex:0 0 auto; margin-top:auto; gap:var(--space-group); }
+    .card-check .btn-block { margin-top:var(--space-block); margin-bottom:auto; flex:none; }
+    .try-wallet .label { font-size:var(--type-body-size); margin-bottom:var(--space-snug); }
+    .d-only .m-row { min-height:clamp(52px, 6.6vh, 62px); }
+    .d-only .m-name { font-size:var(--type-subheading-size); }
+    .d-only .m-sub { font-size:var(--type-body-size); }
+    .d-only .m-text { padding-block:var(--space-inline); }
+    .paste-link { margin-top:2px; }
+  }
+  /* The per-row outcome dot is gone everywhere; the verdict says it. */
+  .m-dot { display:none !important; }
+
+  /* A selected row keeps light text, whatever its coverage colour. */
+
+  /* ── Scan pulse ──────────────────────────────────────────────────
+     While a check runs, pulses leave the centre every var(--duration-emphasis) and fade at the
+     scan front, so the scan reads as actively searching outward. */
+  .cov-scanpulse circle {
+    fill:none; stroke:var(--color-ink-100); stroke-width:2.5; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px;
+  }
+  .cov-scanpulse.on circle { animation:scanPulse calc(var(--duration-beat) * 1.125) var(--ease-newton) infinite;  }
+  .cov-scanpulse.on circle:nth-child(2) { animation-delay:calc(var(--duration-interaction) * 1.5);  }
+  .cov-scanpulse.on circle:nth-child(3) { animation-delay:calc(var(--duration-interaction) * 3);  }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    15%  { opacity:.55; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
+  /* The front itself breathes while it waits on each ring. */
+  .cov-wave.on { animation:frontBreath var(--duration-beat) var(--ease-newton) infinite;  }
+  @keyframes frontBreath { 0%,100% { stroke-width:3.5; opacity:.8; } 50% { stroke-width:6; opacity:.5; } }
+  /* A cleared ring flashes green at its edge. */
+  .cov-flash {
+    fill:none; stroke:var(--tone-pass-edge); stroke-width:6; opacity:0; pointer-events:none;
+    transform-box:view-box; transform-origin:200px 200px; transform:scale(var(--k, .5));
+  }
+  .cov-flash.go { animation:ringFlash var(--duration-emphasis) var(--ease-newton);  }
+  @keyframes ringFlash { 0% { opacity:.9; stroke-width:8; } 100% { opacity:0; stroke-width:2; } }
+  /* Where Lazarus is found, a burst goes off at the wallet. */
+  .cov-burst { fill:none; stroke:var(--tone-block-edge); stroke-width:3; opacity:0; pointer-events:none;
+    transform-box:fill-box; transform-origin:center; }
+  .cov-burst.go { animation:burst calc(var(--duration-interaction) * 3) var(--ease-newton) 2;  }
+  @keyframes burst { 0% { transform:scale(.6); opacity:1; } 100% { transform:scale(4); opacity:0; } }
+  .cov-svg:not(.scanning) .cov-scanpulse { display:none; }
+
+  /* ── One-line sentences in the result card ───────────────────────── */
+  .card-result .reason { max-width:none; text-wrap:wrap; }
+
+  @media (prefers-reduced-motion:reduce) {
+    .cov-scanpulse.on circle, .cov-wave.on, .cov-flash.go, .cov-burst.go { animation:none;  }
+  }
+
+  /* Narrow cards: stack the evidence, and give the scan tiles two columns.
+     This follows the card, so a phone and a squeezed outcome both qualify. */
+  @container result (max-width:40rem) {
+    .card-result .right { gap:var(--space-group); }
+    .result-body { gap:var(--space-card); }
+    .path-strip { flex-direction:column; align-items:flex-start; gap:var(--space-snug); }
+    .path-hop { width:100%; }
+    .trail .steps { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .trail .lbl-long { display:none; }
+    .trail .lbl-short { display:inline; }
+    .card-result .stats { grid-template-columns:minmax(0,1fr); row-gap:var(--space-snug); }
+    .card-result .stat,
+    .card-result .stat + .stat {
+      border-left:none; margin-left:0; padding-left:0;
+    }
+    .card-result .stat + .stat {
+      border-top:1px solid var(--color-surface-alt-strong);
+      padding-top:var(--space-snug);
+    }
+    .card-result .actions {
+      flex-direction:column-reverse; align-items:stretch; flex-wrap:nowrap;
+    }
+    .card-result .actions .btn { width:100%; }
+    .card-result .btn-long { display:none; }
+  }
+
+  .cov-scanpulse circle { stroke-width:3; }
+  @keyframes scanPulse {
+    0%   { transform:scale(.24); opacity:0; }
+    12%  { opacity:.75; }
+    100% { transform:scale(var(--k, .3)); opacity:0; }
+  }
+

@@ -1,0 +1,201 @@
+  /* ── Scan and verdict share one frame ───────────────────────── */
+  .intro, .console, .checking { min-height:560px; }
+  .checking {
+    width:100%; display:flex; flex-direction:column; justify-content:center;
+    padding-block:var(--space-region);
+    padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
+    min-height:0; overflow-y:auto;
+  }
+  #actions-slot {
+    margin:var(--space-block) 0 0; min-height:44px; opacity:0; visibility:hidden;
+    transition:opacity var(--duration-emphasis) var(--ease-newton) var(--duration-interaction), visibility 0s linear var(--duration-interaction);
+  }
+  #actions-slot.on { opacity:1; visibility:visible; transition-delay:var(--duration-interaction), 0s; }
+
+  #right-slot { transition:opacity var(--duration-interaction) var(--ease-newton), transform var(--duration-interaction) var(--ease-newton); }
+  #right-slot.swapping { opacity:0; transform:translateY(6px); }
+
+  .grid {
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:var(--space-section); align-items:start; width:100%;
+  }
+  .grid.single { grid-template-columns:minmax(0,1fr); }
+  .left { display:flex; align-items:flex-start; min-width:0; }
+  .left-stack { width:100%; }
+  .right { min-width:0; min-height:300px; }
+
+  /* The scan rows and the path nodes are one component, so the chain
+     settles into the place the steps occupied rather than replacing them. */
+  .steps {
+    display:flex; flex-direction:column; align-items:stretch; gap:var(--space-inline);
+    width:100%; max-width:440px; margin:0;
+  }
+  .step {
+    display:flex; align-items:center; justify-content:space-between; gap:var(--space-group);
+    position:relative; overflow:hidden;
+    min-height:36px; padding:var(--space-inline) var(--space-group);
+    border:1.5px solid var(--color-ink-30); border-radius:var(--radius-control);
+    background:var(--color-white);
+    font-size:var(--type-subheading-size); color:var(--color-ink-50);
+    transition:opacity var(--duration-interaction), border-color var(--duration-interaction), color var(--duration-interaction), background var(--duration-interaction);
+  }
+  .step.active { border-color:color-mix(in srgb, var(--color-ink-100) 20%, transparent); color:var(--color-ink-100); background:var(--color-white); }
+  /* A band of light crosses the row while it is being checked, which reads
+     as work happening; the old opacity pulse read as a loading glitch. */
+  .step.active::after { animation:sweep var(--duration-beat) var(--ease-newton) infinite;
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent 0%, var(--color-ink-10) 45%,
+               rgba(255,255,255,.9) 50%, var(--color-ink-10) 55%, transparent 100%);
+    background-size:220% 100%;
+    
+    pointer-events:none;
+  }
+  @keyframes sweep { from { background-position:120% 0; } to { background-position:-120% 0; } }
+  .settled .step.active { animation:none;  }
+  .step.waiting .step-note { animation:pulse calc(var(--duration-interaction) * 5) var(--ease-newton) infinite;  }
+  .settled .step.waiting .step-note { animation:none;  }
+  .step.clear { color:var(--color-ink-100); border-color:color-mix(in srgb, var(--tone-pass-edge) 20%, transparent); background:var(--color-white); }
+  .step.listed, .step.exposed { color:var(--color-ink-100); border-color:color-mix(in srgb, var(--tone-block-edge) 20%, transparent); background:var(--color-white); }
+  .step.failed, .step.unattested { color:var(--color-ink-100); border-color:color-mix(in srgb, var(--tone-neutral-edge) 20%, transparent); background:var(--color-white); }
+  .step.idle { opacity:.35; }
+  .step-icon {
+    position:relative; z-index:1; flex-shrink:0;
+    width:18px; height:18px; border-radius:var(--radius-full);
+    border:1.5px solid var(--color-ink-30); background:var(--color-white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:var(--type-caption-size); font-weight:500; line-height:var(--type-title-leading);
+    transition:background var(--duration-interaction), border-color var(--duration-interaction), color var(--duration-interaction), transform var(--duration-interaction);
+  }
+  .step.active .step-icon { border-color:var(--color-ink-100); }
+  .step.clear .step-icon { background:var(--tone-pass-edge); border-color:var(--tone-pass-edge); color:var(--color-white); }
+  .step.clear .step-icon::before { content:'✓'; }
+  .step.listed .step-icon, .step.exposed .step-icon { background:var(--tone-block-edge); border-color:var(--tone-block-edge); color:var(--color-white); }
+  .step.listed .step-icon::before, .step.exposed .step-icon::before { content:'!'; }
+  .step.failed .step-icon, .step.unattested .step-icon { background:var(--tone-neutral-edge); border-color:var(--tone-neutral-edge); color:var(--color-white); }
+  .step.failed .step-icon::before, .step.unattested .step-icon::before { content:'–'; }
+  /* One small pop when the answer lands, so each row resolves visibly. */
+  .step.resolved .step-icon { animation:pop var(--duration-interaction) var(--ease-newton);  }
+  @keyframes pop { 0% { transform:scale(.4); } 100% { transform:scale(1); } }
+  .step-label { flex:1; font-size:var(--type-subheading-size); position:relative; z-index:1; }
+  .lbl-short { display:none; }
+  .step-note {
+    position:relative; z-index:1;
+    font-size:var(--type-caption-size); font-weight:500; letter-spacing:var(--tracking-label); text-transform:uppercase; white-space:nowrap;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } }
+  @keyframes settleIn { from { opacity:0; transform:translateY(-4px) scale(.99); } }
+
+  /* The steps arrive in sequence, so the scan looks like it is being built
+     rather than appearing all at once. */
+  .steps .step { animation:rise var(--duration-interaction) var(--ease-newton) backwards;  }
+  .steps .step:nth-child(1) { animation-delay:0s;  }
+  .steps .step:nth-child(3) { animation-delay:var(--stagger);  }
+  .steps .step:nth-child(5) { animation-delay:calc(var(--stagger) * 2);  }
+  .steps .step:nth-child(7) { animation-delay:calc(var(--stagger) * 3);  }
+
+  /* The verdict settles into the panel the scan left behind. */
+  .right .text-display, .right .text-title, .right .reason, .right .stats, .right .detail { animation:settleIn var(--duration-emphasis) var(--ease-newton) backwards;  }
+  .right .reason { animation-delay:var(--stagger);  }
+  .right .stats  { animation-delay:calc(var(--stagger) * 2);  }
+
+  /* Each figure counts in just after the one before it. */
+  .stat { animation:rise var(--duration-interaction) var(--ease-newton) backwards;  }
+  .stat:nth-child(1) { animation-delay:calc(var(--stagger) * 2);  }
+  .stat:nth-child(2) { animation-delay:calc(var(--stagger) * 3);  }
+  .stat:nth-child(3) { animation-delay:calc(var(--stagger) * 4);  }
+
+  /* The console's two cards arrive together but not abruptly. */
+  .console .col { animation:rise var(--duration-emphasis) var(--ease-newton) backwards;  }
+  .console.still .col { animation:none;  }
+  .console .col:nth-child(2) { animation-delay:var(--stagger);  }
+
+  /* The intro figure follows its copy. */
+  .act-figure { animation:rise calc(var(--duration-interaction) * 1.5) var(--ease-newton) backwards calc(var(--stagger) * 2);  }
+
+  .reason { margin-top:var(--space-card); max-width:44ch; color:var(--color-ink-80); }
+  .detail { font-family:var(--font-code); font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-on-surface-muted); margin-top:var(--space-snug); max-width:64ch; word-break:break-word; }
+
+  .stats {
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
+    margin-top:var(--space-region); max-width:560px;
+  }
+  .stat { padding:0 var(--space-block); }
+  .stat:first-child { padding-left:0; }
+  .stat + .stat { border-left:1px solid var(--color-surface-alt-strong); }
+  .stat-k { font-size:var(--type-body-size); color:var(--color-on-surface-muted); }
+  .stat-v { font-size:var(--type-title-size); font-weight:500; letter-spacing:var(--tracking-title); margin-top:2px; }
+  .stat-link {
+    display:inline-flex; align-items:baseline; gap:var(--space-tight);
+    color:var(--color-ink-100); text-decoration:none; border-bottom:1px solid var(--color-on-surface-subtle);
+  }
+  .stat-link:hover { border-color:var(--color-ink-100); }
+  .stat-ext { font-size:var(--type-body-size); font-weight:500; color:var(--color-on-surface-muted); }
+
+  .actions { display:flex; align-items:center; gap:var(--space-snug); margin:var(--space-block) 0 0; flex-wrap:wrap; }
+  .actions .line { flex:1; min-width:var(--space-block); height:1px; background:var(--color-surface-alt-strong); }
+
+  @media (max-width:1023px) { .console { grid-template-columns:1fr; } }
+  @media (max-height:900px) {
+    body { padding:var(--space-group); gap:var(--space-group); }
+    .console { padding:var(--space-group) var(--inset); gap:var(--space-card); }
+    .card { padding:var(--space-group); }
+    .mast { padding:var(--space-inline) var(--inset); }
+    .checking { padding-block:var(--space-card); }
+    .intro-grid { padding-block:var(--space-card); }
+  }
+  /* Tablets: two columns are too narrow side by side before the phone rules
+     take over, so they stack earlier. */
+  @media (max-width:1023px) {
+    .intro-grid { grid-template-columns:minmax(0,1fr); grid-template-areas:"copy" "figure"; gap:var(--space-block); }
+    .act { max-width:none; justify-self:stretch; }
+    .grid { grid-template-columns:minmax(0,1fr); gap:var(--space-block); }
+  }
+
+  @media (max-width:639px) {
+    html,body { height:auto; overflow:visible; }
+    body { height:auto; min-height:100dvh; padding:var(--space-snug); gap:var(--space-snug); }
+    .stage { flex:none; }
+    .mast { padding:var(--space-snug); gap:var(--space-snug); }
+    .wordmark { height:20px; }
+    .console, .checking {
+      padding-block:var(--space-card); padding-inline:var(--space-group); overflow:visible;
+    }
+    .intro { overflow:visible; }
+    .intro-grid { padding-block:var(--space-card); padding-inline:var(--space-group); }
+    .grid, .intro-grid { grid-template-columns:minmax(0,1fr); grid-template-areas:"copy" "figure"; gap:var(--space-block); }
+    .act { justify-self:stretch; }
+    .stats { grid-template-columns:minmax(0,1fr); gap:var(--space-snug); }
+    .stat, .stat + .stat { border-left:none; padding:0; }
+    .stat + .stat { border-top:1px solid var(--color-surface-alt-strong); padding-top:var(--space-snug); }
+    .actions { flex-direction:column; align-items:stretch; }
+    .actions .line { display:none; }
+    .actions .btn { width:100%; }
+    .btn-long { display:none; }
+    .card { height:auto; }
+    .steps { max-width:none; }
+    /* Masthead stays on one line. */
+    .mast { flex-wrap:nowrap; gap:var(--space-inline); }
+    .brand { gap:var(--space-inline); min-width:0; }
+    .wordmark { height:18px; }
+    .badge { padding:var(--space-inline) var(--space-inline); font-size:var(--type-caption-size); letter-spacing:var(--tracking-label); }
+    .pill { height:32px; padding:0 var(--space-inline); font-size:var(--type-caption-size); gap:var(--space-inline); }
+
+    /* Intro: the copy box holds less height on a narrow screen. */
+    #act-copy { min-height:230px; }
+
+    /* Steps use their short labels so every row stays one line. */
+    .lbl-long { display:none; }
+    .lbl-short { display:inline; }
+    .step { gap:var(--space-snug); min-height:44px; }
+    .intro, .console, .checking { min-height:0; }
+    .rule { font-size:var(--type-heading-size); line-height:var(--type-title-leading); }
+    .intro-foot { gap:var(--space-snug); }
+    .intro-foot .btn { flex:1 1 auto; }
+    .step-label { font-size:var(--type-body-size); }
+    .field { font-size:var(--type-subheading-size); }
+  }
+
+  /* The reach summary only exists for phones. */
+  .reach-line { display:none; }
+
