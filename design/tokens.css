@@ -1,0 +1,313 @@
+/* Newton Explorer token contract.
+   Source: explorer-newton/src/globals.css (Labs reskin).
+   Inter is the stand-in for licensed Suisse Int'l (--font-suisse-intl).
+   Components this demo has and Explorer does not — verdict washes, the
+   coverage disc, the hop rail — use these tokens. No extra steps. */
+
+:root {
+  /* ── Primitives ──────────────────────────────────────────── */
+  --bone-50: #FBFCFE;
+  --bone-100: #F7F7F9;
+  --bone-alpha-60: rgba(251, 252, 254, 0.6);
+  --bone-alpha-40: rgba(251, 252, 254, 0.4);
+  --bone-alpha-20: rgba(251, 252, 254, 0.2);
+  --bone-alpha-10: rgba(251, 252, 254, 0.1);
+  --bone-alpha-08: rgba(251, 252, 254, 0.08);
+  --bone-alpha-05: rgba(251, 252, 254, 0.05);
+
+  --coal-950: #0E0E0F;
+  --coal-alpha-80: rgba(14, 14, 15, 0.8);
+  --coal-alpha-60: rgba(14, 14, 15, 0.6);
+  --coal-alpha-40: rgba(14, 14, 15, 0.4);
+  --coal-alpha-20: rgba(14, 14, 15, 0.2);
+  --coal-alpha-10: rgba(14, 14, 15, 0.1);
+  --coal-alpha-08: rgba(14, 14, 15, 0.08);
+  --coal-alpha-05: rgba(14, 14, 15, 0.05);
+  --coal-alpha-04: rgba(14, 14, 15, 0.04);
+
+  --blue-50: #ECF1FD;
+  --blue-100: #D8E2FB;
+  --blue-200: #A8BEF5;
+  --blue-500: #3D6FE8;
+  --blue-600: #3764D1;
+  --blue-800: #234087;
+
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+
+  /* ── Semantic color ──────────────────────────────────────── */
+  --color-surface: var(--bone-50);
+  --color-on-surface: var(--coal-950);
+  --color-on-surface-muted: var(--coal-alpha-60);
+  --color-on-surface-subtle: var(--coal-alpha-40);
+  --color-surface-alt: var(--coal-alpha-10);
+  --color-surface-alt-hover: var(--coal-alpha-08);
+  --color-surface-alt-strong: var(--coal-alpha-20);
+  --color-surface-alt-subtle: var(--coal-alpha-05);
+
+  --color-accent: var(--blue-500);
+  --color-on-accent: var(--bone-50);
+  --color-accent-hover: var(--blue-600);
+  --color-accent-active-text: var(--bone-alpha-60);
+
+  --color-danger: var(--color-ruby-50);
+  --color-success: var(--color-leaf-50);
+  --color-warning-subtle: var(--color-gold-10);
+
+  --color-ink-10: #F5F5F6;
+  --color-ink-20: #EAEAEB;
+  --color-ink-30: #E3E3E4;
+  --color-ink-50: #9A9A9B;
+  --color-ink-70: #6B6B6C;
+  --color-ink-80: #3F3F40;
+  --color-ink-100: var(--coal-950);
+
+  --color-magic-10: var(--blue-50);
+  --color-magic-50: var(--blue-500);
+
+  --color-leaf-10: #E6F2EE;
+  --color-leaf-30: #7FBAA6;
+  --color-leaf-50: #0B6E4F;
+  --color-leaf-70: #095A41;
+
+  --color-ruby-10: #FBE9E3;
+  --color-ruby-30: #E8A898;
+  --color-ruby-50: #AD2B03;
+  --color-ruby-70: #8F2402;
+
+  --color-gold-10: #FCF4E5;
+  --color-gold-30: #F5D79E;
+  --color-gold-50: #C68A2E;
+  --color-gold-70: #8A5E14;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--blue-500);
+
+  /* Tone. Colour for a state. Ruby is edges, icons and small fills only.
+     pass = clear, block = listed or exposed, caution = outside reach,
+     neutral = failed or unattested. */
+  --tone-pass-a: var(--color-leaf-10);
+  --tone-pass-b: var(--color-leaf-30);
+  --tone-pass-edge: var(--color-leaf-50);
+  --tone-block-a: var(--color-ruby-10);
+  --tone-block-b: var(--color-ruby-30);
+  --tone-block-edge: var(--color-ruby-50);
+  --tone-caution-a: var(--color-gold-10);
+  --tone-caution-b: var(--color-gold-30);
+  --tone-caution-edge: var(--color-gold-50);
+  --tone-neutral-a: var(--color-ink-10);
+  --tone-neutral-b: var(--color-ink-20);
+  --tone-neutral-edge: var(--color-ink-50);
+
+  /* Coverage disc. Explorer has no map; it uses the magic blue ramp so
+     the reach stays blue, a block stays ruby, and outside reach stays gold. */
+  --color-coverage: var(--color-magic-50);
+  --color-coverage-soft: var(--color-magic-10);
+  --color-coverage-mid: var(--blue-200);
+  --cov-edge: var(--color-coverage);
+  --cov-soft: var(--color-coverage-soft);
+
+  /* ── Type. Explorer product scale, not the marketing site.
+        Sizes are fixed. Weights are 400 and 500. Color stays on the element.
+        Role              Size  Weight  LH     Tracking      Use
+        .text-display     28    500     1.15   -0.015em      verdict headline only
+        .text-title       20    500     1.2    -0.01em       page title
+        .text-heading     18    500     1.25   -0.01em       section / card heading
+        .text-subheading  16    500     1.4     0            minor heading / stat figure
+        .text-body        14    400     1.45    0            default body / table cell
+        .text-ui          14    500     1.4     0            buttons, nav, table head, row title
+        .text-caption     12    400     1.4     0            secondary / metadata
+        .text-label       10    500     normal  0.08em (↑)   status chips, eyebrows
+        .text-data        14    400     1.45    0            mono — addresses / hashes / numbers ── */
+  --font-suisse-intl: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: var(--font-suisse-intl), system-ui, sans-serif;
+  --font-code: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-mono: var(--font-code);
+
+  --tracking-display: -0.015em;
+  --tracking-title: -0.01em;
+  --tracking-label: 0.08em;
+
+  --type-display-size: 28px;
+  --type-display-weight: 500;
+  --type-display-leading: 1.15;
+
+  --type-title-size: 20px;
+  --type-title-weight: 500;
+  --type-title-leading: 1.2;
+
+  --type-heading-size: 18px;
+  --type-heading-weight: 500;
+  --type-heading-leading: 1.25;
+
+  --type-subheading-size: 16px;
+  --type-subheading-weight: 500;
+  --type-subheading-leading: 1.4;
+
+  --type-body-size: 14px;
+  --type-body-weight: 400;
+  --type-body-leading: 1.45;
+
+  --type-ui-size: 14px;
+  --type-ui-weight: 500;
+  --type-ui-leading: 1.4;
+
+  --type-caption-size: 12px;
+  --type-caption-weight: 400;
+  --type-caption-leading: 1.4;
+
+  --type-label-size: 10px;
+  --type-label-weight: 500;
+  --type-label-leading: normal;
+
+  --type-data-size: 14px;
+  --type-data-weight: 400;
+  --type-data-leading: 1.45;
+
+  /* ── Space. 4px grid, tops out at 48px between sections.
+        token           px   role
+        --space-tight    4   icon↔label, chip internals
+        --space-inline   8   inline element groups
+        --space-snug    12   dense rows, table cells, form fields
+        --space-group   16   related control groups
+        --space-page    20   app content padding
+        --space-card    24   card padding + base vertical gutter
+        --space-block   32   separated blocks within a section
+        --space-region  40   sub-sections
+        --space-section 48   gap between major page sections ── */
+  --space-tight: 4px;
+  --space-inline: 8px;
+  --space-snug: 12px;
+  --space-group: 16px;
+  --space-page: 20px;
+  --space-card: 24px;
+  --space-block: 32px;
+  --space-region: 40px;
+  --space-section: 48px;
+
+  /* ── Radius. Controls, surfaces, and the pill. */
+  --radius-control: 12px; /* inputs, nav, segments */
+  --radius-surface: 16px; /* cards, mast, stage */
+  --radius-full: 999px;
+
+  --button-pad-y: var(--space-snug);
+  --button-pad-x: var(--space-page);
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --ease-newton: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-interaction: 300ms;
+  --duration-emphasis: calc(var(--duration-interaction) * 2);
+  --duration-beat: calc(var(--duration-interaction) * 4);
+  --duration-cycle: calc(var(--duration-interaction) * 12);
+  --stagger: calc(var(--duration-interaction) / 5);
+
+  /* Hover and press for outlined / selectable controls.
+     Filled primaries use --color-accent-hover only. */
+  --interaction-hover-fill: var(--color-ink-10);
+  --interaction-hover-edge: var(--color-ink-80);
+  --interaction-press-fill: var(--color-surface-alt);
+  --interaction-selected-fill: var(--color-surface-alt);
+
+  /* ── Layout. Explorer / Tailwind: sm 640, md 768, lg 1024.
+        Phone rules sit below sm. The console is one column below lg
+        and two columns from lg. 420px is a component fit, not a step. */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --shell-pad: var(--space-group);
+  --shell-gap: var(--space-snug);
+  --inset: clamp(var(--space-card), 4vw, var(--space-section));
+}
+
+@media (min-width: 640px) {
+  :root {
+    --shell-pad: var(--space-page);
+    --shell-gap: var(--space-group);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --shell-pad: var(--space-card);
+    --shell-gap: var(--space-card);
+  }
+}
+
+/* Type roles. Size, weight, leading, tracking. Color stays on the element.
+   Prefer these classes over ad-hoc font-size. */
+.text-display {
+  font-family: var(--font-sans);
+  font-weight: var(--type-display-weight);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-leading);
+  letter-spacing: var(--tracking-display);
+}
+.text-title {
+  font-family: var(--font-sans);
+  font-weight: var(--type-title-weight);
+  font-size: var(--type-title-size);
+  line-height: var(--type-title-leading);
+  letter-spacing: var(--tracking-title);
+}
+.text-heading {
+  font-family: var(--font-sans);
+  font-weight: var(--type-heading-weight);
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-leading);
+  letter-spacing: var(--tracking-title);
+}
+.text-subheading {
+  font-family: var(--font-sans);
+  font-weight: var(--type-subheading-weight);
+  font-size: var(--type-subheading-size);
+  line-height: var(--type-subheading-leading);
+  letter-spacing: 0;
+}
+.text-body {
+  font-family: var(--font-sans);
+  font-weight: var(--type-body-weight);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+  letter-spacing: 0;
+}
+.text-ui {
+  font-family: var(--font-sans);
+  font-weight: var(--type-ui-weight);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-leading);
+  letter-spacing: 0;
+}
+.text-caption {
+  font-family: var(--font-sans);
+  font-weight: var(--type-caption-weight);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-leading);
+  letter-spacing: 0;
+}
+.text-label {
+  font-family: var(--font-sans);
+  font-weight: var(--type-label-weight);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-leading);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.text-data {
+  font-family: var(--font-code);
+  font-weight: var(--type-data-weight);
+  font-size: var(--type-data-size);
+  line-height: var(--type-data-leading);
+  letter-spacing: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-card);
+}
+.section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section);
+}

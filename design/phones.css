@@ -1,0 +1,232 @@
+  /* ── Phones: one screen, with room to breathe ────────────────────
+     Measured, every state used about half the screen, so this spends the
+     spare height on type and spacing rather than packing things tight.
+     Spacing scales with viewport height so short phones still fit and
+     tall ones do not look sparse. */
+  @media (max-width:639px) {
+    html, body { height:100%; overflow:hidden; }
+    body { height:100dvh; min-height:0; padding:var(--space-inline); gap:var(--space-inline); }
+    .stage { flex:1 1 auto; min-height:0; overflow-y:auto; }
+    .mast { padding:var(--space-inline) var(--space-snug); }
+    .intro, .console, .checking { min-height:0; }
+
+    /* ── Intro ── */
+    .intro { justify-content:flex-start; }
+    .intro-grid { padding:var(--space-card) var(--space-group); }
+    .intro-grid { gap:clamp(24px, 5vh, 48px); }
+    #act-copy { min-height:clamp(210px, 30vh, 260px); }
+    .act .text-heading { margin-top:var(--space-snug); }
+    .act p { margin-top:var(--space-group); font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); }
+    .intro-foot { margin-top:var(--space-card); gap:var(--space-snug); }
+    .intro-foot .btn-lg { min-height:48px; padding:var(--space-snug) var(--space-card); font-size:var(--type-subheading-size); }
+    .intro-foot .btn-md { min-height:48px; }
+    /* The dots stay small to look at but get a full-size hit area. */
+    .act-dot { position:relative; }
+    .act-dot::after { content:''; position:absolute; inset:-18px -8px; }
+    .acts { gap:var(--space-snug); }
+    /* ── Console ── */
+    .console { padding:clamp(16px, 3vh, 28px) var(--space-group); gap:clamp(16px, 3vh, 24px); align-content:center; }
+    .col { gap:0; }
+    .step-kicker { display:none; }
+    .card { padding:clamp(18px, 3vh, 24px); }
+    .card-policy .rule { margin-top:0; font-size:var(--type-heading-size); line-height:var(--type-subheading-leading); }
+    .reach-line { display:block; margin:var(--space-snug) 0 0; font-size:var(--type-body-size); color:var(--color-ink-70); }
+    .card-check .card-body { gap:clamp(16px, 2.6vh, 22px); }
+    .card-check .label { font-size:var(--type-body-size); }
+    .field { height:52px; font-size:var(--type-subheading-size); }
+    .err:empty { display:none; }
+    .btn-block { margin-top:clamp(16px, 2.6vh, 22px); min-height:52px; font-size:var(--type-subheading-size); }
+
+    /* ── Checking and verdict ── */
+    .checking { padding:clamp(18px, 3vh, 28px) var(--space-group); justify-content:flex-start; }
+    .grid { gap:clamp(20px, 3.5vh, 32px); }
+    .steps { gap:clamp(4px, .8vh, 8px); }
+    .step { min-height:48px; padding:var(--space-inline) var(--space-group); }
+    .step-label { font-size:var(--type-subheading-size); }
+    .step-note { font-size:var(--type-caption-size); letter-spacing:var(--tracking-label); }
+    .step-icon { width:20px; height:20px; font-size:var(--type-caption-size); }
+    .right { min-height:0; }
+    .reason { margin-top:var(--space-snug); }
+    .stats { gap:var(--space-group); margin-top:var(--space-card); }
+    .stat-k { white-space:normal; }
+    .stat, .stat + .stat { padding:0 var(--space-snug); border-top:none; }
+    .stat:first-child { padding-left:0; }
+    .stat + .stat { border-left:1px solid var(--color-surface-alt-strong); }
+    .stat-k { font-size:var(--type-body-size); }
+    .stat-v { font-size:var(--type-title-size); margin-top:var(--space-tight); }
+    /* The figure's link gets a tall enough hit area without growing. */
+    .stat-link { position:relative; }
+    .stat-link::after { content:''; position:absolute; inset:-14px -6px; }
+    #actions-slot { margin-top:clamp(18px, 3.5vh, 32px); }
+    .actions { flex-direction:row; align-items:stretch; gap:var(--space-snug); }
+    .actions .line { display:none; }
+    .actions .btn { width:auto; min-height:52px; font-size:var(--type-body-size); }
+    .actions .btn-primary { flex:1 1 auto; }
+  }
+
+  /* Short phones only: the verdict carries the most, so it gives back a
+     little height here rather than making every phone tighter. */
+  @media (max-width:639px) and (max-height:700px) {
+    .checking { padding-block:var(--space-group); }
+    .grid { gap:var(--space-group); }
+    .step { min-height:42px; padding-block:var(--space-inline); }
+    .steps { gap:var(--space-tight); }
+    .reason { margin-top:var(--space-inline); }
+    .stats { margin-top:var(--space-group); }
+    #actions-slot { margin-top:var(--space-group); }
+    .actions .btn { min-height:48px; }
+    .console { padding-block:var(--space-group); gap:var(--space-group); }
+    .card { padding:var(--space-group); }
+    #act-copy { min-height:200px; }
+  }
+
+  
+/* ── Phone ladder ─────────────────────────────────────────────── */
+  .addr-wrap { display:flex; flex-direction:column; gap:var(--space-inline); }
+  .m-only { display:none; }
+  @media (max-width:639px) {
+    .m-only { display:block; }
+
+    /* The desktop reach card and chip row give way to the ladder. */
+    .console > .col:first-child, .picker-wrap, .flow { display:none; }
+    .card-check .addr-wrap { display:none; }
+    .card-check.show-paste .addr-wrap { display:flex; }
+    .card-check.show-paste .m-paste { display:none; }
+    .m-paste.hide { display:none; }
+
+    /* One column that fills the screen, Run pinned to the bottom. */
+    .console { display:flex; flex-direction:column; align-content:stretch; padding:var(--space-group); gap:0; }
+    .console > .col:last-child { flex:1 1 auto; min-height:0; }
+    .card-check { height:100%; display:flex; flex-direction:column; }
+    .card-check .card-body { flex:1 1 auto; min-height:0; gap:var(--space-group); }
+    .card-check .btn-block { margin-top:var(--space-group); }
+
+    .m-reach-top { display:flex; align-items:center; justify-content:space-between; gap:var(--space-snug); }
+    .m-rule { margin:var(--space-snug) 0 0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-ink-70); }
+    .m-reach .label { font-size:var(--type-body-size); }
+    .m-seg {
+      display:flex; padding:var(--space-tight); gap:var(--space-tight);
+      background:var(--color-ink-10); border-radius:var(--radius-control);
+    }
+    .m-seg-btn {
+      min-width:64px; height:40px; padding:0 var(--space-snug);
+      border:none; border-radius:var(--radius-control); background:transparent; cursor:pointer;
+      font-family:var(--font-sans); font-size:var(--type-body-size); font-weight:500; color:var(--color-ink-70);
+      transition:background var(--duration-interaction), color var(--duration-interaction);
+    }
+    .m-seg-btn.sel { background:var(--color-white); color:var(--color-ink-100); box-shadow:0 1px 2px rgba(27,23,26,.12); }
+    .m-seg-btn:disabled { opacity:.35; }
+
+    /* The ladder: one bordered list, rows in order of distance. */
+    .m-ladder {
+      border:1px solid var(--color-ink-30); border-radius:var(--radius-control); overflow:hidden;
+      background:var(--color-white);
+    }
+    .m-row {
+      display:flex; align-items:stretch; gap:var(--space-snug);
+      width:100%; min-height:56px; padding:0 var(--space-group) 0 0;
+      border:none; border-top:1px solid var(--color-ink-10);
+      background:transparent; text-align:left; cursor:pointer;
+      font-family:var(--font-sans); color:var(--color-ink-100);
+      transition:background var(--duration-interaction);
+    }
+    .m-row:first-child { border-top:none; }
+    /* The bar down the left: dark for every wallet the reach covers, so the
+       reach reads as one continuous line down the list. */
+    .m-bar { flex:0 0 4px; background:var(--color-ink-10); transition:background var(--duration-interaction); }
+    .m-row.in .m-bar { background:var(--color-ink-100); }
+    .m-text { flex:1; display:flex; flex-direction:column; justify-content:center; gap:2px; padding-block:var(--space-inline); }
+    .m-name { font-size:var(--type-subheading-size); font-weight:500; }
+    .m-sub { font-size:var(--type-body-size); color:var(--color-ink-50); }
+    .m-row.in .m-sub { color:var(--color-ink-70); }
+    .m-row.chosen { background:var(--interaction-selected-fill); }
+    .m-row:active { background:var(--interaction-press-fill); }
+    .m-row.chosen:active { background:var(--color-surface-alt-strong); }
+    /* Last outcome under the current reach. */
+    .m-dot { align-self:center; flex:0 0 10px; height:10px; border-radius:50%; }
+    .m-dot.clear { background:var(--tone-pass-edge); }
+    .m-dot.listed, .m-dot.exposed { background:var(--tone-block-edge); }
+    .m-dot.failed, .m-dot.unattested { background:var(--tone-neutral-edge); }
+
+    .m-paste {
+      align-self:flex-start; padding:var(--space-inline) 0; border:none; background:none;
+      font-family:var(--font-sans); font-size:var(--type-body-size); font-weight:500; color:var(--color-ink-70);
+      text-decoration:underline; text-underline-offset:3px; cursor:pointer;
+    }
+  }
+
+  /* ── Reach inside the scan ────────────────────────────────────────
+     Rows past the reach are drawn but sit outside it: dashed and quiet,
+     so the reach is visible in the scan itself. */
+  .step.beyond {
+    border-style:dashed; border-color:var(--color-ink-30); background:transparent;
+    color:var(--color-ink-50);
+  }
+  .step.beyond .step-note { color:var(--color-ink-50); font-weight:500; }
+  .step.beyond .step-icon { border-style:dashed; background:transparent; }
+  .reach-edge {
+    display:flex; align-items:center; gap:var(--space-inline); margin:2px 0;
+    font-size:var(--type-caption-size); font-weight:500; letter-spacing:var(--tracking-label); text-transform:uppercase;
+    color:var(--color-ink-70);
+  }
+  .reach-edge::before, .reach-edge::after { content:''; flex:1; height:1px; background:var(--color-ink-50); }
+
+  /* Outside reach: gold, a dashed edge, and a triangle. Blocked stays ruby. */
+  .step.outside {
+    border-style:dashed;
+    border-color:var(--tone-caution-edge);
+    background:var(--color-white); color:var(--color-ink-100);
+  }
+  .step.outside .step-note { color:var(--color-gold-70); font-weight:500; }
+  .step.outside .step-icon {
+    border:none; border-radius:0; background:var(--tone-caution-edge); color:var(--color-white);
+    clip-path:polygon(50% 6%, 97% 94%, 3% 94%);
+    width:22px; height:20px; font-size:var(--type-caption-size); padding-top:var(--space-tight);
+  }
+  .step.outside .step-icon::before { content:'!'; }
+
+  .warnline {
+    display:flex; align-items:flex-start; gap:var(--space-snug); margin-top:var(--space-group);
+    padding:var(--space-snug) var(--space-group); border-radius:var(--radius-control);
+    background:var(--tone-caution-a); border:1px solid var(--tone-caution-edge);
+    font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-ink-100); max-width:44ch;
+  }
+  .warn-icon { flex:0 0 20px; width:20px; height:20px; color:var(--tone-caution-edge); margin-top:1px; }
+  .m-dot.outside {
+    border-radius:0; background:var(--tone-caution-edge);
+    clip-path:polygon(50% 0, 100% 100%, 0 100%); width:12px; height:11px; flex-basis:12px;
+  }
+
+  .wdot { fill:var(--color-white); stroke:var(--color-ink-100); stroke-width:2; transition:fill var(--duration-interaction), stroke var(--duration-interaction); }
+  .ring-fig {
+    width:100%; max-width:440px; margin:0 auto;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .ring-fig .intro-map { align-self:center; }
+  .ring-note {
+    align-self:center; width:max-content; max-width:100%;
+    margin:var(--space-group) 0 0; text-align:center;
+    font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-ink-70); min-height:42px;
+  }
+
+  /* Phones: the rings figure scales to the room it has. */
+  @media (max-width:639px) {
+    .ring-fig { max-width:min(320px, 38vh); }
+    .ring-note { font-size:var(--type-body-size); line-height:var(--type-title-leading)9px; min-height:0; margin-top:var(--space-inline); }
+    .reach-edge { font-size:var(--type-label-size); margin:0; }
+    .warnline { margin-top:var(--space-snug); padding:var(--space-snug) var(--space-snug); font-size:var(--type-body-size); line-height:var(--type-body-leading); }
+  }
+  /* Short phones: the warning line already says what the reason says, so the
+     reason steps aside, and the rows tighten a little. */
+  @media (max-width:639px) and (max-height:700px) {
+    .ring-fig { max-width:min(240px, 34vh); }
+    .intro-grid { gap:var(--space-group); }
+    #act-copy { min-height:180px; }
+    .act p { font-size:var(--type-body-size); line-height:var(--type-body-leading); margin-top:var(--space-snug); }
+    .warnline { align-items:flex-start; }
+    .step { min-height:38px; padding-block:var(--space-tight); }
+    .steps { gap:2px; }
+    .stats { margin-top:var(--space-snug); }
+    #actions-slot { margin-top:var(--space-snug); }
+  }
+
