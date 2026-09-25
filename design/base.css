@@ -138,3 +138,16 @@ body.is-reduced *:not(.cov-svg *),
   body.is-reduced *:not(.cov-svg *)::before,
   body.is-reduced *:not(.cov-svg *)::after{ transition:none !important; animation:none !important; }
 
+/* Counts, hop labels, and $ figures. Addresses keep the slashed zero on .text-data. */
+.stat-v,
+.step-label,
+.step-kicker .kn,
+.cov-pill text,
+.cov-sum,
+.cov-status,
+.reach-line{
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fields stay at least 1rem so iOS does not zoom on focus. */
+input, textarea, select{ font-size: 1rem; }

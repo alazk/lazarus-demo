@@ -24,17 +24,6 @@
 
 .act-figure{ grid-area:figure; justify-self:center; align-self:center; min-width:0; width:100%; }
 
-.deployed{
-    margin-top:auto; padding-top:var(--space-group); border-top:1px solid var(--color-border);
-    display:flex; align-items:center; gap:var(--space-inline); flex-wrap:wrap;
-  }
-
-.fact-link{
-    font-family:var(--font-code); font-size:var(--type-body-size); font-weight:500;
-    color:var(--color-text); text-decoration:none; border-bottom:1px solid var(--color-border);
-  }
-
-@media (hover:hover){ .fact-link:hover { text-decoration:underline; } }
 
 .console{
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -62,19 +51,6 @@
 .card-check .card-body{ gap:var(--space-group); }
 
 .rule{ margin:var(--space-group) 0 0; max-width:40ch; font-size:var(--type-title-size); line-height:var(--type-title-leading); }
-
-.flow-row{
-    display:flex; align-items:flex-start; gap:var(--space-snug);
-    font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary); min-width:0;
-  }
-
-.flow-row > span:last-child{ flex:1; min-width:0; }
-
-.flow-n{
-    width:var(--space-page); height:var(--space-page); flex-shrink:0; margin-top:1px; border-radius:var(--radius-full);
-    background:var(--color-text); color:var(--color-on-accent);
-    font-size:var(--type-caption-size); font-weight:500; display:flex; align-items:center; justify-content:center;
-  }
 
 .checking{
     width:100%; display:flex; flex-direction:column; justify-content:center;

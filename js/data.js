@@ -12,11 +12,6 @@ function money(n) {
   if (n >= 1e3) return "$" + Math.round(n / 1e3) + "k";
   return "$" + Math.round(n);
 }
-const usdLabel = (v) =>
-  v === 0 ? "any amount"
-  : v >= 1e6 ? "over $" + (v / 1e6).toFixed(1) + "m"
-  : "over $" + Math.round(v / 1e3) + "k";
-
 /* The deployed contracts, so the policy can be read rather than trusted. */
 const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
 

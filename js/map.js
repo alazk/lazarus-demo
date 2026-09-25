@@ -12,11 +12,6 @@ let pickAddr = "";
 
 const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
 const isCovered = (d) => d !== null && d !== undefined && d !== "" && Number(d) <= hops;
-function rowSub(d) {
-  if (d === 0) return "on the list · covered";
-  if (d === null || d === undefined || d === "") return "outside every ring";
-  return Number(d) <= hops ? "covered" : "not covered";
-}
 function coverageSummary(ready) {
   const covered = ready.filter((w) => isCovered(DIST[w.key])).length;
   return `Screening <b>${hopWord(hops)}</b> out · ${covered} of ${ready.length} example wallets covered`;

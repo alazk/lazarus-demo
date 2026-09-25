@@ -253,7 +253,6 @@ html{
   --size-control-lg: 3rem;
   --size-icon-sm: 1rem;
   --size-icon: 1.125rem;
-  --size-dot: 0.625rem;
   --measure-text: 44ch;
   --measure-detail: 64ch;
   --width-result: 36rem;
@@ -281,35 +280,7 @@ html{
   /* ── Layout. Explorer / Tailwind: sm 640, md 768, lg 1024.
         Phone rules sit below sm. The console is one column below lg
         and two columns from lg. 420px is a component fit, not a step. */
-  --bp-sm: 640px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
   --shell-pad: var(--space-group);
   --shell-gap: var(--space-snug);
   --inset: clamp(var(--space-card), 4vw, var(--space-section));
 }
-
-/* Counts, hop labels, and $ figures. Addresses keep the slashed zero on .text-data. */
-.stat-v,
-.step-label,
-.step-kicker .kn,
-.cov-pill text,
-.cov-sum,
-.cov-status,
-.reach-line{
-  font-variant-numeric: tabular-nums;
-}
-
-.stack{
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-card);
-}
-.section-stack{
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-section);
-}
-
-/* Fields stay at least 1rem so iOS does not zoom on focus. */
-input, textarea, select{ font-size: 1rem; }

@@ -183,9 +183,6 @@ function paintReach(n, ready, opts = {}) {
         + `<span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
       row.classList.toggle("nostatus", !st);
     }
-    const dot = row.querySelector(".m-dot");
-    const out = outcomes[(row.dataset.addr || "").toLowerCase()];
-    if (dot) dot.className = "m-dot " + (out && out.hops === n ? (out.state || "") : "");
   });
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     const on = Number(b.dataset.hops) === n;
