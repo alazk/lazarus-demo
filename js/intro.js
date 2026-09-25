@@ -11,16 +11,8 @@ function renderChain() {
   return `<div class="ring-fig">
     <svg class="cov-svg intro-map" id="intro-map" viewBox="0 0 400 400" role="img"
          aria-label="Coverage from a known Lazarus address, in rings">
-      <defs>
-        <radialGradient id="intro-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stop-color="var(--blue-50)" stop-opacity=".32"/>
-          <stop offset="100%" stop-color="var(--blue-50)" stop-opacity=".32"/>
-        </radialGradient>
-      </defs>
-      <circle class="cov-halo" id="intro-halo" cx="${c}" cy="${c}" r="0"/>
-      <circle class="cov-disc" id="intro-disc" cx="${c}" cy="${c}" r="0" style="fill:url(#intro-grad)"/>
+      <circle class="cov-disc" id="intro-disc" cx="${c}" cy="${c}" r="0"/>
       ${[1, 2, 3].map((n) => `<circle class="cov-ring out" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-      <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
       ${pills}
@@ -30,6 +22,7 @@ function renderChain() {
         <text class="intro-pick-label" y="34" text-anchor="middle">Wallet you pay</text>
       </g>
     </svg>
+    <p class="reach-line"></p>
     <p class="ring-note" id="ring-note"></p>
   </div>`;
 }
@@ -51,7 +44,6 @@ function paintAct(n, animate = true) {
     const r = a.cover === "all" ? COV_R[3] : a.cover === "core" ? COV_R[0] + 10 : 0;
     const introDur = animate ? MOTION.emphasis + Math.round(MOTION.interaction / 3) : 0;
     tweenAttr(document.getElementById("intro-disc"), "r", r, introDur);
-    tweenAttr(document.getElementById("intro-halo"), "r", r ? r + 16 : 0, introDur);
     svg.querySelectorAll(".cov-ring").forEach((r) =>
       r.setAttribute("class", `cov-ring ${a.cover === "all" ? "in" : "out"}`));
     svg.querySelectorAll(".cov-pill").forEach((g) =>
@@ -77,9 +69,9 @@ function renderIntro() {
         <div class="act">
           <div id="act-copy">
             ${ACTS.map((a, i) => `<div class="act-panel ${i === 0 ? "on" : ""}" aria-hidden="${i !== 0}">
-              <div class="text-label">${esc(a.kicker)}</div>
+              <div class="text-label text-label--phone-eyebrow">${esc(a.kicker)}</div>
               <div class="text-heading">${esc(a.title)}</div>
-              <p class="text-body">${esc(a.body)}</p>
+              <p class="text-lead">${esc(a.body)}</p>
             </div>`).join("")}
           </div>
           <div class="intro-foot">

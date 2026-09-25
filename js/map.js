@@ -94,25 +94,43 @@ function tweenPos(g, x, y, dur = Math.round(MOTION.emphasis * 0.75), ease = ease
   };
   g._twPos = requestAnimationFrame(step);
 }
+/** Map token, for SMIL values that must match tokens.css. */
+function mapToken(token) {
+  return getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+}
+function mapStroke(token) { return mapToken(token); }
 /** Three rings leaving the centre in turn, drawn with SVG animation. */
 function pulseRings(id, rTo) {
   const c = COV_C, r0 = COV_R[0];
+  const dur = MOTION.pulseCycle + "ms";
+  const ghost = mapToken("--map-alpha-ghost"), muted = mapToken("--map-alpha-muted"), live = mapToken("--map-alpha-live");
   return `<g class="spulse" id="${id}" display="none">${[0, 1, 2].map((i) => {
     const r = motionReduced() ? (rTo * [1, .72, .46][i]).toFixed(1) : null;
-    return `<circle cx="${c}" cy="${c}" r="${motionReduced() ? r : r0}" fill="none" stroke-width="2" stroke-opacity="0">
-      <animate attributeName="r" values="${motionReduced() ? `${r};${r}` : `${r0};${rTo.toFixed(1)}`}" dur="${MOTION.emphasis}ms"
-        begin="${(i * MOTION.beat / 1000).toFixed(1)}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".2 .6 .3 1"/>
-      <animate attributeName="stroke-opacity" values="${motionReduced() ? "0;.5;0" : "0;.7;0"}" keyTimes="${motionReduced() ? "0;.5;1" : "0;.12;1"}"
-        dur="${MOTION.emphasis}ms" begin="${(i * MOTION.beat / 1000).toFixed(1)}s" repeatCount="indefinite"/>
+    const begin = (i * MOTION.pulseGap / 1000).toFixed(1) + "s";
+    return `<circle cx="${c}" cy="${c}" r="${motionReduced() ? r : r0}" fill="none" stroke-opacity="0">
+      <animate attributeName="r" values="${motionReduced() ? `${r};${r}` : `${r0};${rTo.toFixed(1)}`}" dur="${dur}"
+        begin="${begin}" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".2 .6 .3 1"/>
+      <animate attributeName="stroke-opacity" values="${motionReduced() ? `${ghost};${muted};${ghost}` : `0;${live};0`}" keyTimes="${motionReduced() ? "0;.5;1" : "0;.12;1"}"
+        dur="${dur}" begin="${begin}" repeatCount="indefinite"/>
     </circle>`; }).join("")}</g>`;
 }
 function setPulseReach(g, rTo) {
   if (!g) return;
+  const dur = MOTION.pulseCycle + "ms";
+  const ghost = mapToken("--map-alpha-ghost"), muted = mapToken("--map-alpha-muted"), live = mapToken("--map-alpha-live");
   g.querySelectorAll("circle").forEach((c, i) => {
-    const a = c.querySelector('animate[attributeName="r"]');
-    if (!a) return;
-    if (motionReduced()) { const r = (rTo * [1, .72, .46][i]).toFixed(1); a.setAttribute("values", `${r};${r}`); }
-    else a.setAttribute("values", `${COV_R[0]};${rTo.toFixed(1)}`);
+    const radius = c.querySelector('animate[attributeName="r"]');
+    const fade = c.querySelector('animate[attributeName="stroke-opacity"]');
+    if (radius) {
+      radius.setAttribute("dur", dur);
+      if (motionReduced()) { const r = (rTo * [1, .72, .46][i]).toFixed(1); radius.setAttribute("values", `${r};${r}`); }
+      else radius.setAttribute("values", `${COV_R[0]};${rTo.toFixed(1)}`);
+    }
+    if (fade) {
+      fade.setAttribute("dur", dur);
+      fade.setAttribute("values", motionReduced() ? `${ghost};${muted};${ghost}` : `0;${live};0`);
+      fade.setAttribute("keyTimes", motionReduced() ? "0;.5;1" : "0;.12;1");
+    }
   });
 }
 function beginAll(el) { el?.querySelectorAll("animate").forEach((a) => { try { a.beginElement(); } catch (_) {} }); }
@@ -178,3 +196,38 @@ function playRadiusDemo() {
     .forEach(([n, at, dur]) => demoTimers.push(setTimeout(() => drawRadius(n, dur, smooth), at)));
   demoTimers.push(setTimeout(() => { demoTimers = []; applyReach(); }, end));
 }
+
+/* Labels are drawn in viewBox units. --map-scale cancels that, so type
+   stays at the caption size however wide the svg is rendered. */
+function syncMapScale(svg) {
+  const w = svg.clientWidth;
+  const scale = w > 0 ? w / 400 : 1;
+  svg.style.setProperty("--map-scale", String(scale));
+  const compact = w > 0 && w < 200;
+  svg.classList.toggle("is-compact", compact);
+  const host = svg.closest(".cov, .ring-fig");
+  if (host) host.classList.toggle("is-compact", compact);
+  const line = host?.querySelector(".reach-line");
+  if (!line) return;
+  line.textContent = svg.classList.contains("intro-map")
+    ? [1, 2, 3].map(hopWord).join(" · ")
+    : hopWord(hops);
+}
+const mapScaleObserver = new ResizeObserver((entries) => {
+  entries.forEach((entry) => syncMapScale(entry.target));
+});
+function watchMapScales(root) {
+  (root || document).querySelectorAll(".cov-svg, .intro-map").forEach((svg) => {
+    if (svg._mapScale) return;
+    svg._mapScale = true;
+    mapScaleObserver.observe(svg);
+    syncMapScale(svg);
+  });
+}
+function installMapScale() {
+  watchMapScales(document);
+  new MutationObserver(() => watchMapScales(document))
+    .observe(document.documentElement, { childList: true, subtree: true });
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", installMapScale);
+else installMapScale();

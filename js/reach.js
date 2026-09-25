@@ -50,7 +50,7 @@ function renderCoverage(ready, mode = "console") {
     <div class="cov">
       ${mode === "scan" ? "" : `
       <div class="cov-seg" role="group" aria-label="Coverage">
-        ${[1, 2, 3].map((n) => `<button class="m-seg-btn ${n === hops ? "sel" : ""}" type="button"
+        ${[1, 2, 3].map((n) => `<button class="m-seg-btn text-ui ${n === hops ? "sel" : ""}" type="button"
           data-hops="${n}" aria-pressed="${n === hops}"
           ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
       </div>`}
@@ -58,37 +58,32 @@ function renderCoverage(ready, mode = "console") {
       <svg class="cov-svg ${mode === "scan" ? "scanning" : ""}" id="cov-svg" viewBox="0 0 400 400" tabindex="${mode === "scan" ? "-1" : "0"}" role="${mode === "scan" ? "img" : "slider"}"
            aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
            aria-valuetext="${hopWord(hops)}">
-        <defs>
-          <radialGradient id="cov-grad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stop-color="var(--blue-50)" stop-opacity=".32"/>
-            <stop offset="100%" stop-color="var(--blue-50)" stop-opacity=".32"/>
-          </radialGradient>
-        </defs>
-        <circle class="cov-halo" id="cov-halo" cx="${c}" cy="${c}" r="${COV_R[hops] + 16}"/>
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${mode === "scan" ? pulseRings("cov-spulse", COV_R[hops]) : ""}
-        <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0" stroke-width="2">
-          <animate attributeName="stroke-opacity" values=".9;0" dur="${MOTION.emphasis}ms" begin="indefinite" fill="freeze"/>
-          <animate attributeName="stroke-width" values="8;2" dur="${MOTION.emphasis}ms" begin="indefinite" fill="freeze"/>
+        <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0">
+          <animate attributeName="stroke-opacity" values="${mapToken("--map-alpha-live")};0" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>
+          ${motionReduced() ? "" : `<animate attributeName="stroke-width" values="${mapStroke("--map-stroke-strong")};${mapStroke("--map-stroke-ring")}" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>`}
         </circle>
         <circle class="cov-ghost" id="cov-ghost" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none"/>
-        <circle class="cov-core-glow" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
-        <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0] + 7}"/>
+        <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none" stroke-opacity="0">
+          <animate attributeName="r" values="${motionReduced() ? `${COV_R[0]};${COV_R[0]}` : `${COV_R[0]};${COV_R[0] + 10}`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
+          <animate attributeName="stroke-opacity" values="${motionReduced() ? `${mapToken("--map-alpha-ghost")};${mapToken("--map-alpha-muted")};${mapToken("--map-alpha-ghost")}` : `${mapToken("--map-alpha-live")};0`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
+        </circle>
         <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
         ${pills}
         <g class="cov-pick" id="cov-pick" style="opacity:0">
           <circle class="cov-pick-hit" r="24"/>
-          <circle class="sburst" r="10" fill="none" stroke-width="3" stroke-opacity="0">
-            <animate attributeName="r" values="10;40" dur="${MOTION.emphasis}ms" begin="indefinite" repeatCount="2"/>
-            <animate attributeName="stroke-opacity" values="1;0" dur="${MOTION.emphasis}ms" begin="indefinite" repeatCount="2" fill="freeze"/>
+          <circle class="sburst" r="10" fill="none" stroke-opacity="0">
+            <animate attributeName="r" values="${motionReduced() ? "10;10" : "10;40"}" dur="${MOTION.burst}ms" begin="indefinite" repeatCount="1"/>
+            <animate attributeName="stroke-opacity" values="${motionReduced() ? `${mapToken("--map-alpha-live")};0` : "1;0"}" dur="${MOTION.burst}ms" begin="indefinite" repeatCount="1" fill="freeze"/>
           </circle>
-          <circle class="spick-pulse" r="12" fill="none" stroke-width="2" stroke-opacity="0">
-            <animate attributeName="r" values="${motionReduced() ? "14;14" : "9;24"}" dur="${MOTION.emphasis}ms" begin="indefinite" repeatCount="indefinite"/>
-            <animate attributeName="stroke-opacity" values="${motionReduced() ? ".2;.7;.2" : ".9;0"}" dur="${MOTION.emphasis}ms" begin="indefinite" repeatCount="indefinite"/>
+          <circle class="spick-pulse" r="12" fill="none" stroke-opacity="0">
+            <animate attributeName="r" values="${motionReduced() ? "14;14" : "9;24"}" dur="${MOTION.pickPulse}ms" begin="indefinite" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" values="${mapToken("--map-alpha-live")};0" dur="${MOTION.pickPulse}ms" begin="indefinite" repeatCount="indefinite"/>
           </circle>
           <circle class="cov-pick-ring" r="17"/>
           <circle class="cov-pick-dot" r="6"/>
@@ -99,10 +94,11 @@ function renderCoverage(ready, mode = "console") {
           return `<g class="wdot ${inside ? "in" : "out"}${dd === 0 ? " on-core" : ""}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
             ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
-            <circle r="13"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
+            <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="0"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
         }).join("")}</g>
       </svg>
       </div>
+      <p class="reach-line"></p>
       <div class="cov-foot">
         ${mode === "scan" ? `
         <p class="cov-status" id="cov-status">Scanning outward from the centre…</p>
@@ -118,8 +114,12 @@ function placePick(addr) {
   const g = document.getElementById("cov-pick");
   if (!g) return;
   const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
-  document.querySelectorAll("#cov-svg .wdot").forEach((el) =>
-    el.classList.toggle("chosen", (el.dataset.addr || "").toLowerCase() === pickAddr));
+  document.querySelectorAll("#cov-svg .wdot").forEach((el) => {
+    const on = (el.dataset.addr || "").toLowerCase() === pickAddr;
+    el.classList.toggle("chosen", on);
+    const fill = el.querySelector(".wdot-fill");
+    if (fill) tweenAttr(fill, "r", on ? 13 : 0, MOTION.interaction);
+  });
   if (!w) {
     document.getElementById("cov-core-pick")?.classList.remove("on");
     g.style.opacity = "0";
@@ -158,6 +158,7 @@ function paintReach(n, ready, opts = {}) {
   const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
   const sum = document.getElementById("cov-sum");
   if (sum && !opts.mapOnly) sum.innerHTML = `Screening <b>${hopWord(n)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+  document.querySelectorAll(".cov .reach-line").forEach((line) => { line.textContent = hopWord(n); });
   if (opts.mapOnly) return;
   stage.querySelectorAll(".m-row").forEach((row) => {
     const raw = row.dataset.dist, dd = raw === "" ? null : Number(raw);
@@ -185,7 +186,6 @@ function paintReach(n, ready, opts = {}) {
 function drawRadius(n, dur = MOTION.emphasis, opts = {}) {
   const ease = opts.ease || easeNewton;
   tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur, ease);
-  tweenAttr(document.getElementById("cov-halo"), "r", COV_R[n] + 16, dur, ease);
   paintReach(n, null, opts);
 }
 
