@@ -153,3 +153,57 @@ State classes in use: `.sel`, `.chosen`, `.on`, `.held`, `.in`, `.out`, `.is-hov
 32. `!important` remains only on the reduced-motion reset. The map's animation lock keeps `animation: none` without `!important`.
 33. Component scripts are classic scripts, not ES modules. `hops`, `view`, `pickAddr`, and `stage` are reassigned across the page, and a module graph would have to thread that state through the scan. Each component file exposes `render`, `update`, and `STATES`. Path and stats moved into their files. The intro composes the button. The scan, the map, and the act panel still live beside the view that owns the live radius and the API result.
 34. Class names stayed as they are. They are the contract the renderers and the kit query. A component's rules live in its own file.
+
+35. `--tone-pass-wash` is the one colour token with no consumer. Clear no longer fills a band, and the wash is still the pass step of the required tone set. Deleting it would drop that step.
+36. `responsive.css` restates selectors inside width queries. A media query cannot read a custom property, and the override has to live with the other width queries. Outside those queries, a selector is defined in one file.
+37. The kit logs `Missing story: <state>` when a component's `STATES` list has no matching story. The check passed with an empty list.
+
+## Done
+
+### Removed
+- State classes `.sel`, `.chosen`, `.held`, `.on`, and `.in`. Selection is `aria-pressed`, `aria-current`, or `data-state`.
+- The green clear-band fill, the green clear flash, and the blue on every in-reach ring.
+- Dead selectors: `.deployed`, `.fact-link`, `.flow-row`, `.flow-n`, `.reach-pair`, `.reach-rings`, `.stack`, `.section-stack`, `.cov-knob`, `.cov-ray`.
+- Dead functions: `rowSub`, `usdLabel`, and the write to a `.m-dot` that was never rendered.
+- Tokens: `--size-dot`, `--bp-sm`, `--bp-md`, `--bp-lg`.
+- Stylesheets whose rules moved: `design/scan.css`, `design/map.css`, `design/result.css`, `design/motion.css`.
+- ID selectors in CSS. `!important` outside the reduced-motion reset.
+
+### Merged
+- Danger into block edge, success into pass edge, on-surface into text, on-tone into on-accent, border-subtle into border, the coverage aliases into `--map-reach`.
+- Duplicate selectors that had landed in two component files were collapsed so each selector is defined once. Width-query overrides stay in `responsive.css`.
+
+### File map
+- `design/tokens.css` — primitives, semantic roles, component tokens, type, space, motion.
+- `design/base.css` — reset, body, type roles, focus, reduced motion.
+- `design/components/{mast,button,field,segment,wallet-row,coverage-map,step-trail,result-card,path-strip,stats,warnline,act-panel}.css`
+- `design/layout.css` — page shells.
+- `design/responsive.css` — width queries.
+- `design/kit.css` — kit chrome.
+- `js/components/` — the same names, each with `render`, `update`, and `STATES`.
+- Views: `js/intro.js`, `js/console-view.js`, `js/scan.js`, `js/verdict.js`, plus `js/map.js` and `js/reach.js` for geometry and the live radius.
+
+### Colour tokens (53)
+Primitives (18): `--bone-50`, `--white`, `--ink-10`, `--ink-30`, `--ink-50`, `--ink-60`, `--ink-70`, `--ink-100`, `--blue-500`, `--blue-600`, `--leaf-10`, `--leaf-50`, `--leaf-70`, `--ruby-10`, `--ruby-50`, `--ruby-70`, `--gold-10`, `--gold-70`.
+
+Semantic (25): `--color-surface`, `--color-surface-raised`, `--color-surface-sunken`, `--color-border`, `--color-border-strong`, `--color-text`, `--color-text-secondary`, `--color-text-tertiary`, `--color-text-disabled`, `--color-accent`, `--color-accent-hover`, `--color-on-accent`, `--color-focus-ring`, and `--tone-{pass,block,caution,neutral}-{wash,edge,text}`.
+
+Component (10): `--map-reach`, `--map-disc`, `--state-hover-fill`, `--state-hover-edge`, `--state-press-fill`, `--state-selected-fill`, `--state-selected-mark`, `--state-disabled`, `--shadow-lift`, `--shadow-even`.
+
+Before: 89 colour custom properties. After: 53. The target of 40 cannot hold the 18 primitive steps plus the 25 named semantic roles.
+
+### Checks
+- Colour tokens 89 → 53. One unused: `--tone-pass-wash` (judgement 35).
+- No primitive variable, hex, or `rgb()` in component CSS or JS. `index.html` keeps `<meta name="theme-color" content="#FBFCFE">`.
+- One treatment per family. Exceptions are in judgements 13–22: the badge is an ink control, act dots are a small segment, and the map mark's selected stroke is the signal layer rather than a second treatment.
+- Map stages, from the kit's Layers story and a live check: choosing is reach-blue only; scanning is the front only; clear is a pass outline; listed is block on the core; exposed is a block wash and ring; outside is a caution wash and dash; failed and unattested are context only.
+- No duplicate selector outside `responsive.css`. `!important` only on the reduced-motion reset in `design/base.css`.
+- Contrast, unchanged hex values: text on surface 18.8:1, secondary 5.3:1, tertiary 4.6:1. Accent on white 4.5:1 (focus ring passes 3:1). Leaf, ruby, and gold edges on white are 6.3, 6.7, and 5.7. Disabled text is 2.8:1, which is the inactive-component case. Accent on bone is 4.4:1, so it passes for the focus ring and misses 4.5 for small text.
+- Live flow: intro, console at 3 hops, and a check. The local API returns unattested. The other five outcomes are the kit fixtures. The kit reported no missing stories and no missing fixtures.
+- Screens checked: intro at a wide layout, the console at 375 wide, the unattested result, and the kit Layers row (choosing, scanning, and all six outcomes).
+
+### Left undone
+- Scripts are not ES modules. See judgement 33.
+- Class names were not renamed. See judgement 34.
+- Phases 1 and 2 share one commit. See judgement 11.
+- A full before/after pair at 375 and 1440 for every screen was not archived. The before state is `9d5a737`.

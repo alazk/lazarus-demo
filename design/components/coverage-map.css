@@ -1,6 +1,6 @@
 /* Coverage map. Context is neutral. Signal is one colour. */
 
-.reach-line{ display:none; }
+.reach-line{ display:none;  font-variant-numeric:tabular-nums;}
 
 .reach-list .label{ display:block; margin-bottom:var(--space-inline); }
 
@@ -68,7 +68,7 @@
 .cov-pill text{
     font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight);
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); transition:fill var(--duration-interaction); pointer-events:none;
-  }
+   font-variant-numeric:tabular-nums;}
 
 .cov-svg .cov-pill text,
   .cov-svg .cov-core-label,
@@ -155,7 +155,7 @@
 
 .cov-pick.on-core .cov-pick-dot{ fill:none; }
 
-.cov-sum{ margin:var(--space-group) 0 0; font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); text-align:center; }
+.cov-sum{ margin:var(--space-group) 0 0; font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); text-align:center;  font-variant-numeric:tabular-nums;}
 
 .cov-hint{ margin:var(--space-tight) 0 0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-tertiary); text-align:center; }
 
@@ -210,7 +210,7 @@
 .cov-status{
     margin:var(--space-group) 0 0; min-height:var(--size-control); display:flex; align-items:center;
     font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); font-weight:500; color:var(--color-text); text-align:center;
-  }
+   font-variant-numeric:tabular-nums;}
 
 .cov-foot .cov-sum{ margin-top:var(--space-snug); }
 

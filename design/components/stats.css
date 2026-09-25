@@ -1,6 +1,6 @@
 /* Stats. */
 
-.right .text-display, .right .text-title, .right .reason, .right .stats, .right .detail{ animation:settleIn var(--duration-emphasis) var(--ease-newton) backwards;  }
+.right .text-display, .right .text-title, .right .stats, .right .detail{ animation:settleIn var(--duration-emphasis) var(--ease-newton) backwards;  }
 
 .right .stats{ animation-delay:calc(var(--stagger) * 2);  }
 
@@ -14,7 +14,7 @@
 
 .stat-k{ color:var(--color-text-secondary); }
 
-.stat-v{ margin-top:2px; }
+.stat-v{ margin-top:2px;  font-variant-numeric:tabular-nums;}
 
 .stat-link{
     display:inline-flex; align-items:baseline; gap:var(--space-tight);

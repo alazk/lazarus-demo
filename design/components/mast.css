@@ -27,7 +27,7 @@
     font-size:var(--type-body-size); font-weight:500; white-space:nowrap;
   }
 
-.m-row:focus-visible, .m-row.is-focus, .m-seg-btn:focus-visible, .m-seg-btn.is-focus,
+.m-seg-btn:focus-visible, .m-seg-btn.is-focus,
   .paste-link:focus-visible, .paste-link.is-focus, .m-paste:focus-visible, .m-paste.is-focus,
   .btn:focus-visible, .btn.is-focus, .states-link:focus-visible, .states-link.is-focus,
   .act-dot:focus-visible, .act-dot.is-focus{

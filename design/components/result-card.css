@@ -1,12 +1,8 @@
 /* Result card: status, detail, actions. */
 
-.text-title, .text-display, .text-heading, .rule, .reason{ text-wrap:balance; }
+.reason{ color:var(--color-text); text-wrap:balance; }
 
-.reason{ color:var(--color-text); }
-
-.right{ min-width:0; min-height:300px; }
-
-.right .reason{ animation-delay:var(--stagger);  }
+.right .reason{ animation:settleIn var(--duration-emphasis) var(--ease-newton) backwards; animation-delay:var(--stagger); }
 
 .reason{ max-width:var(--measure-text); color:var(--color-text); }
 
@@ -76,7 +72,7 @@
 
 .result-addr{ word-break:break-all; color:var(--color-text-secondary); }
 
-.actions{ display:flex; align-items:center; gap:var(--space-snug); margin:var(--space-block) 0 0; flex-wrap:wrap; }
+.actions{ display:flex; align-items:center; gap:var(--space-snug); margin:var(--space-block) 0 0; min-height:var(--size-touch); flex-wrap:wrap; opacity:0; visibility:hidden; transition:opacity var(--duration-emphasis) var(--ease-newton) var(--duration-interaction), visibility 0s linear var(--duration-interaction); }
 
 .actions .line{ flex:1; min-width:var(--space-block); height:1px; background:var(--color-border); }
 
@@ -91,3 +87,5 @@
 .card-result .actions{ margin-top:auto; margin-inline:auto; width:100%; max-width:var(--width-result); }
 
 .card-result .reason{ max-width:none; text-wrap:wrap; }
+
+.actions[data-state="ready"]{ opacity:1; visibility:visible; transition-delay:var(--duration-interaction), 0s; }

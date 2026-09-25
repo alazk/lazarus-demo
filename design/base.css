@@ -1,6 +1,6 @@
 /* Base: reset, body, type roles, focus. */
 
-.text-display{
+.text-display{ text-wrap:balance;
   font-family: var(--font-sans);
   font-weight: var(--type-display-weight);
   font-size: var(--type-display-size);
@@ -8,7 +8,7 @@
   letter-spacing: var(--tracking-display);
 }
 
-.text-title{
+.text-title{ text-wrap:balance;
   font-family: var(--font-sans);
   font-weight: var(--type-title-weight);
   font-size: var(--type-title-size);
@@ -16,7 +16,7 @@
   letter-spacing: var(--tracking-title);
 }
 
-.text-heading{
+.text-heading{ text-wrap:balance;
   font-family: var(--font-sans);
   font-weight: var(--type-heading-weight);
   font-size: var(--type-heading-size);
@@ -93,7 +93,7 @@
 
 *{ box-sizing:border-box; }
 
-html, body{ margin:0; height:100%; }
+html, body{ margin:0; height:100%; -webkit-text-size-adjust:100%; text-size-adjust:100%; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; font-optical-sizing:auto; font-feature-settings:"cv11"; }
 
 body{
     background:var(--color-surface); color:var(--color-text);
@@ -138,16 +138,6 @@ body.is-reduced *:not(.cov-svg *),
   body.is-reduced *:not(.cov-svg *)::before,
   body.is-reduced *:not(.cov-svg *)::after{ transition:none !important; animation:none !important; }
 
-/* Counts, hop labels, and $ figures. Addresses keep the slashed zero on .text-data. */
-.stat-v,
-.step-label,
-.step-kicker .kn,
-.cov-pill text,
-.cov-sum,
-.cov-status,
-.reach-line{
-  font-variant-numeric: tabular-nums;
-}
-
+/* Addresses keep the slashed zero on .text-data. Counts and hop labels use tabular figures in their own rules. */
 /* Fields stay at least 1rem so iOS does not zoom on focus. */
 input, textarea, select{ font-size: 1rem; }

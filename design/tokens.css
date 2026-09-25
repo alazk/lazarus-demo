@@ -46,15 +46,6 @@
   line-gap-override: 0%;
 }
 
-html{
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-optical-sizing: auto;
-  font-feature-settings: "cv11";
-}
-
 :root{
 
   /* ── Tier 1 · Primitives ───────────────────────────────────

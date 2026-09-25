@@ -50,7 +50,7 @@
 
 .card-check .card-body{ gap:var(--space-group); }
 
-.rule{ margin:var(--space-group) 0 0; max-width:40ch; font-size:var(--type-title-size); line-height:var(--type-title-leading); }
+.rule{ margin:var(--space-group) 0 0; max-width:40ch; font-size:var(--type-title-size); line-height:var(--type-title-leading); text-wrap:balance; }
 
 .checking{
     width:100%; display:flex; flex-direction:column; justify-content:center;
@@ -59,7 +59,7 @@
     min-height:0; overflow-y:auto;
   }
 
-.right{ transition:opacity var(--duration-interaction) var(--ease-newton), transform var(--duration-interaction) var(--ease-newton); }
+.right{ min-width:0; min-height:300px; transition:opacity var(--duration-interaction) var(--ease-newton), transform var(--duration-interaction) var(--ease-newton); }
 
 .right.swapping{ opacity:0; transform:translateY(6px); }
 
@@ -102,16 +102,7 @@
 
 .card-cov .card-body{ align-items:center; justify-content:center; min-height:0; }
 
-.spick-pulse{ fill:none; stroke:currentColor; stroke-width:var(--map-stroke-emphasis); pointer-events:none; }
-
 .card-cov .card-body{ justify-content:center; align-items:center; }
-
-.actions{
-    margin:var(--space-block) 0 0; min-height:var(--size-touch); opacity:0; visibility:hidden;
-    transition:opacity var(--duration-emphasis) var(--ease-newton) var(--duration-interaction), visibility 0s linear var(--duration-interaction);
-  }
-
-.actions[data-state="ready"]{ opacity:1; visibility:visible; transition-delay:var(--duration-interaction), 0s; }
 
 .act-copy{ display:grid; min-height:0; }
 
@@ -126,4 +117,3 @@
   font-size: var(--type-body-size); line-height: var(--type-body-leading); color: var(--color-text-secondary);
 }
 
-.spick-pulse{ stroke:currentColor; }

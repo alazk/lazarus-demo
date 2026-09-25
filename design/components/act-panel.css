@@ -26,7 +26,7 @@
     padding-inline:max(var(--inset), calc((100% - 1200px) / 2));
   }
 
-.intro, .console, .checking{ min-height:560px; }
+.intro{ min-height:560px; }
 
 .act-panel{
     grid-area:1 / 1; opacity:0; visibility:hidden;
