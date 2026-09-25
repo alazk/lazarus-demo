@@ -111,7 +111,7 @@
   .trail .steps { width:100%; max-width:none; }
   /* The one-line caption needs one line of height, not two. */
 
-  .m-row[data-reach="in"] .m-bar { background:var(--map-reach); }
+  .m-row[data-reach="in"] .m-bar { background:var(--color-border-strong); }
   .m-row[data-reach="in"] .m-sub { color:var(--color-text-secondary); }
 
   /* ── The wallet line and its draggable dot ── */

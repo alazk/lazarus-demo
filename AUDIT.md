@@ -140,3 +140,10 @@ State classes in use: `.sel`, `.chosen`, `.on`, `.held`, `.in`, `.out`, `.is-hov
 21. Segment hover is a fill only. Disabled buttons, fields, and segments use `--state-disabled` at full opacity.
 22. `data-state` values `live`, `done`, and `ready` mark the scan wave, the pick pulse, and the result actions. They are activation, not outcomes.
 23. The attested step shares the clear step's colour through `data-state="attested"`. Process classes (`active`, `idle`, `waiting`, `resolved`, `beyond`) stay classes.
+
+24. The map's context and signal are separate. In-reach rings are border-strong, out-of-reach rings are a dashed border, and only the ring at the current radius (`aria-pressed`) is `--map-reach`, with its pill and the disc edge. A temporary rule that removed those strokes and drew a drop shadow was deleted because it fought the layer rule.
+25. Clear bands no longer fill. A clear result colours only the picked wallet's outline. The clear flash is border-strong.
+26. Outcome colour is not painted onto inner rings by looking ahead. A listed or exposed band colours that hop's ring only. An outside band colours that hop's ring with the caution dash. Pills stay context once a result exists.
+27. The picked wallet stays a tertiary outline through the scan. `syncCoverageRings` takes `colourPick: false` from the scan walk. `paintMapVerdict` applies pass, block, caution, or neutral when the outcome is known. Failed and unattested clear every band and leave the pick neutral.
+28. The scan front and the burst stay `--map-reach`. The ghost radius is the hover edge. Other wallets are a tertiary outline with no fill, including the intro caption. Coverage ticks in the list are border-strong, so choosing does not paint a second blue.
+29. While a scan is running, non-picked wallets still fade with `--map-alpha-ghost`. That is opacity, not a second hue.

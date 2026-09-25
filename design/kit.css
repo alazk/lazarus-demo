@@ -1,20 +1,18 @@
   /* ── Wallets on the map: lettered dots in their rings ──────────────── */
-  .wdot circle { fill:var(--color-surface-raised); stroke:var(--color-text-disabled); stroke-width:var(--map-stroke-emphasis); }
+  .wdot circle { fill:none; stroke:var(--color-text-tertiary); stroke-width:var(--map-stroke-emphasis); }
   .wdot circle + text {
     font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); pointer-events:none;
   }
   .wdot[data-reach="in"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) { stroke:var(--color-text-tertiary); }
-  .wdot[data-reach="in"] text { fill:var(--color-text); }
-  .wdot[data-state="clear"] > circle:not(.map-focus) { stroke:var(--tone-pass-edge); }
-  .wdot[data-state="clear"] text { fill:var(--tone-pass-text); }
-  .wdot[data-state="listed"] > circle:not(.map-focus), .wdot[data-state="exposed"] > circle:not(.map-focus) { stroke:var(--tone-block-edge); }
-  .wdot[data-state="listed"] text, .wdot[data-state="exposed"] text { fill:var(--tone-block-text); }
-  .wdot[data-state="outside"] > circle:not(.map-focus) { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
-  .wdot[data-state="outside"] text { fill:var(--tone-caution-text); }
+  .wdot[data-reach="in"] text { fill:var(--color-text-tertiary); }
+  .wdot[aria-pressed="true"][data-state="clear"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) { stroke:var(--tone-pass-edge); fill:none; }
+  .wdot[aria-pressed="true"][data-state="listed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus),
+  .wdot[aria-pressed="true"][data-state="exposed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) { stroke:var(--tone-block-edge); fill:none; }
+  .wdot[aria-pressed="true"][data-state="outside"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); fill:none; }
   /* Wallet A sits on the dark centre: light dot, dark letter, and a light
      highlight ring when it is the one being scanned. */
-  .wdot.on-core circle { fill:var(--color-surface-raised); stroke:none; }
+  .wdot.on-core circle { fill:none; stroke:var(--color-text-tertiary); }
   .wdot.on-core text { fill:var(--color-text); }
   .cov-svg:not(.scanning) .wdot { cursor:pointer; }
   /* Hover washes the disc only. The letter keeps its colour. Selected keeps
@@ -23,7 +21,7 @@
     .cov-svg:not(.scanning) .wdot:not([aria-pressed="true"]):hover > circle:not(.wdot-ring):not(.wdot-fill),
     .wdot.is-hover:not([aria-pressed="true"]) > circle:not(.wdot-ring):not(.wdot-fill) {
       stroke:var(--state-hover-edge);
-      fill:var(--color-surface-raised);
+      fill:none;
     }
   }
   .wdot > circle.wdot-ring,
@@ -33,12 +31,12 @@
   }
   .wdot[aria-pressed="true"] > circle.wdot-ring,
   #cov-svg .wdot[aria-pressed="true"] > circle.wdot-ring {
-    fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); filter:none; opacity:1;
+    fill:none; stroke:none; opacity:0;
   }
   /* The blue disc scales out from the centre when a wallet is chosen. */
   .wdot > circle.wdot-fill,
   #cov-svg .wdot > circle.wdot-fill {
-    fill:var(--color-accent); stroke:none; filter:none; pointer-events:none;
+    fill:none; stroke:none; filter:none; pointer-events:none;
   }
   .wdot text { transition:fill var(--duration-interaction) var(--ease-newton); }
     @media (prefers-reduced-motion:reduce) {
@@ -133,8 +131,8 @@
     font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); stroke:none;
   }
-  .intro-pick[data-reach="in"] .intro-pick-plate { stroke:var(--color-accent); }
-  .intro-pick[data-reach="in"] .intro-pick-label { fill:var(--color-accent); }
+  .intro-pick[data-reach="in"] .intro-pick-plate { stroke:var(--color-border); }
+  .intro-pick[data-reach="in"] .intro-pick-label { fill:var(--color-text-tertiary); }
   .intro-pick { pointer-events:none; }
 
   /* ── UI kit: components and their states, same shape as the landing gallery ── */
@@ -309,3 +307,8 @@
   .kit-frame .addr-wrap { max-width:var(--width-map); }
   .kit-missing { margin:0; color:var(--tone-block-edge); }
 
+
+  .kit-layers { display:flex; flex-wrap:wrap; gap:var(--space-group); align-items:flex-start; }
+  .kit-layer { margin:0; width:160px; }
+  .kit-layer svg { width:100%; height:auto; display:block; }
+  .kit-layer figcaption { margin-top:var(--space-snug); color:var(--color-text-secondary); font-size:var(--type-caption-size); }

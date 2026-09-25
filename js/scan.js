@@ -42,12 +42,12 @@ function scanMapController() {
           if (corePick) corePick.dataset.state = "live";
           beginAll(corePick);
         }
-        syncCoverageRings(svg);
+        syncCoverageRings(svg, { colourPick: false });
         return;
       }
       const band = q(`.cband[data-band="${n}"]`);
       if (band) band.dataset.state = state;
-      syncCoverageRings(svg);
+      syncCoverageRings(svg, { colourPick: false });
       if (state === "clear" && flash) { flash.setAttribute("r", COV_R[n]); beginAll(flash); }
     },
     found(n, warn) {

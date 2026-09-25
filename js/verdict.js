@@ -114,6 +114,7 @@ async function fillVerdict(r, outsideReach) {
   const max = r.dataset?.max_hops ?? hops;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
   const key = outcomeOf(r, outsideReach);
+  paintMapVerdict(key);
   const headline = OUTCOME[key].headline;
   let reason;
 

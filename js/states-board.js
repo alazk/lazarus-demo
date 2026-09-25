@@ -691,8 +691,10 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     const glyphClass = { Clear: "clear", Exposed: "exposed", "Outside reach": "outside" };
     if (glyphClass[spec.radius]) {
       const name = glyphClass[spec.radius];
-      takeGlyph("label", "Label", spec.radius, stage.querySelector('#cov-svg .cov-pill[data-state="' + name + '"]'));
-      takeGlyph("circle", "Circle", spec.radius, stage.querySelector('#cov-svg .wdot[data-state="' + name + '"]'));
+      const ring = stage.querySelector('#cov-svg .cov-ring[data-state="' + name + '"]');
+      if (ring) takeGlyph("label", "Label", spec.radius, ring);
+      const dot = stage.querySelector('#cov-svg .wdot[data-state="' + name + '"]');
+      if (dot) takeGlyph("circle", "Circle", spec.radius, dot);
     }
     if (spec.step) take("step", "Step", spec.step, ".trail");
     if (stage.querySelector(".path-strip")) take("path", "Path", spec.story, ".path-strip");
@@ -706,6 +708,76 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       if (explorer) { explorer.classList.add("is-hover"); add("button", "Button", "WithIconHover", explorer); }
     }
   }
+
+  hops = 2;
+  const showPick = (key) => {
+    const addr = wallet(key);
+    pickAddr = String(addr).toLowerCase();
+    currentAddress = pickAddr;
+    placePick(pickAddr);
+  };
+  hops = 2;
+  showPick("two");
+  renderConsole(pickAddr, "", true);
+  const layers = document.createElement("div");
+  layers.className = "kit-layers";
+  let layerN = 0;
+  const shootLayer = (label, mutate) => {
+    if (mutate) mutate();
+    const svg = stage.querySelector(".cov-svg");
+    if (!svg) return;
+    const cell = document.createElement("figure");
+    cell.className = "kit-layer";
+    const copy = svg.cloneNode(true);
+    retargetIds(copy, "layer" + (++layerN));
+    const cap = document.createElement("figcaption");
+    cap.className = "text-caption";
+    cap.textContent = label;
+    cell.append(copy, cap);
+    layers.append(cell);
+  };
+  const quietMap = () => {
+    const svg = stage.querySelector(".cov-svg");
+    svg.classList.remove("scanning");
+    const wave = svg.querySelector(".swave");
+    if (wave) wave.dataset.state = "done";
+    svg.querySelector(".spulse")?.setAttribute("display", "none");
+  };
+  shootLayer("Choosing");
+  shootLayer("Scanning", () => {
+    const svg = stage.querySelector(".cov-svg");
+    svg.classList.add("scanning");
+    const wave = svg.querySelector(".swave");
+    if (wave) { wave.dataset.state = "live"; wave.setAttribute("r", String(COV_R[1])); }
+  });
+  shootLayer("Clear", () => {
+    quietMap();
+    showPick("two");
+    paintBands({ clear: 2 });
+  });
+  shootLayer("Listed", () => {
+    quietMap();
+    showPick("direct");
+    paintBands({ core: true });
+  });
+  shootLayer("Exposed", () => {
+    quietMap();
+    showPick("two");
+    paintBands({ clear: 1, exposed: 2 });
+  });
+  shootLayer("Outside", () => {
+    quietMap();
+    showPick("three");
+    paintBands({ clear: 1, outside: 3 });
+  });
+  for (const label of ["Failed", "Unattested"]) {
+    shootLayer(label, () => {
+      quietMap();
+      showPick("two");
+      paintMapVerdict(label.toLowerCase());
+    });
+  }
+  add("coverage-map", "Coverage map", "Layers", layers);
 
   const phases = document.createElement("div");
   phases.className = "kit-phase";
@@ -864,7 +936,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   const GROUPS = [
     { id: "foundations", title: "Foundations", sections: ["typography", "spacing", "color", "radii", "motion", "responsive"] },
     { id: "primitives", title: "Primitives", sections: ["button", "badge", "field", "segment", "wallet-row", "ladder"] },
-    { id: "coverage", title: "Coverage map", sections: ["map-anatomy", "anatomy", "intro-map", "console-map"] },
+    { id: "coverage", title: "Coverage map", sections: ["coverage-map", "map-anatomy", "anatomy", "intro-map", "console-map"] },
     { id: "composites", title: "Composites", sections: ["compare", "result", "path", "warnline", "stats", "detail", "error", "card"] },
     { id: "flows", title: "Flows", sections: ["intro", "step", "attestation", "act", "mast", "nav"] },
   ];

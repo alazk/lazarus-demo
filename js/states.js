@@ -43,7 +43,7 @@ function hopOutcome(band, n, hasResult, inside) {
   if (!state && hasResult && inside) state = "clear";
   return state;
 }
-function syncCoverageRings(svg) {
+function syncCoverageRings(svg, opts = {}) {
   if (!svg) return;
   const band = {};
   svg.querySelectorAll(".cband").forEach((el) => {
@@ -55,29 +55,64 @@ function syncCoverageRings(svg) {
     if (state) el.dataset.state = state;
     else el.removeAttribute("data-state");
   };
+  const signal = (n) => {
+    const own = band[n] || "";
+    return own === "listed" || own === "exposed" || own === "outside" ? own : "";
+  };
   svg.querySelectorAll(".cov-ring").forEach((r) => {
     const n = Number(r.dataset.ring);
     const inside = n <= hops;
     r.setAttribute("data-reach", inside ? "in" : "out");
     r.setAttribute("class", "cov-ring");
-    paint(r, hopOutcome(band, n, hasResult, inside));
+    paint(r, signal(n));
+    if (hasResult) r.removeAttribute("aria-pressed");
+    else r.setAttribute("aria-pressed", String(n === hops));
   });
   svg.querySelectorAll(".cov-pill").forEach((g) => {
     const n = Number(g.dataset.ring);
     const inside = n <= hops;
     g.setAttribute("data-reach", inside && !hasResult ? "in" : "out");
     g.setAttribute("class", "cov-pill");
-    paint(g, hopOutcome(band, n, hasResult, inside));
+    g.removeAttribute("data-state");
+    if (hasResult) g.removeAttribute("aria-pressed");
+    else g.setAttribute("aria-pressed", String(n === hops));
   });
   svg.querySelectorAll(".wdot").forEach((el) => {
     const raw = el.dataset.dist;
     const d = raw === "" || raw == null ? null : Number(raw);
-    const n = d === 0 ? 1 : d;
     const inside = d === 0 || (d !== null && d <= hops);
     el.setAttribute("data-reach", inside ? "in" : "out");
     el.classList.toggle("on-core", d === 0);
-    paint(el, n ? hopOutcome(band, n, hasResult, inside) : "");
+    el.removeAttribute("data-state");
   });
+  const pick = svg.querySelector('.wdot[aria-pressed="true"]');
+  if (opts.colourPick !== false && pick && hasResult) {
+    const d = pick.dataset.dist === "" || pick.dataset.dist == null ? null : Number(pick.dataset.dist);
+    const coreListed = svg.querySelector(".cov-core")?.dataset.state === "listed";
+    const own = d == null ? "" : band[d === 0 ? 1 : d] || "";
+    if (coreListed && d === 0) pick.dataset.state = "listed";
+    else if (own === "listed" || own === "exposed" || own === "outside") pick.dataset.state = own;
+    else if (Object.values(band).some((name) => name === "clear")) pick.dataset.state = "clear";
+  }
+}
+
+function paintMapVerdict(key) {
+  const svg = document.getElementById("cov-svg");
+  if (!svg) return;
+  if (key === "failed" || key === "unattested") {
+    svg.querySelectorAll(".cband, .cov-ring, .cov-pill, .wdot, .cov-core").forEach((el) => {
+      el.removeAttribute("data-state");
+    });
+    svg.querySelectorAll(".cov-ring, .cov-pill").forEach((el) => el.removeAttribute("aria-pressed"));
+    const pick = svg.querySelector('.wdot[aria-pressed="true"]');
+    if (pick) pick.dataset.state = "neutral";
+    return;
+  }
+  syncCoverageRings(svg);
+  const pick = svg.querySelector('.wdot[aria-pressed="true"]');
+  if (pick && (key === "clear" || key === "listed" || key === "exposed" || key === "outside")) {
+    pick.dataset.state = key;
+  }
 }
 function paintBands(spec) {
   const svg = document.getElementById("cov-svg");
@@ -191,8 +226,8 @@ async function renderStates() {
     circle: {
       Outside: "This wallet sits beyond the chosen reach.",
       Covered: "This wallet sits inside the chosen reach.",
-      Selected: "Blue disc and white letter, with a blue ring. The fill grows from the centre.",
-      Hover: "The disc takes the hover wash. The letter stays as it is.",
+      Selected: "The picked wallet. Colour arrives with the outcome: pass, block, or caution. While choosing, the dot stays a tertiary outline.",
+      Hover: "The outline takes the hover edge. The letter stays as it is.",
       Clear: "No exposure at this wallet.",
       Exposed: "Exposure found at this wallet.",
       "Outside reach": "Exposure at this wallet is outside the reach.",
@@ -234,10 +269,10 @@ async function renderStates() {
       ThreeHops: "Screening 3 hops out.",
       Hover: "Blue dashed preview of a hop that is not the current reach. No fill, so inner rings stay visible.",
       Scanning: "The check is moving outward from the centre.",
-      Clear: "Pale blue disc is the reach. Rings, labels, and wallets are leaf: no link inside.",
-      Listed: "Pale blue disc is the reach. The core is ruby (listed); the hop ring is leaf.",
-      Exposed: "Pale blue disc is the reach. Hop 1 is leaf, hop 2 ruby (exposed here); hop 3 leaf.",
-      "Outside reach": "Pale blue disc is the reach. Hop 1 is leaf; hops 2–3 inherit gold dash (outside reach).",
+      Clear: "The disc is a neutral wash. No band is filled. The picked wallet has a pass outline.",
+      Listed: "The core and the picked wallet are block. The reach stays context.",
+      Exposed: "The found band is a block wash. Its ring, the path mark, and the picked wallet are block.",
+      "Outside reach": "The found band is a caution wash with a dashed caution ring. The picked wallet is caution.",
       Focus: "Keyboard focus on the reach slider.",
     },
     step: {

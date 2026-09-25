@@ -43,13 +43,17 @@ function paintAct(n, animate = true) {
     const r = a.cover === "all" ? COV_R[3] : a.cover === "core" ? COV_R[0] + 10 : 0;
     const introDur = animate ? MOTION.emphasis + Math.round(MOTION.interaction / 3) : 0;
     tweenAttr(document.getElementById("intro-disc"), "r", r, introDur);
-    svg.querySelectorAll(".cov-ring").forEach((r) => {
-      r.setAttribute("class", "cov-ring");
-      r.setAttribute("data-reach", a.cover === "all" ? "in" : "out");
+    svg.querySelectorAll(".cov-ring").forEach((ring) => {
+      const on = a.cover === "all";
+      ring.setAttribute("class", "cov-ring");
+      ring.setAttribute("data-reach", on ? "in" : "out");
+      ring.setAttribute("aria-pressed", String(on && Number(ring.dataset.ring) === 3));
     });
     svg.querySelectorAll(".cov-pill").forEach((g) => {
+      const on = a.cover === "all";
       g.setAttribute("class", "cov-pill");
-      g.setAttribute("data-reach", a.cover === "all" ? "in" : "out");
+      g.setAttribute("data-reach", on ? "in" : "out");
+      g.setAttribute("aria-pressed", String(on && Number(g.dataset.ring) === 3));
     });
     const pick = svg.querySelector(".intro-pick");
     if (pick) {

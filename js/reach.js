@@ -42,7 +42,7 @@ function renderCoverage(ready, mode = "console") {
   const c = COV_C, k = COV_R[hops] / COV_R[3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
-    return `<g class="cov-pill" data-reach="${n <= hops ? "in" : "out"}" data-ring="${n}" transform="translate(${c} ${y})">
+    return `<g class="cov-pill" data-reach="${n <= hops ? "in" : "out"}" aria-pressed="${n === hops}" data-ring="${n}" transform="translate(${c} ${y})">
       <rect x="-32" y="-12" width="64" height="24" rx="12"/>
       <text y="4" text-anchor="middle">${hopWord(n)}</text></g>`;
   }).join("");
@@ -60,7 +60,7 @@ function renderCoverage(ready, mode = "console") {
            aria-valuetext="${hopWord(hops)}">
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-        ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+        ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="${n <= hops ? "in" : "out"}" aria-pressed="${n === hops}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         <circle class="map-focus map-focus-slider" cx="${c}" cy="${c}" r="${COV_R[hops]}" fill="none"/>
         ${mode === "scan" ? pulseRings("cov-spulse", COV_R[hops]) : ""}
         <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0">
@@ -147,13 +147,17 @@ function paintReach(n, ready, opts = {}) {
   const svg = document.getElementById("cov-svg");
   if (svg) {
     svg.querySelectorAll(".cov-ring").forEach((r) => {
-      r.setAttribute("data-reach", Number(r.dataset.ring) <= n ? "in" : "out");
+      const ring = Number(r.dataset.ring);
+      r.setAttribute("data-reach", ring <= n ? "in" : "out");
+      r.setAttribute("aria-pressed", String(ring === n));
       r.removeAttribute("data-preview");
     });
     const focus = svg.querySelector(".map-focus-slider");
     if (focus) focus.setAttribute("r", COV_R[n]);
     svg.querySelectorAll(".cov-pill").forEach((g) => {
-      g.setAttribute("data-reach", Number(g.dataset.ring) <= n ? "in" : "out");
+      const ring = Number(g.dataset.ring);
+      g.setAttribute("data-reach", ring <= n ? "in" : "out");
+      g.setAttribute("aria-pressed", String(ring === n));
       g.removeAttribute("data-preview");
       g.setAttribute("class", "cov-pill");
     });
