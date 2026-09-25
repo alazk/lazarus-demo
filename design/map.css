@@ -8,283 +8,265 @@
   .reach-pair .reach-rings { max-width:none; margin:0; }
   .reach-list .label { display:block; margin-bottom:var(--space-inline); }
   .m-ladder {
-    border:1px solid var(--color-ink-30); border-radius:var(--radius-control); overflow:hidden;
-    background:var(--color-white);
+    border:1px solid var(--color-border); border-radius:var(--radius-control); overflow:hidden;
+    background:var(--color-surface-raised);
   }
   .m-row {
     display:flex; align-items:stretch; gap:var(--space-snug);
-    width:100%; min-height:48px; padding:0 var(--space-group) 0 0;
-    border:none; border-top:1px solid var(--color-ink-10);
+    width:100%; min-height:var(--size-touch); padding:0 var(--space-group) 0 0;
+    border:none; border-top:1px solid var(--color-surface-sunken);
     background:transparent; text-align:left; cursor:pointer;
-    font-family:var(--font-sans); color:var(--color-ink-100); transition:background var(--duration-interaction);
+    font-family:var(--font-sans); color:var(--color-text);
+    transition:background var(--duration-interaction), opacity var(--duration-interaction);
   }
   .m-row:first-child { border-top:none; }
-  .m-bar { flex:0 0 4px; background:var(--color-ink-10); transition:background var(--duration-interaction); }
-  .m-row.in .m-bar { background:var(--tone-block-edge); }
+  .m-bar { flex:0 0 4px; background:var(--color-surface-sunken); transition:background var(--duration-interaction); }
+  .m-row.in .m-bar { background:var(--color-reach); }
   .m-text { flex:1; display:flex; flex-direction:column; justify-content:center; gap:1px; padding-block:var(--space-inline); }
-  .m-name { font-size:var(--type-body-size); font-weight:500; }
-  .m-sub { font-size:var(--type-caption-size); color:var(--color-ink-50); }
-  .m-row.in .m-sub { color:var(--tone-block-edge); font-weight:500; }
+  .m-sub { color:var(--color-text-tertiary); }
+  .m-row.in .m-sub { color:var(--color-text-secondary); }
   @media (hover:hover) { .m-row:not(.chosen):hover, .m-row.is-hover:not(.chosen) { background:var(--interaction-hover-fill); } }
-  .m-row.chosen { background:var(--interaction-selected-fill); }
-  .m-dot { align-self:center; flex:0 0 10px; height:10px; border-radius:50%; }
-  .m-dot.clear { background:var(--tone-pass-edge); }
-  .m-dot.listed, .m-dot.exposed { background:var(--tone-block-edge); }
-  .m-dot.failed, .m-dot.unattested { background:var(--tone-neutral-edge); }
-  .m-dot.outside {
-    border-radius:0; background:var(--tone-caution-edge);
-    clip-path:polygon(50% 0, 100% 100%, 0 100%); width:12px; height:11px; flex-basis:12px;
+  .m-row:active, .m-row.is-press { background:var(--interaction-press-fill); }
+  .m-row.chosen { background:var(--color-surface-sunken); box-shadow:inset 2px 0 0 var(--color-text); }
+  .m-row:focus-visible { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:calc(-1 * var(--focus-ring-offset)); }
+  .m-list-head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-snug); }
+  .m-paste {
+    align-self:flex-start; padding:var(--space-inline) 0; border:none; background:none; cursor:pointer;
+    font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight);
+    line-height:var(--type-ui-leading); color:var(--color-text-secondary);
+    text-decoration:underline; text-underline-offset:3px; min-height:var(--size-touch);
   }
 
-  @media (max-width:639px) {
-    .d-only { display:none !important; }
-    /* On a phone the bar is the ink colour it was designed in. */
-    .m-row.in .m-bar { background:var(--color-ink-100); }
-    .m-row.in .m-sub { color:var(--color-ink-70); font-weight:400; }
-    .m-row { min-height:56px; }
-    .m-name { font-size:var(--type-subheading-size); }
-    .m-sub { font-size:var(--type-body-size); }
-  }
 
   /* The policy card now carries the choosing, so it takes more of the
      width, and the rings get room for readable labels. */
-  @media (min-width:1024px) {
-    .console { grid-template-columns:minmax(0,3fr) minmax(0,2fr); }
-    .reach-pair { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-block); }
-  }
   /* The screening card sits its controls together rather than spread apart. */
   .card-check .card-body { justify-content:flex-start; }
 
   /* ── Coverage map ─────────────────────────────────────────────── */
-  @media (min-width:1024px) {
-    .console { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
-  }
   .card-cov .card-body { align-items:center; justify-content:center; min-height:0; }
   .cov { width:100%; min-height:0; display:flex; flex-direction:column; align-items:center; }
   .cov-map { width:100%; min-height:0; min-width:0; display:flex; align-items:center; justify-content:center; }
+  .cov-svg, .intro-map { --map-scale: 1; }
   .cov-svg {
-    width:100%; max-width:380px; overflow:visible; cursor:pointer;
-    touch-action:none; user-select:none; -webkit-user-select:none;
+    width:100%; max-width:var(--width-map); overflow:visible; cursor:pointer;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
     height:auto; aspect-ratio:1;
   }
   .cov-svg:focus { outline:none; }
-  .cov-svg:focus-visible .cov-knob circle, .cov-svg.is-focus .cov-knob circle { stroke-width:3.5; }
+  .cov-ring, .cband, .cov-core, .cov-pill rect, .cov-ray, .cov-knob circle, .cov-knob path,
+  .cov-pick-dot, .cov-pick-ring, .spulse circle, .swave, .sflash, .sburst,
+  .spick-pulse, .cov-core-pick, .cov-ghost, .wdot circle, .intro-pick-plate {
+    vector-effect:non-scaling-stroke;
+  }
+  .cov-svg:focus-visible .cov-knob circle, .cov-svg.is-focus .cov-knob circle { stroke-width:var(--map-stroke-strong); }
   .cov-svg.dragging { cursor:grabbing; }
 
   /* The disc and its glow scale from the centre with a small overshoot, so
      a change of reach reads as the coverage springing out or pulling in. */
-  .cov-disc, .cov-halo, .cov-ripple {
+  .cov-disc {
     transform-box:view-box; transform-origin:200px 200px;
   }
-  .cov-disc { fill:url(#cov-grad); transition:transform var(--duration-emphasis) var(--ease-newton); }
-  .cov-halo { fill:var(--color-coverage-mid); opacity:.12; filter:url(#cov-blur); transition:transform var(--duration-emphasis) var(--ease-newton); }
-  .cov-ring { fill:none; stroke-width:1.5; transition:stroke var(--duration-interaction), stroke-dasharray var(--duration-interaction), opacity var(--duration-interaction); }
-  .cov-ring.in  { stroke:var(--color-accent); opacity:1; }
-  .cov-ring.out { stroke:var(--color-ink-50); stroke-dasharray:2 6; opacity:1; }
-  .cov-ripple { fill:none; stroke:var(--tone-block-edge); stroke-width:2.5; opacity:0; pointer-events:none; }
-  .cov-ripple.go { animation:covRipple calc(var(--duration-interaction) * 2.5) var(--ease-newton);  }
-  @keyframes covRipple {
-    from { transform:scale(.22); opacity:.7; }
-    to   { transform:scale(var(--k, 1)); opacity:0; }
+  .cov-disc { fill:var(--map-reach-fill); transition:transform var(--duration-emphasis) var(--ease-newton); }
+  .cov-ring { fill:none; stroke-width:var(--map-stroke-ring); transition:stroke var(--duration-interaction), stroke-dasharray var(--duration-interaction), opacity var(--duration-interaction); }
+  .cov-ring.in  { stroke:var(--map-reach); opacity:1; }
+  .cov-ring.out { stroke:var(--map-inactive); stroke-dasharray:var(--map-dash-inactive); opacity:1; }
+  .cov-ring.held, .cov-ring.in.held, .cov-ring.out.held {
+    fill:none; stroke:var(--map-reach); stroke-dasharray:var(--map-dash-inactive); opacity:1;
+  }
+  .cov-ring.clear,
+  .cov-ring.in.clear, .cov-ring.out.clear { stroke:var(--tone-pass-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.listed, .cov-ring.exposed,
+  .cov-ring.in.listed, .cov-ring.out.listed,
+  .cov-ring.in.exposed, .cov-ring.out.exposed { stroke:var(--tone-block-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring.outside,
+  .cov-ring.in.outside, .cov-ring.out.outside {
+    stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); opacity:1;
+  }
+  .cov-core { fill:var(--map-core); stroke:var(--map-core-edge); stroke-width:var(--map-stroke-ring); }
+  .cov-core-label {
+    font-family:var(--font-sans); font-weight:var(--type-ui-weight);
+    line-height:var(--type-ui-leading); fill:var(--color-text); pointer-events:none;
   }
 
-  /* Lazarus at the centre breathes, slowly. */
-  .cov-core { fill:var(--color-ink-10); stroke:var(--color-ink-30); stroke-width:1.5; }
-  .cov-core-glow { animation:coreBreath var(--duration-cycle) var(--ease-newton) infinite;
-    fill:var(--color-ink-100); opacity:.18; transform-box:fill-box; transform-origin:center;
-    
+  .cov-pill rect { fill:var(--color-surface-raised); stroke:var(--color-border); stroke-width:var(--map-stroke-hair); transition:fill var(--duration-interaction), stroke var(--duration-interaction); }
+  .cov-pill text {
+    font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight);
+    line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); transition:fill var(--duration-interaction); pointer-events:none;
   }
-  @keyframes coreBreath { 0%,100% { transform:scale(1); opacity:.18; } 50% { transform:scale(1.28); opacity:0; } }
-  .cov-core-label { font:500 var(--type-body-size) var(--font-sans); fill:var(--color-ink-100); pointer-events:none; }
-
-  .cov-pill rect { fill:var(--color-white); stroke:var(--color-ink-30); stroke-width:1.2; transition:fill var(--duration-interaction), stroke var(--duration-interaction); }
-  .cov-pill text { font:500 var(--type-caption-size) var(--font-sans); fill:var(--color-ink-50); transition:fill var(--duration-interaction); pointer-events:none; }
-  .cov-pill.on rect { fill:var(--color-white); stroke:var(--color-accent); }
-  .cov-pill.on text { fill:var(--color-accent); }
-  .cov-pill.clear rect { fill:var(--color-white); stroke:var(--tone-pass-edge); }
-  .cov-pill.clear text { fill:var(--tone-pass-edge); }
-  .cov-pill.listed rect, .cov-pill.exposed rect { fill:var(--color-white); stroke:var(--tone-block-edge); }
-  .cov-pill.listed text, .cov-pill.exposed text { fill:var(--tone-block-edge); }
-  .cov-pill.outside rect { fill:var(--color-white); stroke:var(--tone-caution-edge); stroke-dasharray:5 4; }
-  .cov-pill.outside text { fill:var(--tone-caution-edge); }
+  /* User units, cancelled by --map-scale, so labels render at a true 12px. */
+  .cov-svg .cov-pill text,
+  .cov-svg .cov-core-label,
+  .cov-svg .wdot text,
+  .intro-map .intro-pick-label {
+    font-size:calc(var(--type-caption-size) / var(--map-scale, 1));
+  }
+  .cov-svg .cov-pill rect {
+    x:calc(-32px / var(--map-scale, 1));
+    y:calc(-12px / var(--map-scale, 1));
+    width:calc(64px / var(--map-scale, 1));
+    height:calc(24px / var(--map-scale, 1));
+    rx:calc(12px / var(--map-scale, 1));
+  }
+  .cov-svg .cov-pill text { y:calc(4px / var(--map-scale, 1)); }
+  .cov-svg .intro-pick-plate {
+    x:calc(-62px / var(--map-scale, 1));
+    y:calc(18px / var(--map-scale, 1));
+    width:calc(124px / var(--map-scale, 1));
+    height:calc(24px / var(--map-scale, 1));
+    rx:calc(12px / var(--map-scale, 1));
+  }
+  .cov-svg .intro-pick-label { y:calc(34px / var(--map-scale, 1)); }
+  .cov-svg.is-compact .cov-pill { display:none; }
+  .reach-line { display:none; margin:var(--space-snug) 0 0; text-align:center; color:var(--color-text-secondary); font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
+  .cov.is-compact .reach-line,
+  .ring-fig.is-compact .reach-line { display:block; }
+  .cov-pill.on rect { fill:var(--color-surface-raised); stroke:var(--map-reach); }
+  .cov-pill.on text { fill:var(--map-reach); }
+  .cov-pill.clear rect { fill:var(--color-surface-raised); stroke:var(--tone-pass-edge); }
+  .cov-pill.clear text { fill:var(--tone-pass-text); }
+  .cov-pill.listed rect, .cov-pill.exposed rect { fill:var(--color-surface-raised); stroke:var(--tone-block-edge); }
+  .cov-pill.listed text, .cov-pill.exposed text { fill:var(--tone-block-text); }
+  .cov-pill.outside rect { fill:var(--color-surface-raised); stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
+  .cov-pill.outside text { fill:var(--tone-caution-text); }
   .cov-pill.is-hover rect { fill:var(--interaction-hover-fill); stroke:var(--interaction-hover-edge); }
   .cov-pill.is-hover text { fill:var(--interaction-hover-edge); }
-  .cov-pill.held rect { fill:var(--color-white); stroke:var(--color-accent); }
-  .cov-pill.held text { fill:var(--color-accent); }
+  .cov-pill.held rect { fill:var(--color-surface-raised); stroke:var(--map-reach); }
+  .cov-pill.held text { fill:var(--map-reach); }
 
   /* TEMP: hop-button shadow, no stroke. Delete this block to reverse. */
   #cov-svg .cov-pill rect,
-  #cov-svg .wdot circle {
+  #cov-svg .wdot > circle:not(.wdot-ring):not(.wdot-fill) {
     stroke: none;
-    filter: drop-shadow(0 1px 2px rgba(27, 23, 26, .14));
+    filter: drop-shadow(var(--shadow-lift));
   }
 
   /* The edge handle: slides round with the coverage, and invites a drag. */
   .cov-knob { transition:transform var(--duration-emphasis) var(--ease-newton); cursor:grab; }
-  .cov-knob circle { fill:var(--color-white); stroke:var(--color-ink-70); stroke-width:1.5; filter:drop-shadow(0 1px 2px var(--coal-alpha-20)); }
-  .cov-knob path { fill:none; stroke:var(--color-ink-100); stroke-width:1.8; stroke-linecap:round; }
+  .cov-knob circle { fill:var(--color-surface-raised); stroke:var(--color-text-secondary); stroke-width:var(--map-stroke-ring); filter:drop-shadow(var(--shadow-lift)); }
+  .cov-knob path { fill:none; stroke:var(--color-text); stroke-width:var(--map-stroke-emphasis); stroke-linecap:round; }
 
   /* The picked wallet, in its band: amber when covered, grey when not. */
-  .cov-pick { transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction); pointer-events:none; color:var(--tone-block-edge); }
-  .cov-pick.not { color:var(--color-ink-50); }
-  .cov-pick-dot { fill:currentColor; stroke:var(--color-white); stroke-width:2.5; }
-  .cov-pick-pulse { animation:pickPulse calc(var(--duration-interaction) * 5) var(--ease-newton) infinite;
-    fill:none; stroke:currentColor; stroke-width:2; transform-box:fill-box; transform-origin:center;
-    
+  .cov-pick { transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction); pointer-events:none; color:var(--color-text); }
+  .cov-pick.not { color:var(--map-inactive); }
+  .cov-pick.found { color:var(--tone-block-edge); }
+  .cov-pick.outside { color:var(--tone-caution-edge); }
+  .cov-pick-dot { fill:var(--color-text); stroke:var(--map-on-mark); stroke-width:var(--map-stroke-emphasis); }
+  .cov-pick.not .cov-pick-dot { fill:var(--map-inactive); }
+  .cov-pick.found .cov-pick-dot { fill:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); }
+  .cov-pick.outside .cov-pick-dot { fill:var(--tone-caution-edge); stroke-width:var(--map-stroke-strong); }
+  .cov-pick.idle .cov-pick-dot {
+    fill:var(--color-surface-raised); stroke:var(--color-text-secondary);
+    stroke-width:var(--map-stroke-ring); stroke-dasharray:var(--map-dash-inactive);
   }
-  @keyframes pickPulse { from { transform:scale(.55); opacity:.9; } to { transform:scale(1.6); opacity:0; } }
+  .cov-pick.dragging .cov-pick-dot { stroke:var(--map-on-mark); stroke-width:var(--map-stroke-strong); }
+  .cov-pick-ring { fill:none; stroke:var(--color-text); stroke-width:var(--map-stroke-emphasis); }
+  .cov-svg:not(.scanning) .cov-pick-ring { stroke:none; }
+  .cov-pick.not .cov-pick-ring { stroke:var(--map-inactive); }
+  .cov-pick.found .cov-pick-ring { stroke:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); }
+  .cov-pick.on-core .cov-pick-ring { stroke:var(--map-on-mark); }
+  .cov-pick.on-core .cov-pick-dot { fill:none; }
 
   .cov-sum { margin:var(--space-group) 0 0; font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); text-align:center; }
-  .cov-hint { margin:var(--space-tight) 0 0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-ink-50); text-align:center; }
+  .cov-hint { margin:var(--space-tight) 0 0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-tertiary); text-align:center; }
 
   /* The screening card: list, paste link, then Run. */
   .try-wallet .label { display:block; margin-bottom:var(--space-inline); }
+  .addr-wrap { display:flex; flex-direction:column; gap:var(--space-inline); }
   .card-check .addr-wrap { display:none; }
   .card-check.show-paste .addr-wrap { display:flex; }
   .card-check.show-paste .paste-link, .card-check.show-paste .m-paste { display:none; }
   .paste-link {
     align-self:flex-start; padding:var(--space-tight) 0; border:none; background:none; cursor:pointer;
-    font-family:var(--font-sans); font-size:var(--type-body-size); font-weight:500; color:var(--color-ink-70);
+    font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight); color:var(--color-text-secondary);
     text-decoration:underline; text-underline-offset:3px;
   }
-  .paste-link:hover { color:var(--color-ink-100); }
+  @media (hover:hover) { .paste-link:hover { color:var(--color-text); } }
 
   @media (prefers-reduced-motion:reduce) {
-    .cov-core-glow, .cov-pick-pulse, .cov-ripple.go { animation:none;  }
-    .cov-disc, .cov-halo, .cov-knob, .cov-pick { transition:none; }
+    .cov-disc, .cov-knob, .cov-pick { transition:none; }
   }
 
   /* ── Coverage switch under the map ─────────────────────────────── */
   .cov-seg {
     display:flex; gap:var(--space-tight); padding:var(--space-tight); margin:0 0 var(--space-group);
-    background:var(--color-ink-10); border-radius:var(--radius-control);
+    background:var(--color-surface-sunken); border-radius:var(--radius-control);
   }
   .cov-seg .m-seg-btn {
-    min-width:84px; height:40px; padding:0 var(--space-group);
+    min-width:84px; height:var(--size-control); padding:0 var(--space-group);
     border:none; border-radius:var(--radius-control); background:transparent; cursor:pointer;
-    font-family:var(--font-sans); font-size:var(--type-body-size); font-weight:500; color:var(--color-ink-70);
+    font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight); color:var(--color-text-secondary);
     transition:background var(--duration-interaction), color var(--duration-interaction), box-shadow var(--duration-interaction);
   }
-  .cov-seg .m-seg-btn.sel { background:var(--color-white); color:var(--color-ink-100); box-shadow:0 1px 2px rgba(27,23,26,.14); }
+  .cov-seg .m-seg-btn.sel { background:var(--color-surface-raised); color:var(--color-text); box-shadow:var(--shadow-lift); }
   .cov-seg .m-seg-btn.sel.is-hover { box-shadow:inset 0 0 0 1px var(--interaction-hover-edge); }
-  .cov-seg .m-seg-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .cov-seg .m-seg-btn:disabled { opacity:var(--map-alpha-muted); cursor:not-allowed; }
   @media (hover:hover) {
     .m-seg-btn:not(.sel):not(:disabled):hover,
     .m-seg-btn.is-hover:not(.sel) {
-      color:var(--color-ink-100);
+      color:var(--color-text);
       background:var(--interaction-hover-fill);
       box-shadow:inset 0 0 0 1px var(--interaction-hover-edge);
     }
   }
-  .cov-seg .m-seg-btn:disabled { opacity:.35; cursor:default; }
+  .cov-seg .m-seg-btn:disabled { opacity:var(--map-alpha-ghost); cursor:default; }
   .cov-sum { margin-top:var(--space-snug); }
   .cov-ring { cursor:pointer; }
 
   /* ── Scan map ─────────────────────────────────────────────────── */
-  .scan-map { width:clamp(160px, 22vh, 210px); margin:0 0 var(--space-card); }
+  .scan-map { width:min(100%, 17.5rem); margin:0 0 var(--space-card); }
   .scan-svg { width:100%; height:auto; display:block; overflow:visible; }
-  .sreach { fill:none; stroke:var(--color-ink-100); stroke-width:1.6; opacity:.55; }
   /* The scan front: a bright ring that travels outward, one hop per step. */
   .swave {
-    fill:none; stroke:var(--color-ink-100); stroke-width:3; opacity:0;
+    fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); opacity:0;
     transform-box:view-box; transform-origin:200px 200px;
     transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction);
-    filter:drop-shadow(0 0 6px rgba(27,23,26,.35));
+    pointer-events:none;
   }
-  .swave.on   { opacity:.7; }
+  .swave.on   { opacity:var(--map-alpha-live); }
   .swave.done { opacity:0; }
+  .cov-ghost { fill:none; stroke:var(--map-reach); stroke-dasharray:var(--map-dash-inactive); }
+  .spulse circle { fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); pointer-events:none; }
+  .spick-pulse { fill:none; stroke:currentColor; stroke-width:var(--map-stroke-emphasis); pointer-events:none; }
+  .sflash { fill:none; stroke:var(--tone-pass-edge); stroke-width:var(--map-stroke-ring); pointer-events:none; }
+  .sburst { fill:none; stroke:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); pointer-events:none; }
 
   /* Phones keep every state on one screen, so the scan map steps aside. */
-  @media (max-width:639px) { .scan-map { display:none; } }
   @media (prefers-reduced-motion:reduce) {
     .swave { transition:none; }
   }
 
   .cov-core-pick {
-    fill:none; stroke:var(--tone-block-edge); stroke-width:3; opacity:0; pointer-events:none;
-    transform-box:fill-box; transform-origin:center; transition:opacity var(--duration-interaction);
+    fill:none; stroke:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); pointer-events:none;
   }
-  .cov-core-pick.on { animation:corePick calc(var(--duration-interaction) * 5) var(--ease-newton) infinite; opacity:1;  }
-  @keyframes corePick { 0% { transform:scale(1); opacity:1; } 100% { transform:scale(1.3); opacity:0; } }
-  @media (prefers-reduced-motion:reduce) { .cov-core-pick.on { animation:none;  } }
 
   /* The scan map at a size that reads, centred over the steps. */
-  .scan-map { width:clamp(180px, 30vh, 280px); margin:0 auto var(--space-card); }
+  .scan-map { width:min(100%, 17.5rem); margin:0 auto var(--space-card); }
 
   /* ── One shell for console, scan and verdict ─────────────────────
      Both columns fill the stage at a fixed height in every state, and the
      block under the map is one fixed height, so the map never moves when a
      check starts or ends. */
-  @media (min-width:640px) {
-    .console { height:100%; min-height:0; align-content:stretch; align-items:stretch; }
-    .console > .col { display:flex; flex-direction:column; min-height:0; }
-    .console > .col > .card { flex:1 1 auto; min-height:0; }
-  }
-  @media (min-width:640px) and (max-width:1023px) {
-    .console > .col > .card-cov { flex:0 0 auto; height:auto; overflow:visible; }
-    .card-cov .cov { height:auto; }
-    .card-cov .cov-svg { width:min(100%, 380px, 42vh); max-height:none; }
-  }
-  @media (min-width:1024px) {
-    .card-cov { overflow:hidden; }
-    .card-cov .card-body { min-height:0; overflow:hidden; }
-    .card-cov .cov {
-      display:grid; grid-template-rows:auto minmax(0,1fr) auto; grid-template-columns:minmax(0,1fr);
-      justify-items:center; width:100%; height:100%; max-height:100%; min-height:0;
-    }
-    .card-cov .cov-seg { grid-row:1; }
-    .card-cov .cov-map { grid-row:2; height:100%; min-height:0; }
-    .card-cov .cov-foot { grid-row:3; }
-    .card-cov .cov-svg {
-      width:auto; height:auto; max-width:min(380px, 100%); max-height:min(380px, 100%);
-      min-height:0; aspect-ratio:1;
-    }
-  }
   .card-cov .card-body { justify-content:center; align-items:center; }
   .cov-foot {
     height:auto; width:100%; display:flex; flex-direction:column; align-items:center;
     justify-content:flex-start;
   }
   .cov-status {
-    margin:var(--space-group) 0 0; min-height:40px; display:flex; align-items:center;
-    font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); font-weight:500; color:var(--color-ink-100); text-align:center;
+    margin:var(--space-group) 0 0; min-height:var(--size-control); display:flex; align-items:center;
+    font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); font-weight:500; color:var(--color-text); text-align:center;
   }
   .cov-foot .cov-sum { margin-top:var(--space-snug); }
-
-  /* Coverage pulse: sonar waves leave the centre and fade out exactly at
-     the edge of the coverage, so the pulse itself shows how far it goes. */
-  .cov-sonar circle { animation:sonar var(--duration-cycle) var(--ease-newton) infinite;
-    fill:none; stroke:var(--tone-block-edge); stroke-width:2; opacity:0; pointer-events:none;
-    transform-box:view-box; transform-origin:200px 200px;
-    
-  }
-  .cov-sonar circle:nth-child(2) { animation-delay:var(--duration-beat);  }
-  .cov-sonar circle:nth-child(3) { animation-delay:calc(var(--duration-beat) * 2);  }
-  @keyframes sonar {
-    0%   { transform:scale(.24); opacity:0; }
-    12%  { opacity:.75; }
-    100% { transform:scale(var(--k, 1)); opacity:0; }
-  }
-  .cov-svg.scanning .cov-sonar { display:none; }
 
   /* Scan layers on the same map. */
   .cband { fill:none; stroke:none; transition:fill var(--duration-emphasis) var(--ease-newton); pointer-events:none; }
   .cband.clear { fill:var(--tone-pass-a); }
   .cband.listed, .cband.exposed { fill:var(--tone-block-a); }
-  .cband.outside { fill:var(--tone-caution-a); stroke:var(--tone-caution-edge); stroke-width:1.5; stroke-dasharray:5 4; }
-  .cov-svg.scanning .cov-ring.in { opacity:.55; }
-  .cov-wave {
-    fill:none; stroke:var(--color-ink-70); stroke-width:2; opacity:0; pointer-events:none;
-    transform-box:view-box; transform-origin:200px 200px;
-    transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction);
-  }
-  .cov-wave.on   { opacity:.4; }
-  .cov-wave.done { opacity:0; }
+  .cband.outside { fill:var(--tone-caution-a); stroke:var(--tone-caution-edge); stroke-width:var(--map-stroke-ring); stroke-dasharray:var(--map-dash-caution); }
+  .cov-svg.scanning .cov-ring.in { opacity:var(--map-alpha-muted); }
   .cov-core { transition:fill var(--duration-emphasis); }
   .cov-core.listed { fill:var(--tone-block-edge); stroke:var(--tone-block-edge); }
-  .cov-pick.found { color:var(--tone-block-edge); }
-  .cov-pick.found .cov-pick-dot { fill:var(--color-ink-100); stroke:var(--tone-block-edge); stroke-width:3.5; }
-  .cov-pick.outside .cov-pick-dot { fill:var(--tone-caution-edge); stroke:var(--color-white); }
+  .cov-core.listed ~ .cov-core-label { fill:var(--map-on-mark); }
   .cov-svg.scanning { cursor:default; }
   .cov-svg.scanning .cov-ring { cursor:default; }
 

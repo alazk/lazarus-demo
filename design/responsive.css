@@ -1,0 +1,163 @@
+/* Layout breakpoints. Loaded last.
+   Component layout uses container queries on .stage and .kit-frame, so a
+   375px kit frame matches a phone. Viewport queries are only the document
+   scroll model, safe areas, the 1024px app shell, phone landscape, and
+   the kit chrome (the nav is not inside a specimen frame). */
+
+.stage,
+.kit-frame {
+  container-type: inline-size;
+  container-name: frame;
+}
+
+.m-only { display: none; }
+
+/* The mast sits outside the stage, so its hit areas cannot use the frame query. */
+#home, .states-link { position: relative; }
+#home::after, .states-link::after {
+  content: ""; position: absolute;
+  inset: calc((var(--size-touch) - 100%) / -2);
+}
+
+/* ── Document: phones scroll, the shell locks from 1024 ──────── */
+html, body { height: auto; overflow: visible; }
+body {
+  min-height: 100dvh;
+  height: auto;
+  padding-top: 0;
+  padding-bottom: var(--space-group);
+  padding-left: max(var(--space-group), env(safe-area-inset-left));
+  padding-right: max(var(--space-group), env(safe-area-inset-right));
+}
+.stage { flex: none; overflow: visible; min-height: 0; height: auto; }
+.mast {
+  padding-top: max(var(--space-snug), env(safe-area-inset-top));
+  padding-left: max(var(--space-group), env(safe-area-inset-left));
+  padding-right: max(var(--space-group), env(safe-area-inset-right));
+}
+.brand, .mast { min-width: 0; }
+.brand, .pills { flex-wrap: wrap; max-width: 100%; }
+
+@media (min-width: 640px) {
+  :root {
+    --card-pad: var(--space-card);
+    --shell-pad: var(--space-page);
+    --shell-gap: var(--space-group);
+  }
+  .ring-note { max-width: none; white-space: nowrap; }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --shell-pad: var(--space-card);
+    --shell-gap: var(--space-card);
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body { height: 100dvh; min-height: 0; padding: var(--shell-pad); }
+  .stage { flex: 1; min-height: 0; overflow: hidden; }
+  .mast { padding: var(--space-snug) var(--inset); }
+}
+
+/* The only height query: phone landscape puts the map beside the list. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .console {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* Kit chrome. Viewport, because the nav sits outside the specimen frame. */
+@media (max-width: 1023px) {
+  .kit-layout { flex-direction: column; }
+  .kit-nav { position: static; width: auto; }
+}
+@media (max-width: 639px) {
+  .kit-scale-row { flex-direction: column; align-items: flex-start; }
+  .kit-scale-meta { flex: none; width: 100%; }
+  .states-link { height: var(--size-control-sm); padding: 0 var(--space-inline); font-size: var(--type-caption-size); }
+}
+
+/* ── Inside a phone-width stage or kit frame ─────────────────── */
+@container frame (max-width: 639px) {
+  .text-ui--phone-subheading {
+    font-size: var(--type-subheading-size);
+    font-weight: var(--type-subheading-weight);
+    line-height: var(--type-subheading-leading);
+    letter-spacing: 0;
+  }
+  .text-caption--phone-body {
+    font-size: var(--type-body-size);
+    font-weight: var(--type-body-weight);
+    line-height: var(--type-body-leading);
+    letter-spacing: 0;
+  }
+  .text-label--phone-eyebrow,
+  .reach-edge {
+    font-size: var(--type-eyebrow-size);
+    font-weight: var(--type-eyebrow-weight);
+    line-height: var(--type-eyebrow-leading);
+  }
+  .text-display { max-width: none; text-wrap: balance; }
+  .intro, .console, .checking { min-height: 0; overflow: visible; height: auto; }
+  .console, .checking { padding: 0; gap: var(--space-group); }
+  .console { display: flex; flex-direction: column; align-items: stretch; }
+  .card, .card-cov, .card-check, .card-result { height: auto; overflow: visible; }
+  #act-copy { min-height: 0; }
+  .intro-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "figure" "copy";
+    gap: var(--space-group);
+    padding: var(--space-group) 0;
+    align-items: stretch;
+  }
+  .cov-svg { width: min(100%, 17.5rem); max-width: none; margin-inline: auto; touch-action: manipulation; }
+  .ring-fig { width: min(100%, 20rem); max-width: none; }
+  .ring-fig .cov-svg, .intro-map { width: 100%; }
+  .cov-map { order: -1; }
+  .cov-seg { width: 100%; margin: 0; }
+  .cov-seg .m-seg-btn {
+    min-width: 0; flex: 1 1 0; height: var(--size-touch); min-height: var(--size-touch);
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .m-only { display: block; }
+  .d-only { display: none; }
+  .m-only .m-row { min-height: var(--size-touch); }
+  .m-only .m-text {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    gap: var(--space-inline); padding-block: 0; min-width: 0;
+  }
+  .m-only .m-name, .m-only .m-sub {
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .m-only .m-name { flex: 1 1 auto; }
+  .m-only .m-sub { flex: 0 1 auto; text-align: right; }
+  .btn-primary, .btn-lg, .btn-block { min-height: var(--size-control-lg); }
+  .card-check > .btn-block,
+  .card-result .actions {
+    position: sticky; bottom: 0; z-index: 2;
+    background: var(--color-surface-raised);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--space-group);
+    padding-top: var(--space-snug);
+    padding-bottom: max(var(--space-snug), env(safe-area-inset-bottom));
+  }
+  .card-result .actions { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+  .card-result .actions .btn { width: 100%; }
+  .act-dot, #home, .stat-link { position: relative; }
+  .act-dot::after, #home::after, .stat-link::after {
+    content: ""; position: absolute;
+    inset: calc((var(--size-touch) - 100%) / -2);
+  }
+  .cov-pick { touch-action: none; }
+}
+
+/* Map and list sit side by side once the stage or frame is at least 40rem. */
+@container frame (min-width: 40rem) {
+  .console {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-block);
+  }
+}

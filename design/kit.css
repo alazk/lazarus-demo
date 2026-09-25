@@ -1,111 +1,91 @@
   /* ── Wallets on the map: lettered dots in their rings ──────────────── */
-  .wdot circle { fill:var(--color-white); stroke:var(--color-ink-50); stroke-width:1.8; }
-  .wdot circle + text { font:500 var(--type-caption-size) var(--font-sans); fill:var(--color-ink-50); pointer-events:none; }
+  .wdot circle { fill:var(--color-surface-raised); stroke:var(--color-text-disabled); stroke-width:var(--map-stroke-emphasis); }
+  .wdot circle + text {
+    font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
+    line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); pointer-events:none;
+  }
   .wdot.in circle { stroke:var(--color-accent); }
   .wdot.in circle + text { fill:var(--color-accent); }
   .wdot.clear circle { stroke:var(--tone-pass-edge); }
-  .wdot.clear circle + text { fill:var(--tone-pass-edge); }
+  .wdot.clear circle + text { fill:var(--tone-pass-text); }
   .wdot.listed circle, .wdot.exposed circle { stroke:var(--tone-block-edge); }
-  .wdot.listed circle + text, .wdot.exposed circle + text { fill:var(--tone-block-edge); }
-  .wdot.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:3 2; }
-  .wdot.outside circle + text { fill:var(--tone-caution-edge); }
+  .wdot.listed circle + text, .wdot.exposed circle + text { fill:var(--tone-block-text); }
+  .wdot.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
+  .wdot.outside circle + text { fill:var(--tone-caution-text); }
   .wdot.in.clear circle, .wdot.out.clear circle { stroke:var(--tone-pass-edge); }
-  .wdot.in.clear circle + text, .wdot.out.clear circle + text { fill:var(--tone-pass-edge); }
+  .wdot.in.clear circle + text, .wdot.out.clear circle + text { fill:var(--tone-pass-text); }
   .wdot.in.listed circle, .wdot.out.listed circle,
   .wdot.in.exposed circle, .wdot.out.exposed circle { stroke:var(--tone-block-edge); }
   .wdot.in.listed circle + text, .wdot.out.listed circle + text,
-  .wdot.in.exposed circle + text, .wdot.out.exposed circle + text { fill:var(--tone-block-edge); }
-  .wdot.in.outside circle, .wdot.out.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:3 2; }
-  .wdot.in.outside circle + text, .wdot.out.outside circle + text { fill:var(--tone-caution-edge); }
-  .wdot.chosen circle,
-  .wdot.in.chosen circle, .wdot.out.chosen circle,
-  .wdot.in.clear.chosen circle, .wdot.out.clear.chosen circle,
-  .wdot.in.listed.chosen circle, .wdot.out.listed.chosen circle,
-  .wdot.in.exposed.chosen circle, .wdot.out.exposed.chosen circle,
-  .wdot.in.outside.chosen circle, .wdot.out.outside.chosen circle {
-    fill:var(--color-ink-100); stroke:var(--color-ink-100); stroke-dasharray:none;
-  }
-  .wdot.chosen circle + text,
-  .wdot.in.chosen circle + text, .wdot.out.chosen circle + text,
-  .wdot.in.clear.chosen circle + text, .wdot.out.clear.chosen circle + text,
-  .wdot.in.listed.chosen circle + text, .wdot.out.listed.chosen circle + text,
-  .wdot.in.exposed.chosen circle + text, .wdot.out.exposed.chosen circle + text,
-  .wdot.in.outside.chosen circle + text, .wdot.out.outside.chosen circle + text {
-    fill:var(--color-white);
-  }
+  .wdot.in.exposed circle + text, .wdot.out.exposed circle + text { fill:var(--tone-block-text); }
+  .wdot.in.outside circle, .wdot.out.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
+  .wdot.in.outside circle + text, .wdot.out.outside circle + text { fill:var(--tone-caution-text); }
   /* Wallet A sits on the dark centre: light dot, dark letter, and a light
      highlight ring when it is the one being scanned. */
-  .wdot.on-core circle { fill:var(--color-white); stroke:none; }
-  .wdot.on-core text { fill:var(--color-ink-100); }
-  .wdot.on-core.chosen circle { fill:var(--cov-edge); stroke:var(--color-white); stroke-width:2; }
-  .wdot.on-core.chosen text { fill:var(--color-white); }
-  .cov-pick.on-core .cov-pick-ring { stroke:var(--color-white); }
-  .cov-pick.on-core .cov-pick-dot { fill:none; }
+  .wdot.on-core circle { fill:var(--color-surface-raised); stroke:none; }
+  .wdot.on-core text { fill:var(--color-text); }
   .cov-svg:not(.scanning) .wdot { cursor:pointer; }
+  /* Hover washes the disc only. The letter keeps its colour. Selected keeps
+     the default disc and letter, and gains a blue ring outside the disc. */
   @media (hover:hover) {
-    .cov-svg:not(.scanning) .wdot:not(.chosen):hover circle,
-    .wdot.is-hover:not(.chosen) circle {
-      fill:var(--interaction-hover-fill); stroke:var(--interaction-hover-edge);
+    .cov-svg:not(.scanning) .wdot:not(.chosen):hover > circle:not(.wdot-ring):not(.wdot-fill),
+    .wdot.is-hover:not(.chosen) > circle:not(.wdot-ring):not(.wdot-fill) {
+      fill:var(--interaction-hover-fill);
     }
-    .cov-svg:not(.scanning) .wdot:not(.chosen):hover circle + text,
-    .wdot.is-hover:not(.chosen) circle + text { fill:var(--interaction-hover-edge); }
+  }
+  .wdot > circle.wdot-ring,
+  #cov-svg .wdot > circle.wdot-ring {
+    fill:none; stroke:none; stroke-width:var(--map-stroke-emphasis); filter:none; pointer-events:none;
+    opacity:0; transition:opacity var(--duration-interaction) var(--ease-newton);
+  }
+  .wdot.chosen > circle.wdot-ring,
+  #cov-svg .wdot.chosen > circle.wdot-ring {
+    fill:none; stroke:var(--color-accent); stroke-width:var(--map-stroke-emphasis); filter:none; opacity:1;
+  }
+  /* The blue disc scales out from the centre when a wallet is chosen. */
+  .wdot > circle.wdot-fill,
+  #cov-svg .wdot > circle.wdot-fill {
+    fill:var(--color-accent); stroke:none; filter:none; pointer-events:none;
+  }
+  .wdot text { transition:fill var(--duration-interaction) var(--ease-newton); }
+  .wdot.chosen > circle.wdot-fill + text,
+  #cov-svg .wdot.chosen > circle.wdot-fill + text { fill:var(--color-on-tone); }
+  @media (prefers-reduced-motion:reduce) {
+    .wdot > circle.wdot-ring, .wdot text { transition:none; }
   }
   .wdot:focus-visible, .wdot.is-focus { outline:none; }
-  .wdot:focus-visible circle, .wdot.is-focus circle { stroke:var(--color-ink-100); stroke-width:3; }
-  .cov-svg.scanning .wdot:not(.chosen) { opacity:.35; }
+  .wdot:focus-visible > circle:not(.wdot-ring):not(.wdot-fill), .wdot.is-focus > circle:not(.wdot-ring):not(.wdot-fill) { stroke:var(--color-text); stroke-width:var(--map-stroke-strong); }
+  .cov-svg.scanning .wdot:not(.chosen) { opacity:var(--map-alpha-ghost); }
 
   /* The highlight ring sits behind the chosen wallet and carries the found
      pulse and burst during a scan. It takes no pointer events itself. */
   .cov-svg .cov-pick { pointer-events:none !important; cursor:default; }
-  .cov-pick-ring { fill:none; stroke:var(--color-ink-100); stroke-width:2; }
-  .cov-pick.not .cov-pick-ring { stroke:var(--color-ink-50); }
-  .cov-pick.found .cov-pick-ring { stroke:var(--tone-block-edge); stroke-width:3; }
-  .cov-pick-dot { fill:var(--color-ink-100); }
+  .cov-pick-ring { fill:none; stroke-width:var(--map-stroke-emphasis); }
 
   /* ── Wallet rows: letter, label, descriptor, address ───────────────── */
   .wrow { align-items:center; gap:var(--space-snug); }
   .w-letter {
     flex:none; width:28px; height:28px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:var(--color-ink-10); color:var(--color-ink-70); font-size:var(--type-body-size); font-weight:500;
+    background:var(--color-surface-sunken); color:var(--color-text-secondary); font-size:var(--type-body-size); font-weight:500;
   }
-  .wrow.in .w-letter { background:var(--cov-soft); color:var(--color-ink-100); }
+  .wrow.in .w-letter { background:var(--cov-soft); color:var(--color-text); }
+  .wrow.chosen .w-letter { background:var(--color-accent); color:var(--color-on-tone); }
   .wrow .m-text { min-width:0; flex:1 1 auto; }
   .wrow .m-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .w-addr { flex:none; margin-left:auto; font-family:var(--font-code); font-size:var(--type-body-size); color:var(--color-ink-50); }
+  .w-addr { flex:none; margin-left:auto; font-family:var(--font-code); font-size:var(--type-body-size); color:var(--color-text-tertiary); }
   .wrow .m-bar { margin-right:0; }
 
-  @media (max-width:639px) {
-    /* Two-line text on phones: the label, then what is known about it. */
-    .m-only .wrow .m-text { flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; padding-block:var(--space-inline); }
-    .m-only .wrow .m-sub { text-align:left; }
-    .m-only .wrow { min-height:52px; gap:var(--space-snug); }
-    .m-only .wrow .m-name { font-size:var(--type-body-size); }
-    .w-letter { width:26px; height:26px; font-size:var(--type-caption-size); }
-    .w-addr { font-size:var(--type-caption-size); }
-  }
-  @media (max-width:639px) and (max-height:700px) {
-    .m-only .wrow { min-height:46px; }
-    .m-only .wrow .m-text { padding-block:var(--space-tight); }
-  }
 
   /* An old rule styled a class of the same name; the group itself draws
      nothing, and the letter has no outline. */
   g.wdot { fill:none; stroke:none; stroke-width:0; }
-  .wdot text { stroke:none; font:500 var(--type-body-size) var(--font-sans); }
+  .wdot text {
+    stroke:none; font-family:var(--font-sans); font-weight:var(--type-ui-weight);
+    font-size:var(--type-ui-size); line-height:var(--type-ui-leading);
+  }
 
   /* Phones: two-line wallet rows kept compact so all five sit above Run. */
-  @media (max-width:639px) {
-    .m-only .wrow { min-height:48px; }
-    .m-only .wrow .m-text { padding-block:var(--space-tight); gap:0; }
-    .m-only .wrow .m-name { font-size:var(--type-body-size); line-height:var(--type-title-leading)8px; }
-    .m-only .wrow .m-sub { font-size:var(--type-caption-size); line-height:var(--type-title-leading)5px; }
-  }
-  @media (max-width:639px) and (max-height:700px) {
-    .m-only .wrow { min-height:43px; }
-    .m-only .wrow .m-text { padding-block:2px; }
-    .w-letter { width:24px; height:24px; font-size:var(--type-caption-size); }
-  }
 
   /* The label and descriptor truncate inside their column; they never run
      into the address. */
@@ -116,30 +96,15 @@
 
   /* Narrow phones: the label takes the whole first line; the descriptor and
      the address share the second, so nothing needs cutting short. */
-  @media (max-width:420px) {
-    .m-only .wrow { display:grid; grid-template-columns:4px auto minmax(0,1fr); grid-template-rows:auto auto;
-      column-gap:var(--space-snug); align-items:center; padding-right:var(--space-snug); }
-    .m-only .wrow .m-bar { grid-row:1 / 3; grid-column:1; align-self:stretch; }
-    .m-only .wrow .w-letter { grid-row:1 / 3; grid-column:2; }
-    .m-only .wrow .m-text { grid-row:1 / 3; grid-column:3; padding-block:var(--space-tight); }
-    .m-only .wrow .m-sub { padding-right:var(--space-section); }
-    .m-only .wrow .w-addr { grid-row:2; grid-column:3; justify-self:end; align-self:end;
-      margin:0 0 var(--space-inline); padding:0; font-size:var(--type-caption-size); line-height:var(--type-title-leading)5px; }
-  }
 
-  @media (max-width:420px) {
-    .m-only .wrow .sub-note, .m-only .wrow .sub-sep { display:none; }
-    .m-only .wrow.nostatus .sub-note { display:inline; }
-    .m-only .wrow .m-sub { padding-right:0; }
-  }
 
   /* The radius a hover would set: a dashed outline, and a summary that says
      what it would cover. */
   .cov-ghost {
-    fill:none; stroke:var(--color-ink-100); stroke-width:2; stroke-dasharray:6 6;
+    fill:none; stroke-width:var(--map-stroke-emphasis);
     opacity:0; pointer-events:none; transition:opacity var(--duration-interaction);
   }
-  .cov-ghost.on { opacity:.65; }
+  .cov-ghost.on { opacity:var(--map-alpha-live); }
 
   /* Notched phones: keep everything clear of the rounded corners and the
      camera housing, including in landscape. */
@@ -149,25 +114,12 @@
   }
   /* The inset is a floor on whatever padding the layout already uses, so a
      phone without a notch keeps its tighter spacing. */
-  @media (max-width:639px) {
-    .mast { padding-left:max(var(--space-snug), env(safe-area-inset-left)); padding-right:max(var(--space-snug), env(safe-area-inset-right)); }
-    .console, .console.scan-shell, .intro, .checking {
-      padding-left:max(12px, env(safe-area-inset-left));
-      padding-right:max(12px, env(safe-area-inset-right));
-    }
-  }
-  @media (max-width:639px) and (min-height:701px) {
-    .console, .console.scan-shell {
-      padding-left:max(var(--space-group), env(safe-area-inset-left));
-      padding-right:max(var(--space-group), env(safe-area-inset-right));
-    }
-  }
 
   /* The map is one hover surface: the pointer anywhere inside it previews
      that band, so the cursor reads as "this sets the radius". */
   .cov-svg:not(.scanning) { cursor:pointer; }
   .cov-svg:not(.scanning) .wdot { cursor:pointer; }
-  .cov-ghost.on { opacity:.7; }
+  .cov-ghost.on { opacity:var(--map-alpha-live); }
 
   /* Clicking should not leave a focus ring. Safari draws its blue ring on
      plain :focus, so that is cleared everywhere a pointer can land, and a
@@ -184,14 +136,17 @@
   .m-row:focus-visible, .m-row.is-focus { outline-offset:-2px; }
   .field:focus-visible, .field.is-focus { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-width); }
   .field:disabled { opacity:.5; }
-  .wdot:focus-visible circle, .wdot.is-focus circle,
-  .cov-svg:focus-visible .cov-ring.in, .cov-svg.is-focus .cov-ring.in { stroke:var(--color-ink-100); stroke-width:3; }
+  .wdot:focus-visible > circle:not(.wdot-ring):not(.wdot-fill), .wdot.is-focus > circle:not(.wdot-ring):not(.wdot-fill),
+  .cov-svg:focus-visible .cov-ring.in, .cov-svg.is-focus .cov-ring.in { stroke:var(--color-text); stroke-width:var(--map-stroke-strong); }
   .kit-frame .m-only { display:block; }
 
   /* The intro map is the dashboard map: same size, same wallet marker. */
-  .intro-map { max-width:380px; }
-  .intro-pick-plate { fill:var(--color-white); stroke:var(--color-ink-30); stroke-width:1.2; }
-  .wdot .intro-pick-label { font:500 var(--type-caption-size) var(--font-sans); fill:var(--color-ink-50); stroke:none; }
+  .intro-map { max-width:var(--width-map); }
+  .intro-pick-plate { fill:var(--color-surface-raised); stroke:var(--color-border); stroke-width:var(--map-stroke-hair); }
+  .wdot .intro-pick-label {
+    font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
+    line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); stroke:none;
+  }
   .intro-pick.in .intro-pick-plate { stroke:var(--color-accent); }
   .intro-pick.in .intro-pick-label { fill:var(--color-accent); }
   .intro-pick { pointer-events:none; }
@@ -199,13 +154,10 @@
   /* ── UI kit: components and their states, same shape as the landing gallery ── */
   .pills { display:flex; align-items:center; gap:var(--space-inline); }
   .states-link {
-    display:inline-flex; align-items:center; height:40px; padding:0 var(--space-group);
-    border:1px solid var(--color-ink-30); border-radius:var(--radius-full);
-    background:var(--color-white); color:var(--color-ink-100); text-decoration:none;
+    display:inline-flex; align-items:center; height:var(--size-control); padding:0 var(--space-group);
+    border:1px solid var(--color-border); border-radius:var(--radius-full);
+    background:var(--color-surface-raised); color:var(--color-text); text-decoration:none;
     font-size:var(--type-body-size); font-weight:500; white-space:nowrap;
-  }
-  @media (max-width:639px) {
-    .states-link { height:32px; padding:0 var(--space-inline); font-size:var(--type-caption-size); }
   }
   body.is-building .stage { visibility:hidden; }
   body.is-states { height:auto; min-height:100dvh; overflow:auto; }
@@ -216,20 +168,22 @@
   .kit { max-width:1440px; margin:0 auto; padding:var(--space-section) 0 var(--space-section); }
   .kit-head { display:flex; flex-direction:column; gap:var(--space-group); max-width:684px; margin-bottom:var(--space-section); }
   .kit-kicker {
-    margin:0; font:500 var(--type-label-size)/var(--type-label-leading) var(--font-sans);
-    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-on-surface-muted);
+    margin:0; font-family:var(--font-sans); font-weight:var(--type-label-weight);
+    font-size:var(--type-label-size); line-height:var(--type-label-leading);
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text-secondary);
   }
   .kit-head .text-title { margin:0; }
-  .kit-head p { margin:0; color:var(--color-on-surface-muted); }
+  .kit-head p { margin:0; color:var(--color-text-secondary); }
   .kit-layout { display:flex; align-items:flex-start; gap:var(--space-group); }
   .kit-nav {
-    width:calc(var(--space-section) * 3 + var(--space-block) + var(--space-tight)); flex:none; position:sticky; top:calc(44px + var(--space-section));
+    width:calc(var(--space-section) * 3 + var(--space-block) + var(--space-tight)); flex:none; position:sticky; top:calc(var(--size-touch) + var(--space-section));
     display:flex; flex-direction:column; gap:var(--space-group);
   }
   .kit-nav-group { display:flex; flex-direction:column; gap:var(--space-snug); }
   .kit-nav-group-label, .kit-group-label, .kit-cell-label, .kit-sub-kicker {
-    margin:0; font:500 var(--type-label-size)/var(--type-label-leading) var(--font-sans);
-    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-ink-50);
+    margin:0; font-family:var(--font-sans); font-weight:var(--type-label-weight);
+    font-size:var(--type-label-size); line-height:var(--type-label-leading);
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text-tertiary);
   }
   .kit-sub-kicker { padding:var(--space-tight) 0 0; }
   .kit-toolbar {
@@ -239,7 +193,7 @@
   }
   .kit-tool { display:flex; align-items:center; gap:var(--space-snug); }
   .kit-tool .cov-seg { margin:0; width:auto; }
-  .kit-group { display:flex; flex-direction:column; gap:var(--space-section); scroll-margin-top:calc(44px + var(--space-section)); }
+  .kit-group { display:flex; flex-direction:column; gap:var(--space-section); scroll-margin-top:calc(var(--size-touch) + var(--space-section)); }
   .kit-part { margin:0; }
   .kit-phase, .kit-matrix { align-items:center; }
   .kit-phase { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--space-group); }
@@ -254,39 +208,43 @@
   .kit-frame.is-w1024 { max-width:1024px; }
   .kit-nav summary {
     cursor:pointer; list-style:none;
-    font:500 var(--type-ui-size)/var(--type-ui-leading) var(--font-sans);
+    font-family:var(--font-sans); font-weight:var(--type-ui-weight);
+    font-size:var(--type-ui-size); line-height:var(--type-ui-leading);
     color:var(--color-on-surface);
   }
   .kit-nav-jump {
     color:inherit; text-decoration:none;
-    font:inherit;
+    font-family:inherit; font-weight:inherit; font-size:inherit; line-height:inherit;
   }
   .kit-nav a[aria-current="true"] { color:var(--color-on-surface); }
   .kit-nav summary::-webkit-details-marker { display:none; }
-  .kit-nav summary:hover { text-decoration:underline; }
+  @media (hover:hover) { .kit-nav summary:hover { text-decoration:underline; } }
   .kit-sub { display:flex; flex-direction:column; gap:var(--space-tight); padding:var(--space-tight) 0; }
   .kit-sub a {
     padding-left:var(--space-snug); text-decoration:none;
-    font:400 var(--type-body-size)/var(--type-body-leading) var(--font-sans);
-    color:var(--color-on-surface-muted);
+    font-family:var(--font-sans); font-weight:var(--type-body-weight);
+    font-size:var(--type-body-size); line-height:var(--type-body-leading);
+    color:var(--color-text-secondary);
   }
-  .kit-sub a:hover { color:var(--color-on-surface); text-decoration:underline; }
+  @media (hover:hover) { .kit-sub a:hover { color:var(--color-on-surface); text-decoration:underline; } }
   /* Kit-only: two section steps between component groups. */
   .kit-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--space-section) * 2); }
-  .kit-section { display:flex; flex-direction:column; gap:var(--space-section); scroll-margin-top:calc(44px + var(--space-section)); }
+  .kit-section { display:flex; flex-direction:column; gap:var(--space-section); scroll-margin-top:calc(var(--size-touch) + var(--space-section)); }
   .kit-section .text-heading { margin:0; }
-  .kit-story { display:flex; flex-direction:column; gap:var(--space-snug); scroll-margin-top:calc(44px + var(--space-section)); }
+  .kit-story { display:flex; flex-direction:column; gap:var(--space-snug); scroll-margin-top:calc(var(--size-touch) + var(--space-section)); }
   .kit-label {
     display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--space-inline) var(--space-snug);
-    margin:0; font:500 var(--type-label-size)/var(--type-label-leading) var(--font-sans);
-    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-on-surface-muted);
+    margin:0; font-family:var(--font-sans); font-weight:var(--type-label-weight);
+    font-size:var(--type-label-size); line-height:var(--type-label-leading);
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text-secondary);
   }
   .kit-note {
-    font:400 var(--type-body-size)/var(--type-body-leading) var(--font-sans);
-    letter-spacing:normal; text-transform:none; color:var(--color-ink-70);
+    font-family:var(--font-sans); font-weight:var(--type-body-weight);
+    font-size:var(--type-body-size); line-height:var(--type-body-leading);
+    letter-spacing:normal; text-transform:none; color:var(--color-text-secondary);
   }
   .kit-frame {
-    background:var(--color-surface); border:1px solid var(--color-ink-20);
+    background:var(--color-surface); border:1px solid var(--color-border-subtle);
     border-radius:var(--radius-control); padding:var(--space-section);
   }
   .kit-frame:has(.kit-scale) { padding:0 var(--space-group); }
@@ -294,19 +252,21 @@
   .kit-scale-row {
     display:flex; align-items:center; gap:var(--space-card);
     padding-block:var(--space-snug);
-    border-bottom:1px solid var(--color-ink-20);
+    border-bottom:1px solid var(--color-border-subtle);
   }
   .kit-scale-row:last-child { border-bottom:none; }
   .kit-scale-meta {
     flex:0 0 calc(var(--space-section) * 4); display:flex; flex-direction:column; gap:var(--space-tight); min-width:0;
   }
   .kit-scale-name {
-    font:500 var(--type-label-size)/var(--type-label-leading) var(--font-sans);
-    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-on-surface-muted);
+    font-family:var(--font-sans); font-weight:var(--type-label-weight);
+    font-size:var(--type-label-size); line-height:var(--type-label-leading);
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text-secondary);
   }
   .kit-scale-note {
-    font:400 var(--type-caption-size)/var(--type-caption-leading) var(--font-sans);
-    color:var(--color-ink-70);
+    font-family:var(--font-sans); font-weight:var(--type-caption-weight);
+    font-size:var(--type-caption-size); line-height:var(--type-caption-leading);
+    color:var(--color-text-secondary);
   }
   .kit-scale-sample { flex:1; min-width:0; display:flex; align-items:center; }
   .kit-scale-sample .kit-swatch, .kit-scale-sample .kit-radii {
@@ -316,12 +276,14 @@
   .kit-chip { display:flex; flex-direction:column; gap:var(--space-tight); flex:1 1 72px; max-width:120px; min-width:0; }
   .kit-chip .kit-swatch { width:100%; height:var(--space-section); }
   .kit-chip-label {
-    font:500 var(--type-label-size)/var(--type-label-leading) var(--font-sans);
+    font-family:var(--font-sans); font-weight:var(--type-label-weight);
+    font-size:var(--type-label-size); line-height:var(--type-label-leading);
     letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-on-surface);
   }
   .kit-chip-value {
-    font:400 var(--type-caption-size)/var(--type-caption-leading) var(--font-sans);
-    color:var(--color-ink-70); overflow-wrap:anywhere;
+    font-family:var(--font-sans); font-weight:var(--type-caption-weight);
+    font-size:var(--type-caption-size); line-height:var(--type-caption-leading);
+    color:var(--color-text-secondary); overflow-wrap:anywhere;
   }
   .kit-frame.kit-wrap {
     width:fit-content; max-width:100%;
@@ -330,7 +292,7 @@
   .kit-glyph { display:block; overflow:visible; }
   .kit-scale-heading {
     margin:var(--space-group) 0 0; padding-top:var(--space-snug);
-    border-top:1px solid var(--color-ink-20); color:var(--color-on-surface);
+    border-top:1px solid var(--color-border-subtle); color:var(--color-on-surface);
   }
   .kit-scale-heading:first-child { margin-top:0; border-top:none; }
   .kit-motion-demo { display:flex; align-items:center; gap:var(--space-group); width:100%; }
@@ -346,26 +308,17 @@
   }
   .kit-swatch {
     width:calc(var(--space-section) * 2); height:calc(var(--space-card) * 2 + var(--space-inline));
-    border:1px solid var(--color-ink-30); border-radius:var(--radius-control);
+    border:1px solid var(--color-border); border-radius:var(--radius-control);
   }
   .kit-radii {
     width:calc(var(--space-section) * 2); height:calc(var(--space-block) * 2);
-    background:var(--color-ink-10); border:1px solid var(--color-ink-30);
+    background:var(--color-surface-sunken); border:1px solid var(--color-border);
   }
   .kit-motion { margin:0; color:var(--color-on-surface); }
-  .kit-frame .cov-svg, .kit-frame .intro-map { width:min(100%, 380px); display:block; }
+  .kit-frame .cov-svg, .kit-frame .intro-map { width:min(100%, var(--width-map)); display:block; }
   .kit-frame .m-row { width:100%; }
   .kit-frame .card-result { height:auto; }
   .kit-frame .btn-block { width:auto; }
-  .kit-frame .addr-wrap { max-width:420px; }
+  .kit-frame .addr-wrap { max-width:var(--width-map); }
   .kit-missing { margin:0; color:var(--color-danger); }
-  @media (max-width:1023px) {
-    .kit-layout { flex-direction:column; }
-    .kit-nav { position:static; width:auto; }
-  }
-  @media (max-width:639px) {
-    .kit-frame { padding:var(--space-group); }
-    .kit-scale-row { flex-direction:column; align-items:flex-start; }
-    .kit-scale-meta { flex:none; width:100%; }
-  }
 
