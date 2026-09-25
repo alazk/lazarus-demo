@@ -42,7 +42,7 @@ function renderCoverage(ready, mode = "console") {
   const c = COV_C, k = COV_R[hops] / COV_R[3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
-    return `<g class="cov-pill ${n <= hops ? "on" : ""}" data-ring="${n}" transform="translate(${c} ${y})">
+    return `<g class="cov-pill" data-reach="${n <= hops ? "in" : "out"}" data-ring="${n}" transform="translate(${c} ${y})">
       <rect x="-32" y="-12" width="64" height="24" rx="12"/>
       <text y="4" text-anchor="middle">${hopWord(n)}</text></g>`;
   }).join("");
@@ -50,7 +50,7 @@ function renderCoverage(ready, mode = "console") {
     <div class="cov">
       ${mode === "scan" ? "" : `
       <div class="cov-seg" role="group" aria-label="Coverage">
-        ${[1, 2, 3].map((n) => `<button class="m-seg-btn text-ui ${n === hops ? "sel" : ""}" type="button"
+        ${[1, 2, 3].map((n) => `<button class="m-seg-btn text-ui" type="button"
           data-hops="${n}" aria-pressed="${n === hops}"
           ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
       </div>`}
@@ -60,7 +60,8 @@ function renderCoverage(ready, mode = "console") {
            aria-valuetext="${hopWord(hops)}">
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-        ${[1, 2, 3].map((n) => `<circle class="cov-ring ${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+        ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="${n <= hops ? "in" : "out"}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+        <circle class="map-focus map-focus-slider" cx="${c}" cy="${c}" r="${COV_R[hops]}" fill="none"/>
         ${mode === "scan" ? pulseRings("cov-spulse", COV_R[hops]) : ""}
         <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0">
           <animate attributeName="stroke-opacity" values="${mapToken("--map-alpha-live")};0" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>
@@ -91,10 +92,10 @@ function renderCoverage(ready, mode = "console") {
         <g class="wdots">${ready.map((w) => {
           const [x, y] = walletXY(w.key), dd = DIST[w.key];
           const inside = dd === 0 || isCovered(dd);
-          return `<g class="wdot ${inside ? "in" : "out"}${dd === 0 ? " on-core" : ""}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
+          return `<g class="wdot${dd === 0 ? " on-core" : ""}" data-reach="${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
             ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
-            <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="0"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text></g>`;
+            <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="0"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text><circle class="map-focus" r="18" fill="none"/></g>`;
         }).join("")}</g>
       </svg>
       </div>
@@ -116,18 +117,19 @@ function placePick(addr) {
   const w = presets.find((x) => x.address.toLowerCase() === pickAddr);
   document.querySelectorAll("#cov-svg .wdot").forEach((el) => {
     const on = (el.dataset.addr || "").toLowerCase() === pickAddr;
-    el.classList.toggle("chosen", on);
+    el.setAttribute("aria-pressed", String(on));
     const fill = el.querySelector(".wdot-fill");
-    if (fill) tweenAttr(fill, "r", on ? 13 : 0, MOTION.interaction);
+    if (fill) fill.setAttribute("r", "0");
   });
   if (!w) {
-    document.getElementById("cov-core-pick")?.classList.remove("on");
+    const core = document.getElementById("cov-core-pick");
+    if (core) core.removeAttribute("data-state");
     g.style.opacity = "0";
     return;
   }
   const d = DIST[w.key];
   const ring = document.getElementById("cov-core-pick");
-  if (ring) ring.classList.toggle("on", d === 0);
+  if (ring) { if (d === 0) ring.dataset.state = "live"; else ring.removeAttribute("data-state"); }
   const [x, y] = walletXY(w.key);
   const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not") + (d === 0 ? " on-core" : "");
   g.setAttribute("class", cls);
@@ -144,15 +146,21 @@ function paintReach(n, ready, opts = {}) {
   ready = ready || presets.filter((p) => p.address);
   const svg = document.getElementById("cov-svg");
   if (svg) {
-    svg.querySelectorAll(".cov-ring").forEach((r) =>
-      r.setAttribute("class", `cov-ring ${Number(r.dataset.ring) <= n ? "in" : "out"}`));
-    svg.querySelectorAll(".cov-pill").forEach((g) =>
-      g.setAttribute("class", `cov-pill ${Number(g.dataset.ring) <= n ? "on" : ""}`));
+    svg.querySelectorAll(".cov-ring").forEach((r) => {
+      r.setAttribute("data-reach", Number(r.dataset.ring) <= n ? "in" : "out");
+      r.removeAttribute("data-preview");
+    });
+    const focus = svg.querySelector(".map-focus-slider");
+    if (focus) focus.setAttribute("r", COV_R[n]);
+    svg.querySelectorAll(".cov-pill").forEach((g) => {
+      g.setAttribute("data-reach", Number(g.dataset.ring) <= n ? "in" : "out");
+      g.removeAttribute("data-preview");
+      g.setAttribute("class", "cov-pill");
+    });
     svg.querySelectorAll(".wdot").forEach((el) => {
       const raw = el.dataset.dist, dd = raw === "" ? null : Number(raw);
       const inside = dd === 0 || (dd !== null && dd <= n);
-      el.classList.toggle("in", inside);
-      el.classList.toggle("out", !inside);
+      el.setAttribute("data-reach", inside ? "in" : "out");
     });
   }
   const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
@@ -163,7 +171,7 @@ function paintReach(n, ready, opts = {}) {
   stage.querySelectorAll(".m-row").forEach((row) => {
     const raw = row.dataset.dist, dd = raw === "" ? null : Number(raw);
     const inside = dd !== null && dd !== undefined && dd <= n;
-    row.classList.toggle("in", inside);
+    row.setAttribute("data-reach", inside ? "in" : "out");
     const sub = row.querySelector(".m-sub");
     if (sub && row.dataset.key) {
       const st = dd === null || dd === undefined ? "" : inside ? "covered" : "not covered";
@@ -177,7 +185,6 @@ function paintReach(n, ready, opts = {}) {
   });
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     const on = Number(b.dataset.hops) === n;
-    b.classList.toggle("sel", on);
     b.setAttribute("aria-pressed", String(on));
   });
 }

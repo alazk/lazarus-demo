@@ -7,6 +7,7 @@ function paintSteps(kind, hitHop) {
     const n = Number(row.dataset.step);
     const note = row.querySelector(".step-note");
     row.className = "step";
+    row.removeAttribute("data-state");
     const past = n > hops && !(kind === "outside" && n === hitHop);
     if (past) {
       row.classList.add("beyond");
@@ -14,17 +15,19 @@ function paintSteps(kind, hitHop) {
       return;
     }
     if (kind === "failed" || kind === "unattested") {
-      row.classList.add(kind);
+      row.dataset.state = kind;
       if (note) note.textContent = kind;
       return;
     }
     if (hitHop == null || n < hitHop) {
-      row.classList.add("clear", "resolved");
+      row.dataset.state = "clear";
+      row.classList.add("resolved");
       if (note) note.textContent = "clear";
       return;
     }
     if (n === hitHop) {
-      row.classList.add(kind, "resolved");
+      row.dataset.state = kind;
+      row.classList.add("resolved");
       if (note) note.textContent = kind === "outside" ? "outside" : kind;
       return;
     }
@@ -45,30 +48,35 @@ function syncCoverageRings(svg) {
   const band = {};
   svg.querySelectorAll(".cband").forEach((el) => {
     const n = Number(el.dataset.band);
-    band[n] = ["clear", "listed", "exposed", "outside"].find((name) => el.classList.contains(name)) || "";
+    band[n] = el.dataset.state || "";
   });
-  const hasResult = Object.values(band).some(Boolean) || !!svg.querySelector(".cov-core.listed");
+  const hasResult = Object.values(band).some(Boolean) || svg.querySelector(".cov-core")?.dataset.state === "listed";
+  const paint = (el, state) => {
+    if (state) el.dataset.state = state;
+    else el.removeAttribute("data-state");
+  };
   svg.querySelectorAll(".cov-ring").forEach((r) => {
     const n = Number(r.dataset.ring);
     const inside = n <= hops;
-    const state = hopOutcome(band, n, hasResult, inside);
-    r.setAttribute("class", `cov-ring ${inside ? "in" : "out"}${state ? " " + state : ""}`);
+    r.setAttribute("data-reach", inside ? "in" : "out");
+    r.setAttribute("class", "cov-ring");
+    paint(r, hopOutcome(band, n, hasResult, inside));
   });
   svg.querySelectorAll(".cov-pill").forEach((g) => {
     const n = Number(g.dataset.ring);
     const inside = n <= hops;
-    const state = hopOutcome(band, n, hasResult, inside);
-    g.setAttribute("class", state ? `cov-pill ${state}` : `cov-pill${inside && !hasResult ? " on" : ""}`);
+    g.setAttribute("data-reach", inside && !hasResult ? "in" : "out");
+    g.setAttribute("class", "cov-pill");
+    paint(g, hopOutcome(band, n, hasResult, inside));
   });
   svg.querySelectorAll(".wdot").forEach((el) => {
     const raw = el.dataset.dist;
     const d = raw === "" || raw == null ? null : Number(raw);
     const n = d === 0 ? 1 : d;
     const inside = d === 0 || (d !== null && d <= hops);
-    const state = n ? hopOutcome(band, n, hasResult, inside) : "";
-    const chosen = el.classList.contains("chosen") ? " chosen" : "";
-    const core = d === 0 ? " on-core" : "";
-    el.setAttribute("class", `wdot ${inside ? "in" : "out"}${core}${state ? " " + state : ""}${chosen}`);
+    el.setAttribute("data-reach", inside ? "in" : "out");
+    el.classList.toggle("on-core", d === 0);
+    paint(el, n ? hopOutcome(band, n, hasResult, inside) : "");
   });
 }
 function paintBands(spec) {
@@ -76,14 +84,20 @@ function paintBands(spec) {
   if (!svg || !spec) return;
   svg.querySelectorAll(".cband").forEach((el) => {
     const n = Number(el.dataset.band);
-    let cls = "cband";
-    if (spec.clear && n <= spec.clear && n !== spec.exposed && n !== spec.outside && n !== spec.listed) cls = "cband clear";
-    if (spec.listed === n) cls = "cband listed";
-    if (spec.exposed === n) cls = "cband exposed";
-    if (spec.outside === n) cls = "cband outside";
-    el.setAttribute("class", cls);
+    let state = "";
+    if (spec.clear && n <= spec.clear && n !== spec.exposed && n !== spec.outside && n !== spec.listed) state = "clear";
+    if (spec.listed === n) state = "listed";
+    if (spec.exposed === n) state = "exposed";
+    if (spec.outside === n) state = "outside";
+    el.setAttribute("class", "cband");
+    if (state) el.dataset.state = state;
+    else el.removeAttribute("data-state");
   });
-  if (spec.core) svg.querySelector(".cov-core")?.setAttribute("class", "cov-core listed");
+  const core = svg.querySelector(".cov-core");
+  if (core) {
+    if (spec.core) core.dataset.state = "listed";
+    else core.removeAttribute("data-state");
+  }
   syncCoverageRings(svg);
 }
 let kitActive = false;
@@ -310,7 +324,7 @@ async function renderStates() {
     if (!node) { add(id, title, story, null, { fixture: story }); return; }
     const g = node.cloneNode(true);
     g.removeAttribute("transform");
-    if (story !== "Selected") g.classList.remove("chosen");
+    if (story !== "Selected") g.setAttribute("aria-pressed", "false");
     const label = id === "label";
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "kit-glyph");

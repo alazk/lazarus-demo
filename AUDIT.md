@@ -116,4 +116,27 @@ State classes in use: `.sel`, `.chosen`, `.on`, `.held`, `.in`, `.out`, `.is-hov
 
 ## Judgement calls
 
-Recorded as the later phases make them. Phase 0 makes none that change the product.
+1. Colour custom properties after phase 1: **53** (18 primitives, 25 semantic, 10 component). The target of 40 cannot hold the named semantic set (25) plus the 18 distinct hex steps those roles reference, before map, state, and shadow tokens. Nothing named in the brief was dropped. Before: 89 colour custom properties.
+2. `--map-reach` stays, even though it equals accent. The map names its own signal so a later retint does not recolour buttons.
+3. `--color-focus-ring` stays, even though it equals accent. Focus is a separate role.
+4. The coverage disc left the `--blue-75` mix in this phase. That step was not referenced by tier 2, so it could not remain a primitive. The disc is now a 6% wash of text. Phase 3 states the layer rule.
+5. Merged identical roles: danger into block edge, success into pass edge, on-surface into text, on-tone into on-accent (now white, so glyphs on ink and on accent match), border-subtle into border, the coverage aliases into `--map-reach`, map-inactive into text-disabled, map-core into surface-sunken, map-core-edge into border, map-on-mark into on-accent.
+6. Press fill is text mixed at 8% into surface-sunken. No extra ink step.
+7. `<meta name="theme-color" content="#FBFCFE">` stays. A meta value cannot read a custom property. It matches `--bone-50`.
+8. The kit reads primitive names from the `:root` rule. The only primitive names in JavaScript are the prefix filters that group that ramp.
+9. Failed and unattested steps use `--tone-neutral-wash` as their fill, so that required token is not dead. The tile is a step greyer than a raised card.
+10. `--state-selected-fill`, `--state-selected-mark`, and `--state-disabled` are referenced at the colours those controls already used. Phase 2 is what makes every family follow them.
+
+11. Phase 1 and phase 2 share one commit. State tokens were added in the colour file, and the selector changes touch the same stylesheets. Interactive staging was not used, so the colour system was not committed on its own.
+12. Mouse focus clears the outline (`:focus:not(:focus-visible) { outline: none }`). Keyboard focus and the kit `.is-focus` hook keep the single `--color-focus-ring` outline. The ring is not drawn with a box-shadow.
+13. A filled button's pressed colour is text mixed at 12% into accent-hover. There is no third blue step.
+14. The badge is an ink control, not the accent button. Hover lightens it by mixing on-accent at 16%. It does not change opacity.
+15. Act dots are a small segment. The selected dot is text-coloured. An unselected dot's hover edge is border-strong.
+16. Coverage uses `data-reach="in|out"`. A radius preview uses `data-preview`, not `data-state`, because it is not an outcome.
+17. Selection and activation use `aria-pressed`, `aria-current="step"`, `aria-hidden`, and `data-state`. The classes `.sel`, `.chosen`, `.held`, `.on`, and `.in` are no longer state. `.on-core` stays: it marks the wallet that sits on the centre, which is structure, not selection.
+18. The selected wallet is a `--map-reach` stroke. The disc-fill tween is gone; the fill circle stays at radius 0.
+19. A selected list row is transparent with the inset mark. It does not also take a sunken fill.
+20. Kit navigation is a list row (hover fill, inset mark). Stat links and path links are text links (underline, colour unchanged). Paste is an outlined text button.
+21. Segment hover is a fill only. Disabled buttons, fields, and segments use `--state-disabled` at full opacity.
+22. `data-state` values `live`, `done`, and `ready` mark the scan wave, the pick pulse, and the result actions. They are activation, not outcomes.
+23. The attested step shares the clear step's colour through `data-state="attested"`. Process classes (`active`, `idle`, `waiting`, `resolved`, `beyond`) stay classes.

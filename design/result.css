@@ -13,10 +13,10 @@
       border-color var(--duration-emphasis) var(--ease-newton);
   }
   .card-result { border:1px solid var(--color-border); border-top-width:4px; }
-  .card-result.clear { background:var(--color-surface-raised); border-top-color:var(--tone-pass-edge); }
-  .card-result.listed, .card-result.exposed { background:var(--color-surface-raised); border-top-color:var(--tone-block-edge); }
-  .card-result.outside { background:var(--color-surface-raised); border-top-color:var(--tone-caution-edge); }
-  .card-result.failed, .card-result.unattested { background:var(--color-surface-raised); border-top-color:var(--tone-neutral-edge); }
+  .card-result[data-state="clear"] { background:var(--color-surface-raised); border-top-color:var(--tone-pass-edge); }
+  .card-result[data-state="listed"], .card-result[data-state="exposed"] { background:var(--color-surface-raised); border-top-color:var(--tone-block-edge); }
+  .card-result[data-state="outside"] { background:var(--color-surface-raised); border-top-color:var(--tone-caution-edge); }
+  .card-result[data-state="failed"], .card-result[data-state="unattested"] { background:var(--color-surface-raised); border-top-color:var(--tone-neutral-edge); }
   .result-lead { display:flex; flex-direction:column; }
   .result-status { display:flex; align-items:center; gap:var(--space-inline); margin-bottom:var(--space-inline); }
   .result-status.tone-pass { color:var(--tone-pass-text); }
@@ -76,7 +76,7 @@
     padding:var(--space-snug); border-radius:var(--radius-control);
   }
   .trail .step-icon { width:var(--size-icon-sm); height:var(--size-icon-sm); font-size:var(--type-label-size); grid-row:1; }
-  .trail .step.outside .step-icon { width:var(--size-icon); height:var(--size-icon-sm); font-size:var(--type-label-size); padding-top:var(--space-tight); }
+  .trail .step[data-state="outside"] .step-icon { width:var(--size-icon); height:var(--size-icon-sm); font-size:var(--type-label-size); padding-top:var(--space-tight); }
   .trail .step-label {
     grid-row:1; min-width:0;
   }
@@ -88,7 +88,7 @@
     margin:var(--space-block) 0 0; min-height:var(--size-touch); opacity:0; visibility:hidden;
     transition:opacity var(--duration-emphasis) var(--ease-newton) var(--duration-interaction), visibility 0s linear var(--duration-interaction);
   }
-  #actions-slot.on { opacity:1; visibility:visible; transition-delay:var(--duration-interaction), 0s; }
+  #actions-slot[data-state="ready"] { opacity:1; visibility:visible; transition-delay:var(--duration-interaction), 0s; }
   .actions { display:flex; align-items:center; gap:var(--space-snug); margin:var(--space-block) 0 0; flex-wrap:wrap; }
   .actions .line { flex:1; min-width:var(--space-block); height:1px; background:var(--color-border); }
   .card-result .actions {
@@ -111,8 +111,8 @@
   .trail .steps { width:100%; max-width:none; }
   /* The one-line caption needs one line of height, not two. */
 
-  .m-row.in .m-bar { background:var(--color-reach); }
-  .m-row.in .m-sub { color:var(--color-text-secondary); }
+  .m-row[data-reach="in"] .m-bar { background:var(--map-reach); }
+  .m-row[data-reach="in"] .m-sub { color:var(--color-text-secondary); }
 
   /* ── The wallet line and its draggable dot ── */
   .cov-ray {
@@ -131,7 +131,7 @@
     grid-area:1 / 1; opacity:0; visibility:hidden;
     transition:opacity var(--duration-interaction) var(--ease-newton), visibility 0s linear var(--duration-interaction);
   }
-  .act-panel.on { opacity:1; visibility:visible; transition:opacity var(--duration-interaction) var(--ease-newton) 0s, visibility 0s; }
+  .act-panel[aria-hidden="false"] { opacity:1; visibility:visible; transition:opacity var(--duration-interaction) var(--ease-newton) 0s, visibility 0s; }
 
   /* The intro map uses the dashboard's styling; only its behaviour differs. */
   .intro-map { cursor:default; max-width:var(--width-map); }
@@ -215,7 +215,7 @@
 .warnline {
   display: flex; align-items: flex-start; gap: var(--space-snug); margin-top: var(--space-group);
   padding: var(--space-snug) var(--space-group); border-radius: var(--radius-control);
-  background: var(--tone-caution-a); border: 1px solid var(--tone-caution-edge);
+  background: var(--tone-caution-wash); border: 1px solid var(--tone-caution-edge);
   font-size: var(--type-body-size); line-height: var(--type-body-leading); color: var(--color-text);
   max-width: var(--measure-text);
 }

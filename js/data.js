@@ -37,8 +37,8 @@ const STEP_LABELS = [
 ];
 const WARN_ICON = `<svg class="warn-icon" viewBox="0 0 24 24" aria-hidden="true">
   <path d="M12 3.2 22.4 20.6H1.6Z" fill="currentColor"/>
-  <rect x="11" y="9" width="2" height="6.4" rx="1" fill="var(--color-on-tone)"/>
-  <circle cx="12" cy="17.7" r="1.2" fill="var(--color-on-tone)"/></svg>`;
+  <rect x="11" y="9" width="2" height="6.4" rx="1" fill="var(--color-on-accent)"/>
+  <circle cx="12" cy="17.7" r="1.2" fill="var(--color-on-accent)"/></svg>`;
 const STEP_TILE = ["Wallet", "1 hop", "2 hops", "3 hops"];
 const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three hops out"];
 

@@ -86,9 +86,9 @@ function mountMapAnatomy(catalog) {
   story("Colour roles", "Reach, the disc, inactive, the core, and the three tones.", row(
     [
       ["--map-reach", "--map-reach"],
-      ["--map-reach-fill", "--map-reach-fill"],
-      ["--map-inactive", "--map-inactive"],
-      ["--map-core-edge", "--map-core"],
+      ["--map-disc", "--map-disc"],
+      ["--color-text-disabled", "--color-text-disabled"],
+      ["--color-border", "--color-surface-sunken"],
       ["--tone-pass-edge", "--tone-pass-edge"],
       ["--tone-block-edge", "--tone-block-edge"],
       ["--tone-caution-edge", "--tone-caution-edge"],
@@ -98,7 +98,7 @@ function mountMapAnatomy(catalog) {
       ring.style.stroke = "var(" + stroke + ")";
       const dot = circle(svg, { cx: "36", cy: "36", r: "7", class: "cov-pick-dot" });
       dot.style.fill = "var(" + fill + ")";
-      dot.style.stroke = "var(--map-on-mark)";
+      dot.style.stroke = "var(--color-on-accent)";
       return caption(stroke, svg);
     })
   ));
@@ -366,12 +366,12 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     note: "Surface, text, accent, focus, and danger.",
     node: ramp([
       ["Surface", "--color-surface", "Page background."],
-      ["On surface", "--color-on-surface", "Primary text."],
-      ["Muted", "--color-on-surface-muted", "Secondary text."],
+      ["On surface", "--color-text", "Primary text."],
+      ["Muted", "--color-text-secondary", "Secondary text."],
       ["Accent", "--color-accent", "Buttons, links, coverage reach."],
       ["Accent hover", "--color-accent-hover", "Pressed or hovered accent."],
-      ["Focus ring", "--focus-ring-color", "Keyboard focus."],
-      ["Danger", "--color-danger", "Invalid input only."],
+      ["Focus ring", "--color-focus-ring", "Keyboard focus."],
+      ["Danger", "--tone-block-edge", "Invalid input only."],
     ]),
   }, { heading: "Tone" }];
   [
@@ -383,19 +383,31 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     colorRows.push({
       name,
       note: words,
-      node: ramp(["a", "b", "edge"].map((step) => [step, `--tone-${tone}-${step}`, `${tone} ${step}.`])),
+      node: ramp(["wash", "edge", "text"].map((step) => [step, `--tone-${tone}-${step}`, `${tone} ${step}.`])),
     });
   });
   colorRows.push({ heading: "Primitives" });
-  [
-    ["Ink", ["10", "20", "30", "50", "70", "80", "100"].map((step) => [step, `--color-ink-${step}`])],
-    ["Leaf", ["10", "30", "50", "70"].map((step) => [step, `--color-leaf-${step}`])],
-    ["Ruby", ["10", "30", "50", "70"].map((step) => [step, `--color-ruby-${step}`])],
-    ["Gold", ["10", "30", "50", "70"].map((step) => [step, `--color-gold-${step}`])],
-    ["Blue", ["50", "100", "200", "500", "600", "800"].map((step) => [step, `--blue-${step}`])],
-    ["Bone", ["50", "100"].map((step) => [step, `--bone-${step}`])],
-  ].forEach(([name, steps]) => {
-    colorRows.push({ name, note: name + " ramp.", node: ramp(steps) });
+  // Names come from the stylesheet so product code does not repeat the ramp.
+  const primitiveNames = [];
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try { rules = sheet.cssRules; } catch (e) { continue; }
+    for (const rule of rules) {
+      if (rule.selectorText !== ":root" || !rule.style) continue;
+      for (let i = 0; i < rule.style.length; i++) primitiveNames.push(rule.style[i]);
+    }
+  }
+  const primitiveGroups = [
+    ["Bone", (name) => name === "--bone-50" || name === "--white"],
+    ["Ink", (name) => name.startsWith("--ink-")],
+    ["Blue", (name) => name.startsWith("--blue-")],
+    ["Leaf", (name) => name.startsWith("--leaf-")],
+    ["Ruby", (name) => name.startsWith("--ruby-")],
+    ["Gold", (name) => name.startsWith("--gold-")],
+  ];
+  primitiveGroups.forEach(([name, match]) => {
+    const steps = primitiveNames.filter(match).map((token) => [token.replace(/^--/, ""), token]);
+    if (steps.length) colorRows.push({ name, note: name + " ramp.", node: ramp(steps) });
   });
   addScale("color", "Color", colorRows);
   addScale("radii", "Radii", [
@@ -428,7 +440,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     paintAct(i, false);
     take("intro-map", "Intro map", radiusIntro[item.cover], ".intro-map");
     if (item.cover === "none") takeGlyph("label", "Label", "Outside", stage.querySelector(".intro-map .cov-pill"));
-    if (item.cover === "all") takeGlyph("label", "Label", "Covered", stage.querySelector(".intro-map .cov-pill.on"));
+    if (item.cover === "all") takeGlyph("label", "Label", "Covered", stage.querySelector('.intro-map .cov-pill[data-reach="in"]'));
     if (i === 0) {
       take("button", "Button", "Primary", "#go-console");
       const primary = stage.querySelector("#go-console")?.cloneNode(true);
@@ -446,7 +458,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       }
       take("act", "Act", "Dots", ".acts");
       focusOf("act", "Act", "Focus", stage.querySelector(".act-dot"));
-      take("intro", "Intro", "Panel", ".act-panel.on");
+      take("intro", "Intro", "Panel", '.act-panel[aria-hidden="false"]');
       focusOf("nav", "Nav", "Focus", document.querySelector(".states-link"));
     }
   });
@@ -468,20 +480,20 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       }
       const segHover = stage.querySelector(".cov-seg")?.cloneNode(true);
       if (segHover) {
-        segHover.querySelector(".m-seg-btn:not(.sel)")?.classList.add("is-hover");
+        segHover.querySelector('.m-seg-btn:not([aria-pressed="true"])')?.classList.add("is-hover");
         add("segment", "Segment", "Hover", segHover);
       }
-      takeGlyph("circle", "Circle", "Outside", stage.querySelector("#cov-svg .wdot.out"));
-      takeGlyph("circle", "Circle", "Covered", stage.querySelector("#cov-svg .wdot.in"));
-      const cHover = stage.querySelector("#cov-svg .wdot.out")?.cloneNode(true);
+      takeGlyph("circle", "Circle", "Outside", stage.querySelector('#cov-svg .wdot[data-reach="out"]'));
+      takeGlyph("circle", "Circle", "Covered", stage.querySelector('#cov-svg .wdot[data-reach="in"]'));
+      const cHover = stage.querySelector('#cov-svg .wdot[data-reach="out"]')?.cloneNode(true);
       if (cHover) { cHover.classList.add("is-hover"); takeGlyph("circle", "Circle", "Hover", cHover); }
-      const lHover = stage.querySelector("#cov-svg .cov-pill:not(.on)")?.cloneNode(true);
+      const lHover = stage.querySelector('#cov-svg .cov-pill:not([data-reach="in"])')?.cloneNode(true);
       if (lHover) { lHover.classList.add("is-hover"); takeGlyph("label", "Label", "Hover", lHover); }
     }
     if (n === 2) {
-      takeGlyph("circle", "Circle", "Selected", stage.querySelector("#cov-svg .wdot.chosen"));
+      takeGlyph("circle", "Circle", "Selected", stage.querySelector('#cov-svg .wdot[aria-pressed="true"]'));
       take("wallet-row", "WalletRow", "Covered", '.d-only .m-row[data-key="one"]');
-      take("wallet-row", "WalletRow", "Selected", ".d-only .m-row.chosen");
+      take("wallet-row", "WalletRow", "Selected", '.d-only .m-row[aria-pressed="true"]');
       take("wallet-row", "WalletRow", "Outside", '.d-only .m-row[data-key="three"]');
       take("wallet-row", "WalletRow", "Unlinked", '.d-only .m-row[data-key="clean"]');
       const hoverRow = stage.querySelector('.d-only .m-row[data-key="clean"]')?.cloneNode(true);
@@ -522,7 +534,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     add("button", "Button", "Pressed", pressed);
   }
   focusOf("button", "Button", "Focus", run);
-  focusOf("segment", "Segment", "Focus", stage.querySelector(".m-seg-btn.sel"));
+  focusOf("segment", "Segment", "Focus", stage.querySelector('.m-seg-btn[aria-pressed="true"]'));
   const disabledSeg = stage.querySelector(".cov-seg")?.cloneNode(true);
   if (disabledSeg) {
     const idle = [...disabledSeg.querySelectorAll(".m-seg-btn")].find((btn) => !btn.classList.contains("sel"));
@@ -531,7 +543,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   }
   const selectedHover = stage.querySelector(".cov-seg")?.cloneNode(true);
   if (selectedHover) {
-    selectedHover.querySelector(".m-seg-btn.sel")?.classList.add("is-hover");
+    selectedHover.querySelector('.m-seg-btn[aria-pressed="true"]')?.classList.add("is-hover");
     add("segment", "Segment", "SelectedHover", selectedHover);
   }
   const focusMap = grabMap();
@@ -672,15 +684,15 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     paintSteps(spec.steps, spec.hit);
     paintBands(spec.band);
     document.getElementById("cov-spulse")?.setAttribute("display", "none");
-    document.getElementById("cov-wave")?.setAttribute("class", "swave done");
+    (() => { const w = document.getElementById("cov-wave"); if (w) { w.className = "swave"; w.dataset.state = "done"; } })();
     const status = document.getElementById("cov-status");
     if (status) status.textContent = spec.status;
     await fillVerdict(spec.result, !!spec.outside);
     const glyphClass = { Clear: "clear", Exposed: "exposed", "Outside reach": "outside" };
     if (glyphClass[spec.radius]) {
       const name = glyphClass[spec.radius];
-      takeGlyph("label", "Label", spec.radius, stage.querySelector("#cov-svg .cov-pill." + name));
-      takeGlyph("circle", "Circle", spec.radius, stage.querySelector("#cov-svg .wdot." + name));
+      takeGlyph("label", "Label", spec.radius, stage.querySelector('#cov-svg .cov-pill[data-state="' + name + '"]'));
+      takeGlyph("circle", "Circle", spec.radius, stage.querySelector('#cov-svg .wdot[data-state="' + name + '"]'));
     }
     if (spec.step) take("step", "Step", spec.step, ".trail");
     if (stage.querySelector(".path-strip")) take("path", "Path", spec.story, ".path-strip");
@@ -731,7 +743,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       usd = 0;
       renderConsole("", "", true);
       paintBands(band);
-      document.getElementById("cov-wave")?.setAttribute("class", "swave done");
+      (() => { const w = document.getElementById("cov-wave"); if (w) { w.className = "swave"; w.dataset.state = "done"; } })();
       grid.append(grabMap() || cellLabel(""));
     }
   }
@@ -887,13 +899,13 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       const btn = sample ? sample.cloneNode(false) : document.createElement("button");
       btn.type = "button";
       btn.disabled = false;
-      btn.className = "m-seg-btn" + (value === current ? " sel" : "");
+      btn.className = "m-seg-btn";
       btn.textContent = text;
       btn.setAttribute("aria-pressed", String(value === current));
       btn.addEventListener("click", () => {
         bar.querySelectorAll(".m-seg-btn").forEach((other) => {
           const on = other === btn;
-          other.classList.toggle("sel", on);
+          
           other.setAttribute("aria-pressed", String(on));
         });
         onPick(value);

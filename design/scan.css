@@ -48,19 +48,19 @@
   .settled .step.active { animation:none;  }
   .step.waiting .step-note { animation:pulse calc(var(--duration-interaction) * 5) var(--ease-newton) infinite;  }
   .settled .step.waiting .step-note { animation:none;  }
-  .step.clear { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-pass-edge) 30%, transparent); background:var(--color-surface-raised); }
-  .step.listed, .step.exposed { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-block-edge) 30%, transparent); background:var(--color-surface-raised); }
-  .step.outside {
+  .step[data-state="clear"], .step[data-state="attested"] { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-pass-edge) 30%, transparent); background:var(--color-surface-raised); }
+  .step[data-state="listed"], .step[data-state="exposed"] { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-block-edge) 30%, transparent); background:var(--color-surface-raised); }
+  .step[data-state="outside"] {
     color:var(--color-text); border-style:dashed;
     border-color:color-mix(in srgb, var(--tone-caution-edge) 30%, transparent);
     background:var(--color-surface-raised);
   }
-  .step.failed, .step.unattested { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-neutral-edge) 30%, transparent); background:var(--color-surface-raised); }
-  .step.idle { color:var(--color-text-disabled); opacity:1; }
-  .step.clear .step-note { color:var(--tone-pass-text); }
-  .step.listed .step-note, .step.exposed .step-note { color:var(--tone-block-text); }
-  .step.outside .step-note { color:var(--tone-caution-text); }
-  .step.failed .step-note, .step.unattested .step-note { color:var(--tone-neutral-text); }
+  .step[data-state="failed"], .step[data-state="unattested"] { color:var(--color-text); border-color:color-mix(in srgb, var(--tone-neutral-edge) 30%, transparent); background:var(--tone-neutral-wash); }
+  .step.idle { color:var(--state-disabled); opacity:1; }
+  .step[data-state="clear"] .step-note, .step[data-state="attested"] .step-note { color:var(--tone-pass-text); }
+  .step[data-state="listed"] .step-note, .step[data-state="exposed"] .step-note { color:var(--tone-block-text); }
+  .step[data-state="outside"] .step-note { color:var(--tone-caution-text); }
+  .step[data-state="failed"] .step-note, .step[data-state="unattested"] .step-note { color:var(--tone-neutral-text); }
   .step-icon {
     position:relative; z-index:1; flex-shrink:0;
     width:var(--size-icon); height:var(--size-icon); border-radius:var(--radius-full);
@@ -70,14 +70,14 @@
     transition:background var(--duration-interaction), border-color var(--duration-interaction), color var(--duration-interaction), transform var(--duration-interaction);
   }
   .step.active .step-icon { border-color:var(--color-text); }
-  .step.clear .step-icon { background:var(--tone-pass-edge); border-color:var(--tone-pass-edge); color:var(--color-on-tone); }
-  .step.clear .step-icon::before { content:'✓'; }
-  .step.listed .step-icon, .step.exposed .step-icon { background:var(--tone-block-edge); border-color:var(--tone-block-edge); color:var(--color-on-tone); }
-  .step.listed .step-icon::before, .step.exposed .step-icon::before { content:'!'; }
-  .step.outside .step-icon { background:var(--tone-caution-edge); border-color:var(--tone-caution-edge); color:var(--color-on-tone); }
-  .step.outside .step-icon::before { content:'!'; }
-  .step.failed .step-icon, .step.unattested .step-icon { background:var(--tone-neutral-edge); border-color:var(--tone-neutral-edge); color:var(--color-on-tone); }
-  .step.failed .step-icon::before, .step.unattested .step-icon::before { content:'–'; }
+  .step[data-state="clear"] .step-icon, .step[data-state="attested"] .step-icon { background:var(--tone-pass-edge); border-color:var(--tone-pass-edge); color:var(--color-on-accent); }
+  .step[data-state="clear"] .step-icon::before, .step[data-state="attested"] .step-icon::before { content:'✓'; }
+  .step[data-state="listed"] .step-icon, .step[data-state="exposed"] .step-icon { background:var(--tone-block-edge); border-color:var(--tone-block-edge); color:var(--color-on-accent); }
+  .step[data-state="listed"] .step-icon::before, .step[data-state="exposed"] .step-icon::before { content:'!'; }
+  .step[data-state="outside"] .step-icon { background:var(--tone-caution-edge); border-color:var(--tone-caution-edge); color:var(--color-on-accent); }
+  .step[data-state="outside"] .step-icon::before { content:'!'; }
+  .step[data-state="failed"] .step-icon, .step[data-state="unattested"] .step-icon { background:var(--tone-neutral-edge); border-color:var(--tone-neutral-edge); color:var(--color-on-accent); }
+  .step[data-state="failed"] .step-icon::before, .step[data-state="unattested"] .step-icon::before { content:'–'; }
   /* One small pop when the answer lands, so each row resolves visibly. */
   .step.resolved .step-icon { animation:pop var(--duration-interaction) var(--ease-newton);  }
   @keyframes pop { 0% { transform:scale(.4); } 100% { transform:scale(1); } }
@@ -127,7 +127,7 @@
     display:inline-flex; align-items:baseline; gap:var(--space-tight);
     color:var(--color-text); text-decoration:none; border-bottom:1px solid var(--color-text-tertiary);
   }
-  @media (hover:hover) { .stat-link:hover { border-color:var(--color-text); } }
+  @media (hover:hover) { .stat-link:hover, .path-edge:hover { text-decoration:underline; color:var(--color-text); } }
   .stat-ext { font-size:var(--type-body-size); font-weight:500; color:var(--color-text-secondary); }
 
   /* Tablets: two columns are too narrow side by side before the phone rules

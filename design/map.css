@@ -21,17 +21,17 @@
   }
   .m-row:first-child { border-top:none; }
   .m-bar { flex:0 0 4px; background:var(--color-surface-sunken); transition:background var(--duration-interaction); }
-  .m-row.in .m-bar { background:var(--color-reach); }
+  .m-row[data-reach="in"] .m-bar { background:var(--map-reach); }
   .m-text { flex:1; display:flex; flex-direction:column; justify-content:center; gap:1px; padding-block:var(--space-inline); }
   .m-sub { color:var(--color-text-tertiary); }
-  .m-row.in .m-sub { color:var(--color-text-secondary); }
-  @media (hover:hover) { .m-row:not(.chosen):hover, .m-row.is-hover:not(.chosen) { background:var(--interaction-hover-fill); } }
-  .m-row:active, .m-row.is-press { background:var(--interaction-press-fill); }
-  .m-row.chosen { background:var(--color-surface-sunken); box-shadow:inset 2px 0 0 var(--color-text); }
-  .m-row:focus-visible { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:calc(-1 * var(--focus-ring-offset)); }
+  .m-row[data-reach="in"] .m-sub { color:var(--color-text-secondary); }
+  @media (hover:hover) { .m-row:not([aria-pressed="true"]):hover, .m-row.is-hover:not([aria-pressed="true"]) { background:var(--state-hover-fill); } }
+  .m-row:active, .m-row.is-press { background:var(--state-press-fill); }
+  .m-row[aria-pressed="true"] { background:transparent; box-shadow:var(--state-selected-mark); }
+  .m-row:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:calc(-1 * var(--focus-ring-offset)); }
   .m-list-head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-snug); }
   .m-paste {
-    align-self:flex-start; padding:var(--space-inline) 0; border:none; background:none; cursor:pointer;
+    align-self:flex-start; padding:var(--space-inline) var(--space-inline); border:1px solid transparent; border-radius:var(--radius-control); background:none; cursor:pointer;
     font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight);
     line-height:var(--type-ui-leading); color:var(--color-text-secondary);
     text-decoration:underline; text-underline-offset:3px; min-height:var(--size-touch);
@@ -53,7 +53,8 @@
     touch-action:manipulation; user-select:none; -webkit-user-select:none;
     height:auto; aspect-ratio:1;
   }
-  .cov-svg:focus { outline:none; }
+  .map-focus { fill:none; stroke:var(--color-focus-ring); stroke-width:var(--focus-ring-width); opacity:0; pointer-events:none; }
+  .wdot:focus-visible > .map-focus, .wdot.is-focus > .map-focus, .cov-svg:focus-visible > .map-focus-slider, .cov-svg.is-focus > .map-focus-slider { opacity:1; }
   .cov-ring, .cband, .cov-core, .cov-pill rect, .cov-ray, .cov-knob circle, .cov-knob path,
   .cov-pick-dot, .cov-pick-ring, .spulse circle, .swave, .sflash, .sburst,
   .spick-pulse, .cov-core-pick, .cov-ghost, .wdot circle, .intro-pick-plate {
@@ -67,23 +68,19 @@
   .cov-disc {
     transform-box:view-box; transform-origin:200px 200px;
   }
-  .cov-disc { fill:var(--map-reach-fill); transition:transform var(--duration-emphasis) var(--ease-newton); }
+  .cov-disc { fill:var(--map-disc); transition:transform var(--duration-emphasis) var(--ease-newton); }
   .cov-ring { fill:none; stroke-width:var(--map-stroke-ring); transition:stroke var(--duration-interaction), stroke-dasharray var(--duration-interaction), opacity var(--duration-interaction); }
-  .cov-ring.in  { stroke:var(--map-reach); opacity:1; }
-  .cov-ring.out { stroke:var(--map-inactive); stroke-dasharray:var(--map-dash-inactive); opacity:1; }
-  .cov-ring.held, .cov-ring.in.held, .cov-ring.out.held {
-    fill:none; stroke:var(--map-reach); stroke-dasharray:var(--map-dash-inactive); opacity:1;
+  .cov-ring[data-reach="in"] { stroke:var(--map-reach); opacity:1; }
+  .cov-ring[data-reach="out"] { stroke:var(--color-text-disabled); stroke-dasharray:var(--map-dash-inactive); opacity:1; }
+  .cov-ring[data-preview="true"] {
+    fill:none; stroke:var(--state-hover-edge); stroke-dasharray:var(--map-dash-inactive); opacity:1;
   }
-  .cov-ring.clear,
-  .cov-ring.in.clear, .cov-ring.out.clear { stroke:var(--tone-pass-edge); stroke-dasharray:none; opacity:1; }
-  .cov-ring.listed, .cov-ring.exposed,
-  .cov-ring.in.listed, .cov-ring.out.listed,
-  .cov-ring.in.exposed, .cov-ring.out.exposed { stroke:var(--tone-block-edge); stroke-dasharray:none; opacity:1; }
-  .cov-ring.outside,
-  .cov-ring.in.outside, .cov-ring.out.outside {
+  .cov-ring[data-state="clear"] { stroke:var(--tone-pass-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring[data-state="listed"], .cov-ring[data-state="exposed"] { stroke:var(--tone-block-edge); stroke-dasharray:none; opacity:1; }
+  .cov-ring[data-state="outside"] {
     stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); opacity:1;
   }
-  .cov-core { fill:var(--map-core); stroke:var(--map-core-edge); stroke-width:var(--map-stroke-ring); }
+  .cov-core { fill:var(--color-surface-sunken); stroke:var(--color-border); stroke-width:var(--map-stroke-ring); }
   .cov-core-label {
     font-family:var(--font-sans); font-weight:var(--type-ui-weight);
     line-height:var(--type-ui-leading); fill:var(--color-text); pointer-events:none;
@@ -121,18 +118,18 @@
   .reach-line { display:none; margin:var(--space-snug) 0 0; text-align:center; color:var(--color-text-secondary); font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
   .cov.is-compact .reach-line,
   .ring-fig.is-compact .reach-line { display:block; }
-  .cov-pill.on rect { fill:var(--color-surface-raised); stroke:var(--map-reach); }
-  .cov-pill.on text { fill:var(--map-reach); }
-  .cov-pill.clear rect { fill:var(--color-surface-raised); stroke:var(--tone-pass-edge); }
-  .cov-pill.clear text { fill:var(--tone-pass-text); }
-  .cov-pill.listed rect, .cov-pill.exposed rect { fill:var(--color-surface-raised); stroke:var(--tone-block-edge); }
-  .cov-pill.listed text, .cov-pill.exposed text { fill:var(--tone-block-text); }
-  .cov-pill.outside rect { fill:var(--color-surface-raised); stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
-  .cov-pill.outside text { fill:var(--tone-caution-text); }
-  .cov-pill.is-hover rect { fill:var(--interaction-hover-fill); stroke:var(--interaction-hover-edge); }
-  .cov-pill.is-hover text { fill:var(--interaction-hover-edge); }
-  .cov-pill.held rect { fill:var(--color-surface-raised); stroke:var(--map-reach); }
-  .cov-pill.held text { fill:var(--map-reach); }
+  .cov-pill[data-reach="in"] rect { fill:var(--color-surface-raised); stroke:var(--map-reach); }
+  .cov-pill[data-reach="in"] text { fill:var(--map-reach); }
+  .cov-pill[data-state="clear"] rect { fill:var(--color-surface-raised); stroke:var(--tone-pass-edge); }
+  .cov-pill[data-state="clear"] text { fill:var(--tone-pass-text); }
+  .cov-pill[data-state="listed"] rect, .cov-pill[data-state="exposed"] rect { fill:var(--color-surface-raised); stroke:var(--tone-block-edge); }
+  .cov-pill[data-state="listed"] text, .cov-pill[data-state="exposed"] text { fill:var(--tone-block-text); }
+  .cov-pill[data-state="outside"] rect { fill:var(--color-surface-raised); stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
+  .cov-pill[data-state="outside"] text { fill:var(--tone-caution-text); }
+  .cov-pill.is-hover rect { fill:var(--state-hover-fill); stroke:var(--state-hover-edge); }
+  .cov-pill.is-hover text { fill:var(--state-hover-edge); }
+  .cov-pill[data-preview="true"] rect { fill:var(--color-surface-raised); stroke:var(--state-hover-edge); }
+  .cov-pill[data-preview="true"] text { fill:var(--color-text-tertiary); }
 
   /* TEMP: hop-button shadow, no stroke. Delete this block to reverse. */
   #cov-svg .cov-pill rect,
@@ -148,23 +145,23 @@
 
   /* The picked wallet, in its band: amber when covered, grey when not. */
   .cov-pick { transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction); pointer-events:none; color:var(--color-text); }
-  .cov-pick.not { color:var(--map-inactive); }
+  .cov-pick.not { color:var(--color-text-disabled); }
   .cov-pick.found { color:var(--tone-block-edge); }
   .cov-pick.outside { color:var(--tone-caution-edge); }
-  .cov-pick-dot { fill:var(--color-text); stroke:var(--map-on-mark); stroke-width:var(--map-stroke-emphasis); }
-  .cov-pick.not .cov-pick-dot { fill:var(--map-inactive); }
+  .cov-pick-dot { fill:var(--color-text); stroke:var(--color-on-accent); stroke-width:var(--map-stroke-emphasis); }
+  .cov-pick.not .cov-pick-dot { fill:var(--color-text-disabled); }
   .cov-pick.found .cov-pick-dot { fill:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); }
   .cov-pick.outside .cov-pick-dot { fill:var(--tone-caution-edge); stroke-width:var(--map-stroke-strong); }
   .cov-pick.idle .cov-pick-dot {
     fill:var(--color-surface-raised); stroke:var(--color-text-secondary);
     stroke-width:var(--map-stroke-ring); stroke-dasharray:var(--map-dash-inactive);
   }
-  .cov-pick.dragging .cov-pick-dot { stroke:var(--map-on-mark); stroke-width:var(--map-stroke-strong); }
+  .cov-pick.dragging .cov-pick-dot { stroke:var(--color-on-accent); stroke-width:var(--map-stroke-strong); }
   .cov-pick-ring { fill:none; stroke:var(--color-text); stroke-width:var(--map-stroke-emphasis); }
   .cov-svg:not(.scanning) .cov-pick-ring { stroke:none; }
-  .cov-pick.not .cov-pick-ring { stroke:var(--map-inactive); }
+  .cov-pick.not .cov-pick-ring { stroke:var(--color-text-disabled); }
   .cov-pick.found .cov-pick-ring { stroke:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); }
-  .cov-pick.on-core .cov-pick-ring { stroke:var(--map-on-mark); }
+  .cov-pick.on-core .cov-pick-ring { stroke:var(--color-on-accent); }
   .cov-pick.on-core .cov-pick-dot { fill:none; }
 
   .cov-sum { margin:var(--space-group) 0 0; font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); text-align:center; }
@@ -177,11 +174,12 @@
   .card-check.show-paste .addr-wrap { display:flex; }
   .card-check.show-paste .paste-link, .card-check.show-paste .m-paste { display:none; }
   .paste-link {
-    align-self:flex-start; padding:var(--space-tight) 0; border:none; background:none; cursor:pointer;
+    align-self:flex-start; padding:var(--space-tight) var(--space-inline); border:1px solid transparent; border-radius:var(--radius-control); background:none; cursor:pointer;
     font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight); color:var(--color-text-secondary);
     text-decoration:underline; text-underline-offset:3px;
   }
-  @media (hover:hover) { .paste-link:hover { color:var(--color-text); } }
+  @media (hover:hover) { .paste-link:hover, .paste-link.is-hover, .m-paste:hover, .m-paste.is-hover { background:var(--state-hover-fill); border-color:var(--state-hover-edge); color:var(--color-text); } }
+  .paste-link:active, .m-paste:active, .paste-link.is-press, .m-paste.is-press { background:var(--state-press-fill); }
 
   @media (prefers-reduced-motion:reduce) {
     .cov-disc, .cov-knob, .cov-pick { transition:none; }
@@ -198,18 +196,17 @@
     font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight); color:var(--color-text-secondary);
     transition:background var(--duration-interaction), color var(--duration-interaction), box-shadow var(--duration-interaction);
   }
-  .cov-seg .m-seg-btn.sel { background:var(--color-surface-raised); color:var(--color-text); box-shadow:var(--shadow-lift); }
-  .cov-seg .m-seg-btn.sel.is-hover { box-shadow:inset 0 0 0 1px var(--interaction-hover-edge); }
-  .cov-seg .m-seg-btn:disabled { opacity:var(--map-alpha-muted); cursor:not-allowed; }
+  .cov-seg .m-seg-btn[aria-pressed="true"] { background:var(--state-selected-fill); color:var(--color-text); box-shadow:var(--shadow-lift); }
+  .cov-seg .m-seg-btn[aria-pressed="true"]:hover, .cov-seg .m-seg-btn[aria-pressed="true"].is-hover { background:var(--state-selected-fill); }
+  .cov-seg .m-seg-btn:disabled { color:var(--state-disabled); opacity:1; cursor:not-allowed; background:transparent; }
   @media (hover:hover) {
-    .m-seg-btn:not(.sel):not(:disabled):hover,
-    .m-seg-btn.is-hover:not(.sel) {
+    .m-seg-btn:not([aria-pressed="true"]):not(:disabled):hover,
+    .m-seg-btn.is-hover:not([aria-pressed="true"]) {
       color:var(--color-text);
-      background:var(--interaction-hover-fill);
-      box-shadow:inset 0 0 0 1px var(--interaction-hover-edge);
+      background:var(--state-hover-fill);
     }
   }
-  .cov-seg .m-seg-btn:disabled { opacity:var(--map-alpha-ghost); cursor:default; }
+  
   .cov-sum { margin-top:var(--space-snug); }
   .cov-ring { cursor:pointer; }
 
@@ -223,8 +220,8 @@
     transition:transform var(--duration-emphasis) var(--ease-newton), opacity var(--duration-interaction);
     pointer-events:none;
   }
-  .swave.on   { opacity:var(--map-alpha-live); }
-  .swave.done { opacity:0; }
+  .swave[data-state="live"] { opacity:var(--map-alpha-live); }
+  .swave[data-state="done"] { opacity:0; }
   .cov-ghost { fill:none; stroke:var(--map-reach); stroke-dasharray:var(--map-dash-inactive); }
   .spulse circle { fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); pointer-events:none; }
   .spick-pulse { fill:none; stroke:currentColor; stroke-width:var(--map-stroke-emphasis); pointer-events:none; }
@@ -260,13 +257,13 @@
 
   /* Scan layers on the same map. */
   .cband { fill:none; stroke:none; transition:fill var(--duration-emphasis) var(--ease-newton); pointer-events:none; }
-  .cband.clear { fill:var(--tone-pass-a); }
-  .cband.listed, .cband.exposed { fill:var(--tone-block-a); }
-  .cband.outside { fill:var(--tone-caution-a); stroke:var(--tone-caution-edge); stroke-width:var(--map-stroke-ring); stroke-dasharray:var(--map-dash-caution); }
-  .cov-svg.scanning .cov-ring.in { opacity:var(--map-alpha-muted); }
+  .cband[data-state="clear"] { fill:var(--tone-pass-wash); }
+  .cband[data-state="listed"], .cband[data-state="exposed"] { fill:var(--tone-block-wash); }
+  .cband[data-state="outside"] { fill:var(--tone-caution-wash); stroke:var(--tone-caution-edge); stroke-width:var(--map-stroke-ring); stroke-dasharray:var(--map-dash-caution); }
+  .cov-svg.scanning .cov-ring[data-reach="in"] { opacity:var(--map-alpha-muted); }
   .cov-core { transition:fill var(--duration-emphasis); }
-  .cov-core.listed { fill:var(--tone-block-edge); stroke:var(--tone-block-edge); }
-  .cov-core.listed ~ .cov-core-label { fill:var(--map-on-mark); }
+  .cov-core[data-state="listed"] { fill:var(--tone-block-edge); stroke:var(--tone-block-edge); }
+  .cov-core[data-state="listed"] ~ .cov-core-label { fill:var(--color-on-accent); }
   .cov-svg.scanning { cursor:default; }
   .cov-svg.scanning .cov-ring { cursor:default; }
 

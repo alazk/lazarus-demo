@@ -139,7 +139,8 @@ async function fillVerdict(r, outsideReach) {
 
   right.classList.add("swapping");
   await new Promise((res) => setTimeout(res, Math.round(MOTION.interaction * 0.75)));
-  panel.classList.add(key, "settled");
+  panel.dataset.state = key;
+  panel.classList.add("settled");
   if (currentAddress && key !== "failed" && key !== "unattested") {
     outcomes[currentAddress] = { state: key, hops: r.dataset?.max_hops ?? hops };
     if (view === "states") kitOutcomeKeys.add(currentAddress);
@@ -148,9 +149,9 @@ async function fillVerdict(r, outsideReach) {
   stage.querySelectorAll(".step.waiting").forEach((row) => {
     row.classList.remove("waiting");
     const note = row.querySelector(".step-note");
-    if (note && note.textContent === "signing" && !row.classList.contains("outside")) {
-      note.textContent = (row.classList.contains("listed") || row.classList.contains("exposed"))
-        ? (row.classList.contains("listed") ? "listed" : "exposed") : "clear";
+    if (note && note.textContent === "signing" && row.dataset.state !== "outside") {
+      note.textContent = (row.dataset.state === "listed" || row.dataset.state === "exposed")
+        ? row.dataset.state : "clear";
     }
   });
 
@@ -187,7 +188,7 @@ async function fillVerdict(r, outsideReach) {
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
        target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}
     <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
-  actions.classList.add("on");
+  actions.dataset.state = "ready";
   // Back to the console without an entrance, so the map does not jump.
   document.getElementById("again").onclick = () => renderConsole(currentAddress || r.wallet || "", "", true);
 }

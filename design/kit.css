@@ -4,22 +4,14 @@
     font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); pointer-events:none;
   }
-  .wdot.in circle { stroke:var(--color-accent); }
-  .wdot.in circle + text { fill:var(--color-accent); }
-  .wdot.clear circle { stroke:var(--tone-pass-edge); }
-  .wdot.clear circle + text { fill:var(--tone-pass-text); }
-  .wdot.listed circle, .wdot.exposed circle { stroke:var(--tone-block-edge); }
-  .wdot.listed circle + text, .wdot.exposed circle + text { fill:var(--tone-block-text); }
-  .wdot.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
-  .wdot.outside circle + text { fill:var(--tone-caution-text); }
-  .wdot.in.clear circle, .wdot.out.clear circle { stroke:var(--tone-pass-edge); }
-  .wdot.in.clear circle + text, .wdot.out.clear circle + text { fill:var(--tone-pass-text); }
-  .wdot.in.listed circle, .wdot.out.listed circle,
-  .wdot.in.exposed circle, .wdot.out.exposed circle { stroke:var(--tone-block-edge); }
-  .wdot.in.listed circle + text, .wdot.out.listed circle + text,
-  .wdot.in.exposed circle + text, .wdot.out.exposed circle + text { fill:var(--tone-block-text); }
-  .wdot.in.outside circle, .wdot.out.outside circle { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
-  .wdot.in.outside circle + text, .wdot.out.outside circle + text { fill:var(--tone-caution-text); }
+  .wdot[data-reach="in"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) { stroke:var(--color-text-tertiary); }
+  .wdot[data-reach="in"] text { fill:var(--color-text); }
+  .wdot[data-state="clear"] > circle:not(.map-focus) { stroke:var(--tone-pass-edge); }
+  .wdot[data-state="clear"] text { fill:var(--tone-pass-text); }
+  .wdot[data-state="listed"] > circle:not(.map-focus), .wdot[data-state="exposed"] > circle:not(.map-focus) { stroke:var(--tone-block-edge); }
+  .wdot[data-state="listed"] text, .wdot[data-state="exposed"] text { fill:var(--tone-block-text); }
+  .wdot[data-state="outside"] > circle:not(.map-focus) { stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); }
+  .wdot[data-state="outside"] text { fill:var(--tone-caution-text); }
   /* Wallet A sits on the dark centre: light dot, dark letter, and a light
      highlight ring when it is the one being scanned. */
   .wdot.on-core circle { fill:var(--color-surface-raised); stroke:none; }
@@ -28,9 +20,10 @@
   /* Hover washes the disc only. The letter keeps its colour. Selected keeps
      the default disc and letter, and gains a blue ring outside the disc. */
   @media (hover:hover) {
-    .cov-svg:not(.scanning) .wdot:not(.chosen):hover > circle:not(.wdot-ring):not(.wdot-fill),
-    .wdot.is-hover:not(.chosen) > circle:not(.wdot-ring):not(.wdot-fill) {
-      fill:var(--interaction-hover-fill);
+    .cov-svg:not(.scanning) .wdot:not([aria-pressed="true"]):hover > circle:not(.wdot-ring):not(.wdot-fill),
+    .wdot.is-hover:not([aria-pressed="true"]) > circle:not(.wdot-ring):not(.wdot-fill) {
+      stroke:var(--state-hover-edge);
+      fill:var(--color-surface-raised);
     }
   }
   .wdot > circle.wdot-ring,
@@ -38,9 +31,9 @@
     fill:none; stroke:none; stroke-width:var(--map-stroke-emphasis); filter:none; pointer-events:none;
     opacity:0; transition:opacity var(--duration-interaction) var(--ease-newton);
   }
-  .wdot.chosen > circle.wdot-ring,
-  #cov-svg .wdot.chosen > circle.wdot-ring {
-    fill:none; stroke:var(--color-accent); stroke-width:var(--map-stroke-emphasis); filter:none; opacity:1;
+  .wdot[aria-pressed="true"] > circle.wdot-ring,
+  #cov-svg .wdot[aria-pressed="true"] > circle.wdot-ring {
+    fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); filter:none; opacity:1;
   }
   /* The blue disc scales out from the centre when a wallet is chosen. */
   .wdot > circle.wdot-fill,
@@ -48,14 +41,10 @@
     fill:var(--color-accent); stroke:none; filter:none; pointer-events:none;
   }
   .wdot text { transition:fill var(--duration-interaction) var(--ease-newton); }
-  .wdot.chosen > circle.wdot-fill + text,
-  #cov-svg .wdot.chosen > circle.wdot-fill + text { fill:var(--color-on-tone); }
-  @media (prefers-reduced-motion:reduce) {
+    @media (prefers-reduced-motion:reduce) {
     .wdot > circle.wdot-ring, .wdot text { transition:none; }
   }
-  .wdot:focus-visible, .wdot.is-focus { outline:none; }
-  .wdot:focus-visible > circle:not(.wdot-ring):not(.wdot-fill), .wdot.is-focus > circle:not(.wdot-ring):not(.wdot-fill) { stroke:var(--color-text); stroke-width:var(--map-stroke-strong); }
-  .cov-svg.scanning .wdot:not(.chosen) { opacity:var(--map-alpha-ghost); }
+    .cov-svg.scanning .wdot:not([aria-pressed="true"]) { opacity:var(--map-alpha-ghost); }
 
   /* The highlight ring sits behind the chosen wallet and carries the found
      pulse and burst during a scan. It takes no pointer events itself. */
@@ -69,8 +58,8 @@
     display:flex; align-items:center; justify-content:center;
     background:var(--color-surface-sunken); color:var(--color-text-secondary); font-size:var(--type-body-size); font-weight:500;
   }
-  .wrow.in .w-letter { background:var(--cov-soft); color:var(--color-text); }
-  .wrow.chosen .w-letter { background:var(--color-accent); color:var(--color-on-tone); }
+  .wrow[data-reach="in"] .w-letter { background:var(--color-surface-sunken); color:var(--color-text); }
+  .wrow[aria-pressed="true"] .w-letter { background:var(--color-surface-sunken); color:var(--color-text); }
   .wrow .m-text { min-width:0; flex:1 1 auto; }
   .wrow .m-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .w-addr { flex:none; margin-left:auto; font-family:var(--font-code); font-size:var(--type-body-size); color:var(--color-text-tertiary); }
@@ -104,7 +93,7 @@
     fill:none; stroke-width:var(--map-stroke-emphasis);
     opacity:0; pointer-events:none; transition:opacity var(--duration-interaction);
   }
-  .cov-ghost.on { opacity:var(--map-alpha-live); }
+  .cov-ghost[data-state="live"] { opacity:var(--map-alpha-live); }
 
   /* Notched phones: keep everything clear of the rounded corners and the
      camera housing, including in landscape. */
@@ -119,25 +108,22 @@
      that band, so the cursor reads as "this sets the radius". */
   .cov-svg:not(.scanning) { cursor:pointer; }
   .cov-svg:not(.scanning) .wdot { cursor:pointer; }
-  .cov-ghost.on { opacity:var(--map-alpha-live); }
+  .cov-ghost[data-state="live"] { opacity:var(--map-alpha-live); }
 
   /* Clicking should not leave a focus ring. Safari draws its blue ring on
      plain :focus, so that is cleared everywhere a pointer can land, and a
      keyboard focus ring is drawn in our own colours instead. */
-  .wdot:focus, .m-row:focus, .cov-svg:focus, .cov-svg.is-focus, .m-seg-btn:focus,
-  .cov-ring:focus, .act-dot:focus, .paste-link:focus,
-  .m-paste:focus, .btn:focus, .field:focus { outline:none; }
   .m-row:focus-visible, .m-row.is-focus, .m-seg-btn:focus-visible, .m-seg-btn.is-focus,
   .paste-link:focus-visible, .paste-link.is-focus, .m-paste:focus-visible, .m-paste.is-focus,
   .btn:focus-visible, .btn.is-focus, .states-link:focus-visible, .states-link.is-focus,
   .act-dot:focus-visible, .act-dot.is-focus {
-    outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-offset);
+    outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset);
   }
   .m-row:focus-visible, .m-row.is-focus { outline-offset:-2px; }
-  .field:focus-visible, .field.is-focus { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-width); }
-  .field:disabled { opacity:.5; }
+  .field:focus-visible, .field.is-focus { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-width); }
+  .field:disabled { background:var(--color-surface-sunken); color:var(--state-disabled); opacity:1; }
   .wdot:focus-visible > circle:not(.wdot-ring):not(.wdot-fill), .wdot.is-focus > circle:not(.wdot-ring):not(.wdot-fill),
-  .cov-svg:focus-visible .cov-ring.in, .cov-svg.is-focus .cov-ring.in { stroke:var(--color-text); stroke-width:var(--map-stroke-strong); }
+  .cov-svg:focus-visible .cov-ring[data-reach="in"], .cov-svg.is-focus .cov-ring[data-reach="in"] { stroke:var(--color-text); stroke-width:var(--map-stroke-strong); }
   .kit-frame .m-only { display:block; }
 
   /* The intro map is the dashboard map: same size, same wallet marker. */
@@ -147,8 +133,8 @@
     font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); stroke:none;
   }
-  .intro-pick.in .intro-pick-plate { stroke:var(--color-accent); }
-  .intro-pick.in .intro-pick-label { fill:var(--color-accent); }
+  .intro-pick[data-reach="in"] .intro-pick-plate { stroke:var(--color-accent); }
+  .intro-pick[data-reach="in"] .intro-pick-label { fill:var(--color-accent); }
   .intro-pick { pointer-events:none; }
 
   /* ── UI kit: components and their states, same shape as the landing gallery ── */
@@ -210,15 +196,15 @@
     cursor:pointer; list-style:none;
     font-family:var(--font-sans); font-weight:var(--type-ui-weight);
     font-size:var(--type-ui-size); line-height:var(--type-ui-leading);
-    color:var(--color-on-surface);
+    color:var(--color-text);
   }
   .kit-nav-jump {
     color:inherit; text-decoration:none;
     font-family:inherit; font-weight:inherit; font-size:inherit; line-height:inherit;
   }
-  .kit-nav a[aria-current="true"] { color:var(--color-on-surface); }
+  .kit-nav a[aria-current="true"] { color:var(--color-text); box-shadow:var(--state-selected-mark); }
   .kit-nav summary::-webkit-details-marker { display:none; }
-  @media (hover:hover) { .kit-nav summary:hover { text-decoration:underline; } }
+  @media (hover:hover) { .kit-nav summary:hover { background:var(--state-hover-fill); } }
   .kit-sub { display:flex; flex-direction:column; gap:var(--space-tight); padding:var(--space-tight) 0; }
   .kit-sub a {
     padding-left:var(--space-snug); text-decoration:none;
@@ -226,7 +212,8 @@
     font-size:var(--type-body-size); line-height:var(--type-body-leading);
     color:var(--color-text-secondary);
   }
-  @media (hover:hover) { .kit-sub a:hover { color:var(--color-on-surface); text-decoration:underline; } }
+  @media (hover:hover) { .kit-sub a:hover, .kit-sub a.is-hover { background:var(--state-hover-fill); color:var(--color-text); text-decoration:none; } }
+  .kit-sub a:active, .kit-sub a.is-press { background:var(--state-press-fill); }
   /* Kit-only: two section steps between component groups. */
   .kit-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--space-section) * 2); }
   .kit-section { display:flex; flex-direction:column; gap:var(--space-section); scroll-margin-top:calc(var(--size-touch) + var(--space-section)); }
@@ -244,7 +231,7 @@
     letter-spacing:normal; text-transform:none; color:var(--color-text-secondary);
   }
   .kit-frame {
-    background:var(--color-surface); border:1px solid var(--color-border-subtle);
+    background:var(--color-surface); border:1px solid var(--color-border);
     border-radius:var(--radius-control); padding:var(--space-section);
   }
   .kit-frame:has(.kit-scale) { padding:0 var(--space-group); }
@@ -252,7 +239,7 @@
   .kit-scale-row {
     display:flex; align-items:center; gap:var(--space-card);
     padding-block:var(--space-snug);
-    border-bottom:1px solid var(--color-border-subtle);
+    border-bottom:1px solid var(--color-border);
   }
   .kit-scale-row:last-child { border-bottom:none; }
   .kit-scale-meta {
@@ -278,7 +265,7 @@
   .kit-chip-label {
     font-family:var(--font-sans); font-weight:var(--type-label-weight);
     font-size:var(--type-label-size); line-height:var(--type-label-leading);
-    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-on-surface);
+    letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text);
   }
   .kit-chip-value {
     font-family:var(--font-sans); font-weight:var(--type-caption-weight);
@@ -292,7 +279,7 @@
   .kit-glyph { display:block; overflow:visible; }
   .kit-scale-heading {
     margin:var(--space-group) 0 0; padding-top:var(--space-snug);
-    border-top:1px solid var(--color-border-subtle); color:var(--color-on-surface);
+    border-top:1px solid var(--color-border); color:var(--color-text);
   }
   .kit-scale-heading:first-child { margin-top:0; border-top:none; }
   .kit-motion-demo { display:flex; align-items:center; gap:var(--space-group); width:100%; }
@@ -302,7 +289,7 @@
   }
   .kit-frame .text-display, .kit-frame .text-title, .kit-frame .text-heading, .kit-frame .text-subheading,
   .kit-frame .text-body, .kit-frame .text-ui, .kit-frame .text-caption,
-  .kit-frame .text-label, .kit-frame .text-data { margin:0; color:var(--color-on-surface); }
+  .kit-frame .text-label, .kit-frame .text-data { margin:0; color:var(--color-text); }
   .kit-space {
     height:var(--space-snug); background:var(--color-accent); border-radius:var(--space-tight);
   }
@@ -314,11 +301,11 @@
     width:calc(var(--space-section) * 2); height:calc(var(--space-block) * 2);
     background:var(--color-surface-sunken); border:1px solid var(--color-border);
   }
-  .kit-motion { margin:0; color:var(--color-on-surface); }
+  .kit-motion { margin:0; color:var(--color-text); }
   .kit-frame .cov-svg, .kit-frame .intro-map { width:min(100%, var(--width-map)); display:block; }
   .kit-frame .m-row { width:100%; }
   .kit-frame .card-result { height:auto; }
   .kit-frame .btn-block { width:auto; }
   .kit-frame .addr-wrap { max-width:var(--width-map); }
-  .kit-missing { margin:0; color:var(--color-danger); }
+  .kit-missing { margin:0; color:var(--tone-block-edge); }
 

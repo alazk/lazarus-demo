@@ -21,7 +21,8 @@ function scanMapController() {
     reach(n) {
       const r = n === 0 ? COV_R[0] + 14 : COV_R[n];
       if (wave) {
-        wave.setAttribute("class", "swave on");
+        wave.setAttribute("class", "swave");
+        wave.dataset.state = "live";
         if (motionReduced()) {
           wave.setAttribute("r", r);
           wave.style.opacity = "0";
@@ -35,15 +36,17 @@ function scanMapController() {
       if (!svg) return;
       if (n === 0) {
         if (state === "listed") {
-          q(".cov-core")?.setAttribute("class", "cov-core listed");
+          const core = q(".cov-core");
+          if (core) core.dataset.state = "listed";
           const corePick = document.getElementById("cov-core-pick");
-          corePick?.classList.add("on");
+          if (corePick) corePick.dataset.state = "live";
           beginAll(corePick);
         }
         syncCoverageRings(svg);
         return;
       }
-      q(`.cband[data-band="${n}"]`)?.setAttribute("class", `cband ${state}`);
+      const band = q(`.cband[data-band="${n}"]`);
+      if (band) band.dataset.state = state;
       syncCoverageRings(svg);
       if (state === "clear" && flash) { flash.setAttribute("r", COV_R[n]); beginAll(flash); }
     },
@@ -68,7 +71,7 @@ function scanMapController() {
       g.setAttribute("class", "cov-pick not");
     },
     done(text) {
-      if (wave) wave.setAttribute("class", "swave done");
+      if (wave) { wave.setAttribute("class", "swave"); wave.dataset.state = "done"; }
       if (pulse) pulse.setAttribute("display", "none");
       const st = status(); if (st && text) st.textContent = text;
     },
@@ -151,7 +154,8 @@ function renderChecking(address) {
           map.found(n, false);
           map.done(n === 0 ? "This wallet is on the list itself"
                            : `Found ${hopWord(n)} out · inside your coverage`);
-          row.classList.add(kind, "resolved");
+          row.dataset.state = kind;
+          row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
           await wait(MOTION.emphasis - Math.round(MOTION.interaction / 3));
@@ -159,7 +163,8 @@ function renderChecking(address) {
           paintAttestation("signing");
           return;
         }
-        row.classList.add("clear", "resolved");
+        row.dataset.state = "clear";
+        row.classList.add("resolved");
         row.querySelector(".step-note").textContent = "clear";
         map.settle(n, "clear");
         await wait(Math.round(MOTION.interaction * 0.4));
@@ -172,7 +177,8 @@ function renderChecking(address) {
         map.settle(hit, "outside");
         map.found(hit, true);
         map.done(`Found ${hopWord(hit)} out · outside your coverage`);
-        row.classList.add("outside", "resolved");
+        row.dataset.state = "outside";
+        row.classList.add("resolved");
         row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
         await wait(MOTION.emphasis - Math.round(MOTION.interaction / 3));
         row.classList.add("waiting");
@@ -198,10 +204,7 @@ function renderChecking(address) {
 function paintAttestation(state) {
   const row = document.querySelector(".attest");
   if (!row) return;
-  const view = state === "signing" ? "active"
-    : state === "attested" ? "clear"
-    : state === "failed" ? "failed"
-    : "idle";
+  const view = state === "signing" ? "active" : state === "pending" ? "idle" : "resolved";
   const label = state === "attested" ? "attested"
     : state === "signing" ? "signing"
     : state === "failed" ? "failed"

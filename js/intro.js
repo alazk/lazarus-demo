@@ -4,7 +4,7 @@ function renderChain() {
   const px = COV_C + rr * Math.cos(a), py = COV_C + rr * Math.sin(a);
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
-    return `<g class="cov-pill" data-ring="${n}" transform="translate(${c} ${y})">
+    return `<g class="cov-pill" data-reach="out" data-ring="${n}" transform="translate(${c} ${y})">
       <rect x="-32" y="-12" width="64" height="24" rx="12"/>
       <text y="4" text-anchor="middle">${hopWord(n)}</text></g>`;
   }).join("");
@@ -12,11 +12,11 @@ function renderChain() {
     <svg class="cov-svg intro-map" id="intro-map" viewBox="0 0 400 400" role="img"
          aria-label="Coverage from a known Lazarus address, in rings">
       <circle class="cov-disc" id="intro-disc" cx="${c}" cy="${c}" r="0"/>
-      ${[1, 2, 3].map((n) => `<circle class="cov-ring out" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
+      ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="out" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
       <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
       ${pills}
-      <g class="wdot intro-pick" transform="translate(${px.toFixed(1)} ${py.toFixed(1)})">
+      <g class="wdot intro-pick" data-reach="out" transform="translate(${px.toFixed(1)} ${py.toFixed(1)})">
         <circle r="13"/><text y="4.5" text-anchor="middle">W</text>
         <rect class="intro-pick-plate" x="-62" y="18" width="124" height="24" rx="12"/>
         <text class="intro-pick-label" y="34" text-anchor="middle">Wallet you pay</text>
@@ -35,7 +35,6 @@ function paintAct(n, animate = true) {
   // All three acts share one grid cell, so the block is always as tall as the
   // longest act and the buttons below it never move.
   stage.querySelectorAll(".act-panel").forEach((p, i) => {
-    p.classList.toggle("on", i === n);
     p.setAttribute("aria-hidden", String(i !== n));
   });
 
@@ -44,20 +43,26 @@ function paintAct(n, animate = true) {
     const r = a.cover === "all" ? COV_R[3] : a.cover === "core" ? COV_R[0] + 10 : 0;
     const introDur = animate ? MOTION.emphasis + Math.round(MOTION.interaction / 3) : 0;
     tweenAttr(document.getElementById("intro-disc"), "r", r, introDur);
-    svg.querySelectorAll(".cov-ring").forEach((r) =>
-      r.setAttribute("class", `cov-ring ${a.cover === "all" ? "in" : "out"}`));
-    svg.querySelectorAll(".cov-pill").forEach((g) =>
-      g.setAttribute("class", `cov-pill ${a.cover === "all" ? "on" : ""}`));
-    // The wallet you pay: outside the list's coverage, inside the policy's.
-    svg.querySelector(".intro-pick")?.setAttribute("class",
-      `wdot intro-pick ${a.cover === "all" ? "in" : "out"}`);
+    svg.querySelectorAll(".cov-ring").forEach((r) => {
+      r.setAttribute("class", "cov-ring");
+      r.setAttribute("data-reach", a.cover === "all" ? "in" : "out");
+    });
+    svg.querySelectorAll(".cov-pill").forEach((g) => {
+      g.setAttribute("class", "cov-pill");
+      g.setAttribute("data-reach", a.cover === "all" ? "in" : "out");
+    });
+    const pick = svg.querySelector(".intro-pick");
+    if (pick) {
+      pick.setAttribute("class", "wdot intro-pick");
+      pick.setAttribute("data-reach", a.cover === "all" ? "in" : "out");
+    }
   }
   const note = document.getElementById("ring-note");
   if (note) note.textContent = a.note || "";
 
   stage.querySelectorAll(".act-dot").forEach((d, i) => {
-    d.classList.toggle("on", i === n);
-    d.setAttribute("aria-current", i === n ? "step" : "false");
+    if (i === n) d.setAttribute("aria-current", "step");
+    else d.removeAttribute("aria-current");
   });
 }
 
@@ -68,7 +73,7 @@ function renderIntro() {
       <div class="intro-grid">
         <div class="act">
           <div id="act-copy">
-            ${ACTS.map((a, i) => `<div class="act-panel ${i === 0 ? "on" : ""}" aria-hidden="${i !== 0}">
+            ${ACTS.map((a, i) => `<div class="act-panel" aria-hidden="${i !== 0}">
               <div class="text-label text-label--phone-eyebrow">${esc(a.kicker)}</div>
               <div class="text-heading">${esc(a.title)}</div>
               <p class="text-lead">${esc(a.body)}</p>

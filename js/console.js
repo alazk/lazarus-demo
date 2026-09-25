@@ -30,9 +30,9 @@ function renderWalletList(ready, prefill, extra = "") {
         const inside = d !== null && d !== undefined && d <= hops;
         const sub = walletSub(r.key, d);
         const chosen = r.address.toLowerCase() === chosenAddr;
-        return `<button class="m-row wrow ${inside ? "in" : ""} ${chosen ? "chosen" : ""} ${walletStatus(d) ? "" : "nostatus"}"
+        return `<button class="m-row wrow ${walletStatus(d) ? "" : "nostatus"}"
             type="button" role="listitem" data-addr="${esc(r.address)}" data-dist="${d ?? ""}" data-key="${esc(r.key)}"
-            aria-pressed="${chosen}" title="${esc(r.address)}"
+            data-reach="${inside ? "in" : "out"}" aria-pressed="${chosen}" title="${esc(r.address)}"
             aria-label="Wallet ${esc(WALLET_LETTER[r.key] || "")}, ${esc(WALLET_TITLE[r.key] || "")}, ${esc(sub)}">
           <span class="m-bar" aria-hidden="true"></span>
           <span class="w-letter" aria-hidden="true">${esc(WALLET_LETTER[r.key] || "")}</span>

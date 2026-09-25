@@ -24,7 +24,7 @@
     font-size:var(--type-body-size); letter-spacing:var(--tracking-label);
   }
   .step-kicker .kn {
-    width:var(--space-page); height:var(--space-page); border-radius:50%; background:var(--color-text); color:var(--color-on-tone);
+    width:var(--space-page); height:var(--space-page); border-radius:50%; background:var(--color-text); color:var(--color-on-accent);
     display:inline-flex; align-items:center; justify-content:center;
     font-size:var(--type-caption-size); letter-spacing:0; flex:none;
   }

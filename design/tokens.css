@@ -56,131 +56,103 @@ html {
 }
 
 :root {
-  /* ── Primitives ──────────────────────────────────────────── */
+
+  /* ── Tier 1 · Primitives ───────────────────────────────────
+     Only the ramp steps tier 2 references: bone, ink, blue, leaf, ruby, gold, white. */
+
   --bone-50: #FBFCFE;
-  --bone-100: #F7F7F9;
-  --bone-alpha-60: rgba(251, 252, 254, 0.6);
-  --bone-alpha-40: rgba(251, 252, 254, 0.4);
-  --bone-alpha-20: rgba(251, 252, 254, 0.2);
-  --bone-alpha-10: rgba(251, 252, 254, 0.1);
-  --bone-alpha-08: rgba(251, 252, 254, 0.08);
-  --bone-alpha-05: rgba(251, 252, 254, 0.05);
+  --white: #FFFFFF;
 
-  --coal-950: #0E0E0F;
-  --coal-alpha-80: rgba(14, 14, 15, 0.8);
-  --coal-alpha-60: rgba(14, 14, 15, 0.6);
-  --coal-alpha-40: rgba(14, 14, 15, 0.4);
-  --coal-alpha-20: rgba(14, 14, 15, 0.2);
-  --coal-alpha-10: rgba(14, 14, 15, 0.1);
-  --coal-alpha-08: rgba(14, 14, 15, 0.08);
-  --coal-alpha-05: rgba(14, 14, 15, 0.05);
-  --coal-alpha-04: rgba(14, 14, 15, 0.04);
+  --ink-10: #F5F5F6;
+  --ink-30: #E3E3E4;
+  --ink-50: #9A9A9B;
+  --ink-60: #737374; /* tertiary text; darker than ink-50 so it clears 4.5:1 on bone */
+  --ink-70: #6B6B6C;
+  --ink-100: #0E0E0F;
 
-  --blue-50: #ECF1FD;
-  --blue-75: #E2EAFC;
-  --blue-100: #D8E2FB;
-  --blue-200: #A8BEF5;
   --blue-500: #3D6FE8;
   --blue-600: #3764D1;
-  --blue-800: #234087;
 
-  --color-white: #FFFFFF;
-  --color-black: #000000;
+  --leaf-10: #E6F2EE;
+  --leaf-50: #0B6E4F;
+  --leaf-70: #095A41;
 
-  /* ── Semantic color ──────────────────────────────────────── */
+  --ruby-10: #FBE9E3;
+  --ruby-50: #AD2B03;
+  --ruby-70: #8F2402;
+
+  --gold-10: #FCF4E5;
+  --gold-70: #8A5E14;
+
+  /* ── Tier 2 · Semantic ─────────────────────────────────────
+     Surfaces, text, accent, focus, and the four outcome tones. */
+
   --color-surface: var(--bone-50);
-  --color-surface-raised: var(--color-white); /* cards, mast, fields */
-  --color-surface-sunken: var(--color-ink-10); /* washes */
-  --color-on-surface: var(--coal-950);
-  /* Text is solid, so muted copy looks the same on any surface.
-     Tertiary is #737374: #767677 is 4.54:1 on white but 4.42:1 on
-     --color-surface, so it is one step darker (4.74:1 on white, 4.61:1
-     on surface). Disabled is decorative or disabled only, never meaningful text. */
-  --color-text: var(--color-ink-100);
-  --color-text-secondary: var(--color-ink-70);
-  --color-text-tertiary: #737374;
-  --color-text-disabled: var(--color-ink-50);
-  --color-on-surface-muted: var(--color-text-secondary);
-  --color-on-surface-subtle: var(--color-text-tertiary);
-  --color-on-tone: var(--color-white); /* glyphs on a tone or ink fill */
-  --color-border: var(--color-ink-30);
-  --color-border-subtle: var(--color-ink-20);
-  --color-surface-alt: var(--coal-alpha-10);
-  --color-surface-alt-hover: var(--coal-alpha-08);
-  --color-surface-alt-strong: var(--coal-alpha-20);
-  --color-surface-alt-subtle: var(--coal-alpha-05);
+  --color-surface-raised: var(--white);
+  --color-surface-sunken: var(--ink-10);
+
+  --color-border: var(--ink-30);
+  --color-border-strong: var(--ink-70);
+
+  --color-text: var(--ink-100);
+  --color-text-secondary: var(--ink-70);
+  --color-text-tertiary: var(--ink-60);
+  --color-text-disabled: var(--ink-50);
 
   --color-accent: var(--blue-500);
-  --color-on-accent: var(--bone-50);
   --color-accent-hover: var(--blue-600);
-  --color-accent-active-text: var(--bone-alpha-60);
+  --color-on-accent: var(--white);
+  --color-focus-ring: var(--blue-500);
 
-  --color-danger: var(--color-ruby-50);
-  --color-success: var(--color-leaf-50);
-  --color-warning-subtle: var(--color-gold-10);
+  --tone-pass-wash: var(--leaf-10);
+  --tone-pass-edge: var(--leaf-50);
+  --tone-pass-text: var(--leaf-70);
 
-  --color-ink-10: #F5F5F6;
-  --color-ink-20: #EAEAEB;
-  --color-ink-30: #E3E3E4;
-  --color-ink-50: #9A9A9B;
-  --color-ink-70: #6B6B6C;
-  --color-ink-80: #3F3F40;
-  --color-ink-100: var(--coal-950);
+  --tone-block-wash: var(--ruby-10);
+  --tone-block-edge: var(--ruby-50);
+  --tone-block-text: var(--ruby-70);
 
-  --color-magic-10: var(--blue-50);
-  --color-magic-50: var(--blue-500);
+  --tone-caution-wash: var(--gold-10);
+  --tone-caution-edge: var(--gold-70);
+  --tone-caution-text: var(--gold-70);
 
-  --color-leaf-10: #E6F2EE;
-  --color-leaf-30: #7FBAA6;
-  --color-leaf-50: #0B6E4F;
-  --color-leaf-70: #095A41;
+  --tone-neutral-wash: var(--ink-10);
+  --tone-neutral-edge: var(--ink-70);
+  --tone-neutral-text: var(--ink-70);
 
-  --color-ruby-10: #FBE9E3;
-  --color-ruby-30: #E8A898;
-  --color-ruby-50: #AD2B03;
-  --color-ruby-70: #8F2402;
+  /* ── Tier 3 · Component ────────────────────────────────────
+     Map, interaction state, and shadow. Each one references tier 2 only.
+     --map-reach is the map's signal colour. It matches accent on purpose:
+     the map names its own role so a later retint does not recolour buttons. */
 
-  --color-gold-10: #FCF4E5;
-  --color-gold-30: #F5D79E;
-  --color-gold-50: #C68A2E;
-  --color-gold-70: #8A5E14;
+  --map-reach: var(--color-accent);
+  --map-disc: color-mix(in srgb, var(--color-text) 6%, transparent);
+
+  --state-hover-fill: var(--color-surface-sunken);
+  --state-hover-edge: var(--color-border-strong);
+  --state-press-fill: color-mix(in srgb, var(--color-text) 8%, var(--color-surface-sunken));
+  --state-selected-fill: var(--color-surface-raised);
+  --state-selected-mark: inset 2px 0 0 var(--color-text);
+  --state-disabled: var(--color-text-disabled);
+
+  --shadow-lift: 0 1px 2px color-mix(in srgb, var(--color-text) 14%, transparent);
+  --shadow-even: 0 0 2px color-mix(in srgb, var(--color-text) 14%, transparent);
 
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: var(--blue-500);
 
-  /* Tone. Colour for a state. Ruby is edges, icons and small fills only.
-     pass = clear, block = listed or exposed, caution = outside reach,
-     neutral = failed or unattested.
-     *-edge is for borders, strokes, icons and fills; *-text is for any text in a tone.
-     An edge used as a meaningful border or stroke is at least 3:1 on white.
-     gold-50 is 2.97:1, so caution-edge is gold-70 (5.69:1).
-     ink-50 is 2.81:1, so neutral-edge is ink-70 (5.32:1). */
-  --tone-pass-a: var(--color-leaf-10);
-  --tone-pass-b: var(--color-leaf-30);
-  --tone-pass-edge: var(--color-leaf-50);
-  --tone-pass-text: var(--color-leaf-70);
-  --tone-block-a: var(--color-ruby-10);
-  --tone-block-b: var(--color-ruby-30);
-  --tone-block-edge: var(--color-ruby-50);
-  --tone-block-text: var(--color-ruby-70);
-  --tone-caution-a: var(--color-gold-10);
-  --tone-caution-b: var(--color-gold-30);
-  --tone-caution-edge: var(--color-gold-70);
-  --tone-caution-text: var(--color-gold-70);
-  --tone-neutral-a: var(--color-ink-10);
-  --tone-neutral-b: var(--color-ink-20);
-  --tone-neutral-edge: var(--color-ink-70);
-  --tone-neutral-text: var(--color-ink-70);
+  /* Map metrics. Strokes are screen px (pair with non-scaling-stroke). */
+  --map-stroke-hair: 1px;
+  --map-stroke-ring: 1.5px;
+  --map-stroke-emphasis: 2px;
+  --map-stroke-strong: 3px;
+  --map-alpha-ghost: .2;
+  --map-alpha-muted: .5;
+  --map-alpha-live: .8;
+  --map-dash-inactive: 2 6;
+  --map-dash-caution: 5 4;
+  --map-dash-guide: 1 5;
 
-  /* Coverage disc. Explorer has no map; it uses the magic blue ramp so
-     the reach stays blue, a block stays ruby, and outside reach stays gold. */
-  --color-coverage: var(--color-magic-50);
-  --color-coverage-soft: var(--color-magic-10);
-  --color-coverage-mid: var(--blue-200);
-  --cov-edge: var(--color-coverage);
-  --cov-soft: var(--color-coverage-soft);
-  --color-reach: var(--color-coverage);
 
   /* ── Type. Explorer product scale, not the marketing site.
         rem so the user's font-size preference applies (root 16px).
@@ -305,45 +277,6 @@ html {
   --duration-cycle: calc(var(--duration-interaction) * 12);
   --stagger: calc(var(--duration-interaction) / 5);
 
-  /* ── Map. Stroke weights are screen px (pair with non-scaling-stroke).
-        *-edge is borders, strokes, icons and fills; *-text is type.
-        Movement stays on --map-reach. A tone colour appears only for an outcome. */
-  --map-stroke-hair: 1px;
-  --map-stroke-ring: 1.5px;
-  --map-stroke-emphasis: 2px;
-  --map-stroke-strong: 3px;
-  --map-reach: var(--color-accent);
-  --map-reach-fill: color-mix(in srgb, var(--blue-75) 52%, transparent);
-  --map-inactive: var(--color-text-disabled);
-  --map-core: var(--color-surface-sunken);
-  --map-core-edge: var(--color-border);
-  --map-on-mark: var(--color-on-tone);
-  --map-alpha-ghost: .2;
-  --map-alpha-muted: .5;
-  --map-alpha-live: .8;
-  --map-dash-inactive: 2 6;
-  --map-dash-caution: 5 4;
-  --map-dash-guide: 1 5;
-  --map-pulse-cycle: var(--duration-cycle);
-  --map-pulse-gap: var(--duration-beat); /* cycle / 3 */
-  --map-front-step: var(--duration-emphasis);
-  --map-flash: var(--duration-emphasis);
-  --map-burst: calc(var(--duration-interaction) * 2);
-  --map-pick-pulse: var(--duration-beat);
-
-  /* Hover and press for outlined / selectable controls.
-     Filled primaries use --color-accent-hover only. */
-  --interaction-hover-fill: var(--color-ink-10);
-  --interaction-hover-edge: var(--color-ink-80);
-  --interaction-press-fill: var(--color-surface-alt);
-  --interaction-selected-fill: var(--color-surface-alt);
-
-  /* ── Shadow. Same ink and blur.
-        Lift drops 1px, for a selected control.
-        Even has no offset, for the mast and the dashboard cards. */
-  --shadow-lift: 0 1px 2px rgba(14, 14, 15, 0.14);
-  --shadow-even: 0 0 2px rgba(14, 14, 15, 0.14);
-  --shadow-raise: 0 0 6px rgba(14, 14, 15, 0.35);
 
   /* ── Layout. Explorer / Tailwind: sm 640, md 768, lg 1024.
         Phone rules sit below sm. The console is one column below lg

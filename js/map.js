@@ -152,9 +152,10 @@ function previewReach(n) {
   previewAt = n;
   const svg = document.getElementById("cov-svg");
   svg?.querySelectorAll(".cov-ring, .cov-pill").forEach((r) => {
-    r.classList.toggle("held", Number(r.dataset.ring) === n);
+    if (Number(r.dataset.ring) === n) r.dataset.preview = "true";
+    else r.removeAttribute("data-preview");
   });
-  document.getElementById("cov-ghost")?.classList.remove("on");
+  document.getElementById("cov-ghost")?.removeAttribute("data-state");
   const ready = presets.filter((p) => p.address);
   const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
   const sum = document.getElementById("cov-sum");
@@ -164,9 +165,9 @@ function endPreview() {
   if (!previewing) return;
   previewing = false;
   previewAt = 0;
-  document.getElementById("cov-svg")?.querySelectorAll(".held")
-    .forEach((r) => r.classList.remove("held"));
-  document.getElementById("cov-ghost")?.classList.remove("on");
+  document.getElementById("cov-svg")?.querySelectorAll("[data-preview]")
+    .forEach((r) => r.removeAttribute("data-preview"));
+  document.getElementById("cov-ghost")?.removeAttribute("data-state");
   if (!demoTimers.length) paintReach(hops);
 }
 

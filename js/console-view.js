@@ -41,7 +41,6 @@ function renderConsole(prefill = "", error = "", still = false) {
     const a = String(addr || "").toLowerCase();
     stage.querySelectorAll(".m-row").forEach((x) => {
       const on = (x.dataset.addr || "").toLowerCase() === a;
-      x.classList.toggle("chosen", on);
       x.setAttribute("aria-pressed", String(on));
     });
     input.value = addr;
@@ -159,7 +158,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   });
   const openPaste = () => {
     stage.querySelectorAll(".m-row").forEach((x) => {
-      x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+      x.setAttribute("aria-pressed", "false");
     });
     stage.querySelector(".card-check")?.classList.add("show-paste");
     input.value = "";
@@ -172,7 +171,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   const paste = document.getElementById("m-paste");
   if (paste) paste.onclick = () => {
     stage.querySelectorAll(".m-row").forEach((x) => {
-      x.classList.remove("chosen"); x.setAttribute("aria-pressed", "false");
+      x.setAttribute("aria-pressed", "false");
     });
     stage.querySelector(".card-check")?.classList.add("show-paste");
     input.value = "";
@@ -189,7 +188,6 @@ function renderConsole(prefill = "", error = "", still = false) {
     placePick(typed);
     stage.querySelectorAll(".m-row").forEach((x) => {
       const on = (x.dataset.addr || "").toLowerCase() === typed;
-      x.classList.toggle("chosen", on);
       x.setAttribute("aria-pressed", String(on));
     });
     sync();
