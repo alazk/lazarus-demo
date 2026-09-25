@@ -32,6 +32,225 @@ function motionDemo(token) {
   return wrap;
 }
 
+function mountMapAnatomy(catalog) {
+  const SVG = "http://www.w3.org/2000/svg";
+  const stories = [];
+  const story = (name, note, node) => stories.push({
+    story: name, note, id: "map-anatomy-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), node,
+  });
+  const svgBox = (w) => {
+    const svg = document.createElementNS(SVG, "svg");
+    svg.setAttribute("viewBox", "0 0 " + w + " " + w);
+    svg.setAttribute("width", String(w));
+    svg.setAttribute("height", String(w));
+    svg.setAttribute("class", "cov-svg");
+    svg.setAttribute("aria-hidden", "true");
+    return svg;
+  };
+  const circle = (svg, attrs) => {
+    const node = document.createElementNS(SVG, "circle");
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    svg.append(node);
+    return node;
+  };
+  const caption = (token, node) => {
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.flexDirection = "column";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "var(--space-tight)";
+    const cap = document.createElement("span");
+    cap.className = "text-caption";
+    cap.textContent = token + " " + tokenOf(token);
+    wrap.append(node, cap);
+    return wrap;
+  };
+  const row = (children) => {
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.flexWrap = "wrap";
+    wrap.style.gap = "var(--space-group)";
+    wrap.style.alignItems = "flex-end";
+    children.forEach((child) => wrap.append(child));
+    return wrap;
+  };
+  story("Stroke scale", "Four weights, in screen pixels.", row(
+    ["--map-stroke-hair", "--map-stroke-ring", "--map-stroke-emphasis", "--map-stroke-strong"].map((token) => {
+      const svg = svgBox(72);
+      const ring = circle(svg, { cx: "36", cy: "36", r: "24", fill: "none", class: "cov-ring" });
+      ring.style.stroke = "var(--map-reach)";
+      ring.style.strokeWidth = "var(" + token + ")";
+      return caption(token, svg);
+    })
+  ));
+  story("Colour roles", "Reach, the disc, inactive, the core, and the three tones.", row(
+    [
+      ["--map-reach", "--map-reach"],
+      ["--map-reach-fill", "--map-reach-fill"],
+      ["--map-inactive", "--map-inactive"],
+      ["--map-core-edge", "--map-core"],
+      ["--tone-pass-edge", "--tone-pass-edge"],
+      ["--tone-block-edge", "--tone-block-edge"],
+      ["--tone-caution-edge", "--tone-caution-edge"],
+    ].map(([stroke, fill]) => {
+      const svg = svgBox(72);
+      const ring = circle(svg, { cx: "36", cy: "36", r: "24", fill: "none", class: "cov-ring" });
+      ring.style.stroke = "var(" + stroke + ")";
+      const dot = circle(svg, { cx: "36", cy: "36", r: "7", class: "cov-pick-dot" });
+      dot.style.fill = "var(" + fill + ")";
+      dot.style.stroke = "var(--map-on-mark)";
+      return caption(stroke, svg);
+    })
+  ));
+  story("Opacity scale", "Ghost, muted, and live.", row(
+    ["--map-alpha-ghost", "--map-alpha-muted", "--map-alpha-live"].map((token) => {
+      const svg = svgBox(72);
+      const dot = circle(svg, { cx: "36", cy: "36", r: "16" });
+      dot.style.fill = "var(--map-reach)";
+      dot.style.opacity = "var(" + token + ")";
+      return caption(token, svg);
+    })
+  ));
+  story("Dash scale", "Inactive, caution, and the wallet guide.", row(
+    ["--map-dash-inactive", "--map-dash-caution", "--map-dash-guide"].map((token) => {
+      const svg = svgBox(72);
+      const ring = circle(svg, { cx: "36", cy: "36", r: "24", fill: "none", class: "cov-ring" });
+      ring.style.stroke = token === "--map-dash-caution" ? "var(--tone-caution-edge)" : "var(--map-reach)";
+      ring.style.strokeDasharray = "var(" + token + ")";
+      return caption(token, svg);
+    })
+  ));
+  story("Wallet marker", "Default, found, outside, not covered, idle, and dragging.", row(
+    [["Default", ""], ["Found", "found"], ["Outside", "outside"], ["Not covered", "not"], ["Idle", "idle"], ["Dragging", "dragging"]].map(([name, state]) => {
+      const svg = svgBox(64);
+      const g = document.createElementNS(SVG, "g");
+      g.setAttribute("class", "cov-pick " + state);
+      g.setAttribute("transform", "translate(32 32)");
+      const dot = document.createElementNS(SVG, "circle");
+      dot.setAttribute("class", "cov-pick-dot");
+      dot.setAttribute("r", "8");
+      g.append(dot);
+      svg.append(g);
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "center";
+      wrap.style.gap = "var(--space-tight)";
+      const cap = document.createElement("span");
+      cap.className = "text-caption";
+      cap.textContent = name;
+      wrap.append(svg, cap);
+      return wrap;
+    })
+  ));
+  const replay = (play) => {
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "var(--space-group)";
+    const host = document.createElement("div");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-tertiary";
+    btn.textContent = "Replay";
+    const run = () => {
+      host.replaceChildren(play());
+      host.querySelectorAll("animate").forEach((node) => { try { node.beginElement(); } catch (_) {} });
+    };
+    btn.addEventListener("click", run);
+    run();
+    wrap.append(host, btn);
+    return wrap;
+  };
+  const anim = (parent, name, values, dur, once) => {
+    const node = document.createElementNS(SVG, "animate");
+    node.setAttribute("attributeName", name);
+    node.setAttribute("values", values);
+    node.setAttribute("dur", dur);
+    node.setAttribute("begin", "indefinite");
+    node.setAttribute("repeatCount", once ? "1" : "indefinite");
+    parent.append(node);
+  };
+  story("Pulse", "Three pulses, a third of a cycle apart. Reduced motion fades in place.", replay(() => {
+    const svg = svgBox(120);
+    const g = document.createElementNS(SVG, "g");
+    g.setAttribute("class", "spulse");
+    const reduced = motionReduced();
+    const ghost = mapToken("--map-alpha-ghost"), muted = mapToken("--map-alpha-muted"), live = mapToken("--map-alpha-live");
+    [0, 1, 2].forEach((i) => {
+      const radius = reduced ? (48 * [1, .72, .46][i]).toFixed(1) : "18";
+      const ring = circle(g, { cx: "60", cy: "60", r: radius, fill: "none" });
+      const begin = (i * MOTION.pulseGap / 1000).toFixed(1) + "s";
+      anim(ring, "r", reduced ? radius + ";" + radius : "18;48", MOTION.pulseCycle + "ms");
+      anim(ring, "stroke-opacity", reduced ? ghost + ";" + muted + ";" + ghost : "0;" + live + ";0", MOTION.pulseCycle + "ms");
+      ring.querySelectorAll("animate").forEach((node) => node.setAttribute("begin", begin));
+    });
+    svg.append(g);
+    return svg;
+  }));
+  story("Front step", "The front moves one hop. Reduced motion jumps and changes opacity.", replay(() => {
+    const svg = svgBox(120);
+    const ring = circle(svg, { cx: "60", cy: "60", r: "16", fill: "none", class: "swave on" });
+    if (motionReduced()) {
+      ring.setAttribute("r", "48");
+      ring.style.opacity = "0";
+      requestAnimationFrame(() => { ring.style.opacity = ""; });
+    } else tweenAttr(ring, "r", 48, MOTION.frontStep, easeNewton);
+    return svg;
+  }));
+  story("Flash", "A cleared hop. Green, from strong to ring, once.", replay(() => {
+    const svg = svgBox(120);
+    const ring = circle(svg, { cx: "60", cy: "60", r: "36", fill: "none", class: "sflash" });
+    anim(ring, "stroke-opacity", mapToken("--map-alpha-live") + ";0", MOTION.flash + "ms", true);
+    if (!motionReduced()) anim(ring, "stroke-width", mapToken("--map-stroke-strong") + ";" + mapToken("--map-stroke-ring"), MOTION.flash + "ms", true);
+    return svg;
+  }));
+  story("Burst", "Found. Ruby, played once.", replay(() => {
+    const svg = svgBox(120);
+    const ring = circle(svg, { cx: "60", cy: "60", r: "10", fill: "none", class: "sburst" });
+    anim(ring, "r", motionReduced() ? "10;10" : "10;40", MOTION.burst + "ms", true);
+    anim(ring, "stroke-opacity", (motionReduced() ? mapToken("--map-alpha-live") : "1") + ";0", MOTION.burst + "ms", true);
+    return svg;
+  }));
+  story("Listed core", "Ruby pulse and a white label.", replay(() => {
+    const svg = svgBox(120);
+    circle(svg, { cx: "60", cy: "60", r: "22", class: "cov-core listed" });
+    const label = document.createElementNS(SVG, "text");
+    label.setAttribute("class", "cov-core-label");
+    label.setAttribute("x", "60");
+    label.setAttribute("y", "64");
+    label.setAttribute("text-anchor", "middle");
+    label.textContent = "Lazarus";
+    svg.append(label);
+    const ring = circle(svg, { cx: "60", cy: "60", r: "22", fill: "none", class: "cov-core-pick" });
+    const reduced = motionReduced();
+    anim(ring, "r", reduced ? "22;22" : "22;32", MOTION.pulseCycle + "ms");
+    anim(ring, "stroke-opacity", reduced
+      ? mapToken("--map-alpha-ghost") + ";" + mapToken("--map-alpha-muted") + ";" + mapToken("--map-alpha-ghost")
+      : mapToken("--map-alpha-live") + ";0", MOTION.pulseCycle + "ms");
+    return svg;
+  }));
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "btn btn-tertiary";
+  const paintToggle = () => { toggle.textContent = motionReduced() ? "Reduced motion on" : "Reduced motion off"; };
+  toggle.addEventListener("click", () => { document.body.classList.toggle("is-reduced"); paintToggle(); });
+  paintToggle();
+  story("Reduced motion", "Nothing grows or travels. Replay a motion story after switching.", toggle);
+  catalog.push({
+    id: "map-anatomy",
+    title: "Map anatomy",
+    stories,
+    parts: [
+      { title: "Stroke", stories: stories.filter((item) => item.story === "Stroke scale") },
+      { title: "Colour", stories: stories.filter((item) => item.story === "Colour roles") },
+      { title: "Opacity and dash", stories: stories.filter((item) => item.story === "Opacity scale" || item.story === "Dash scale") },
+      { title: "Marker", stories: stories.filter((item) => item.story === "Wallet marker") },
+      { title: "Motion", stories: stories.filter((item) => ["Pulse", "Front step", "Flash", "Burst", "Listed core", "Reduced motion"].includes(item.story)) },
+    ],
+  });
+}
+
 async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addScale }) {
   let grabN = 0;
   const reachMaps = {};
@@ -70,15 +289,17 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   typeProbe.hidden = true;
   document.body.append(typeProbe);
   addScale("typography", "Typography", [
-    ["Display", "text-display", "Verdict headline."],
-    ["Title", "text-title", "Page title."],
-    ["Heading", "text-heading", "Section and card heading."],
-    ["Subheading", "text-subheading", "Minor heading or stat."],
+    ["Display", "text-display", "Verdict headline. Min 1.5rem (24px), max 1.75rem (28px)."],
+    ["Title", "text-title", "Page title and stat figure. Min 1.125rem (18px), max 1.25rem (20px)."],
+    ["Heading", "text-heading", "Section and card heading. Fixed 1.125rem (18px)."],
+    ["Subheading", "text-subheading", "Minor heading. Phone wallet name."],
+    ["Lead", "text-lead", "Verdict reason and intro body."],
     ["Body", "text-body", "Default reading and table cells."],
     ["UI", "text-ui", "Buttons, nav, table head, row title."],
     ["Caption", "text-caption", "Secondary and metadata text."],
-    ["Label", "text-label", "Status chips and eyebrows."],
-    ["Data", "text-data", "Addresses, hashes, and numbers."],
+    ["Eyebrow", "text-eyebrow", "Section labels."],
+    ["Label", "text-label", "Map pills and chips."],
+    ["Data", "text-data", "Addresses, hashes, and numbers. Tabular figures, slashed zero."],
   ].map(([name, cls, words]) => {
     const node = document.createElement("p");
     node.className = cls;
@@ -86,7 +307,24 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     typeProbe.append(node);
     const cs = getComputedStyle(node);
     return { name, note: `.${cls} · ${cs.fontSize} / ${cs.fontWeight}. ${words}`, node };
-  }));
+  }).concat([{
+    name: "cv11",
+    note: "Single-storey a. On for the page (font-feature-settings: cv11). Off on the second line, so the two can be judged.",
+    node: (() => {
+      const wrap = document.createElement("div");
+      const on = document.createElement("p");
+      on.className = "text-body";
+      on.style.margin = "0";
+      on.textContent = "a atlas — cv11 on";
+      const off = document.createElement("p");
+      off.className = "text-body";
+      off.style.margin = "0";
+      off.style.fontFeatureSettings = "normal";
+      off.textContent = "a atlas — cv11 off";
+      wrap.append(on, off);
+      return wrap;
+    })(),
+  }]));
   typeProbe.remove();
   addScale("spacing", "Spacing", [
     ["Tight", "--space-tight", "Icon to label, chip internals."],
@@ -248,6 +486,8 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       take("wallet-row", "WalletRow", "Unlinked", '.d-only .m-row[data-key="clean"]');
       const hoverRow = stage.querySelector('.d-only .m-row[data-key="clean"]')?.cloneNode(true);
       if (hoverRow) { hoverRow.classList.add("is-hover"); add("wallet-row", "WalletRow", "Hover", hoverRow); }
+      const pressRow = stage.querySelector('.d-only .m-row[data-key="clean"]')?.cloneNode(true);
+      if (pressRow) { pressRow.classList.add("is-press"); add("wallet-row", "WalletRow", "Pressed", pressRow); }
       focusOf("wallet-row", "WalletRow", "Focus", stage.querySelector('.d-only .m-row[data-key="one"]'));
       take("ladder", "Ladder", "Header", ".m-only.m-list-head");
       take("ladder", "Ladder", "List", ".m-ladder.m-only");
@@ -312,6 +552,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   phaseNodes.push({ name: "Scanning", node: grabMap() });
   take("step", "Step", "Checking", ".trail");
   stage.querySelectorAll(".step").forEach((row) => {
+    if (row.classList.contains("attest")) return;
     const n = Number(row.dataset.step);
     row.classList.remove("active", "idle");
     if (n > hops) return;
@@ -589,6 +830,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     const index = catalog.findIndex((item) => item.id === id);
     if (index >= 0) catalog.splice(index, 1);
   });
+  mountMapAnatomy(catalog);
   catalog.push({
     id: "anatomy",
     title: "Anatomy",
@@ -598,10 +840,19 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       { title: "Circle", stories: circleSec?.stories || [] },
     ],
   });
+  add("responsive", "Responsive", "Breakpoints", Object.assign(document.createElement("div"), {
+    className: "text-body",
+    innerHTML: [
+      "<p>Breakpoints: 640 and 1024. Card padding is space-group below 640 and space-card from 640. Phone gutters are max(space-group, the safe-area insets). The mast top padding includes safe-area-inset-top.</p>",
+      "<p>Display type: 1.5rem at 320, 1.75rem at 768 and at 1440 (the clamp reaches its max near 587px). Title: 1.125rem at 320, 1.25rem at 768 and at 1440 (max near 667px).</p>",
+      "<p>Map labels: --map-scale = width / 400, so a 12px caption stays 12px. At a 200px map the scale is 0.5; at 280px it is 0.7; at 420px it is 1.05. Below 200px the hop pills hide and the caption carries the hop count.</p>",
+      "<p>Viewport queries that are not container queries: document scroll, safe areas, the 1024px shell, phone landscape, and this kit's own nav.</p>",
+    ].join(""),
+  }));
   const GROUPS = [
-    { id: "foundations", title: "Foundations", sections: ["typography", "spacing", "color", "radii", "motion"] },
+    { id: "foundations", title: "Foundations", sections: ["typography", "spacing", "color", "radii", "motion", "responsive"] },
     { id: "primitives", title: "Primitives", sections: ["button", "badge", "field", "segment", "wallet-row", "ladder"] },
-    { id: "coverage", title: "Coverage map", sections: ["anatomy", "intro-map", "console-map"] },
+    { id: "coverage", title: "Coverage map", sections: ["map-anatomy", "anatomy", "intro-map", "console-map"] },
     { id: "composites", title: "Composites", sections: ["compare", "result", "path", "warnline", "stats", "detail", "error", "card"] },
     { id: "flows", title: "Flows", sections: ["intro", "step", "attestation", "act", "mast", "nav"] },
   ];
