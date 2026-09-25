@@ -1,8 +1,59 @@
 /* Newton Explorer token contract.
    Source: explorer-newton/src/globals.css (Labs reskin).
-   Inter is the stand-in for licensed Suisse Int'l (--font-suisse-intl).
+   Suisse Intl is the licensed brand face; Inter stands in until it's
+   licensed for web. JetBrains Mono stands in for Suisse Intl Mono.
    Components this demo has and Explorer does not — verdict washes, the
-   coverage disc, the hop rail — use these tokens. No extra steps. */
+   coverage disc, the hop rail — use these tokens. No extra steps.
+
+   Fallback metrics, computed from the shipped files against local Arial
+   (unitsPerEm 2048, average advance of a–z A–Z 0–9 = 1185.9355).
+   size-adjust = (faceAvg / faceUPM) / (arialAvg / 2048).
+   ascent/descent/line-gap overrides are the face's typo metrics
+   (USE_TYPO_METRICS) as a percentage of the size-adjusted em.
+   Inter: avg 1241.7581 / 2048, ascent 1984, descent 494, line gap 0.
+   JetBrains Mono: avg 600 / 1000, ascent 1020, descent 300, line gap 0. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  size-adjust: 104.71%;
+  ascent-override: 92.52%;
+  descent-override: 23.04%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("Arial");
+  size-adjust: 103.61%;
+  ascent-override: 98.44%;
+  descent-override: 28.95%;
+  line-gap-override: 0%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-feature-settings: "cv11";
+}
 
 :root {
   /* ── Primitives ──────────────────────────────────────────── */
@@ -26,6 +77,7 @@
   --coal-alpha-04: rgba(14, 14, 15, 0.04);
 
   --blue-50: #ECF1FD;
+  --blue-75: #E2EAFC;
   --blue-100: #D8E2FB;
   --blue-200: #A8BEF5;
   --blue-500: #3D6FE8;
@@ -37,9 +89,22 @@
 
   /* ── Semantic color ──────────────────────────────────────── */
   --color-surface: var(--bone-50);
+  --color-surface-raised: var(--color-white); /* cards, mast, fields */
+  --color-surface-sunken: var(--color-ink-10); /* washes */
   --color-on-surface: var(--coal-950);
-  --color-on-surface-muted: var(--coal-alpha-60);
-  --color-on-surface-subtle: var(--coal-alpha-40);
+  /* Text is solid, so muted copy looks the same on any surface.
+     Tertiary is #737374: #767677 is 4.54:1 on white but 4.42:1 on
+     --color-surface, so it is one step darker (4.74:1 on white, 4.61:1
+     on surface). Disabled is decorative or disabled only, never meaningful text. */
+  --color-text: var(--color-ink-100);
+  --color-text-secondary: var(--color-ink-70);
+  --color-text-tertiary: #737374;
+  --color-text-disabled: var(--color-ink-50);
+  --color-on-surface-muted: var(--color-text-secondary);
+  --color-on-surface-subtle: var(--color-text-tertiary);
+  --color-on-tone: var(--color-white); /* glyphs on a tone or ink fill */
+  --color-border: var(--color-ink-30);
+  --color-border-subtle: var(--color-ink-20);
   --color-surface-alt: var(--coal-alpha-10);
   --color-surface-alt-hover: var(--coal-alpha-08);
   --color-surface-alt-strong: var(--coal-alpha-20);
@@ -86,19 +151,27 @@
 
   /* Tone. Colour for a state. Ruby is edges, icons and small fills only.
      pass = clear, block = listed or exposed, caution = outside reach,
-     neutral = failed or unattested. */
+     neutral = failed or unattested.
+     *-edge is for borders, strokes, icons and fills; *-text is for any text in a tone.
+     An edge used as a meaningful border or stroke is at least 3:1 on white.
+     gold-50 is 2.97:1, so caution-edge is gold-70 (5.69:1).
+     ink-50 is 2.81:1, so neutral-edge is ink-70 (5.32:1). */
   --tone-pass-a: var(--color-leaf-10);
   --tone-pass-b: var(--color-leaf-30);
   --tone-pass-edge: var(--color-leaf-50);
+  --tone-pass-text: var(--color-leaf-70);
   --tone-block-a: var(--color-ruby-10);
   --tone-block-b: var(--color-ruby-30);
   --tone-block-edge: var(--color-ruby-50);
+  --tone-block-text: var(--color-ruby-70);
   --tone-caution-a: var(--color-gold-10);
   --tone-caution-b: var(--color-gold-30);
-  --tone-caution-edge: var(--color-gold-50);
+  --tone-caution-edge: var(--color-gold-70);
+  --tone-caution-text: var(--color-gold-70);
   --tone-neutral-a: var(--color-ink-10);
   --tone-neutral-b: var(--color-ink-20);
-  --tone-neutral-edge: var(--color-ink-50);
+  --tone-neutral-edge: var(--color-ink-70);
+  --tone-neutral-text: var(--color-ink-70);
 
   /* Coverage disc. Explorer has no map; it uses the magic blue ramp so
      the reach stays blue, a block stays ruby, and outside reach stays gold. */
@@ -107,84 +180,114 @@
   --color-coverage-mid: var(--blue-200);
   --cov-edge: var(--color-coverage);
   --cov-soft: var(--color-coverage-soft);
+  --color-reach: var(--color-coverage);
 
   /* ── Type. Explorer product scale, not the marketing site.
-        Sizes are fixed. Weights are 400 and 500. Color stays on the element.
-        Role              Size  Weight  LH     Tracking      Use
-        .text-display     28    500     1.15   -0.015em      verdict headline only
-        .text-title       20    500     1.2    -0.01em       page title
-        .text-heading     18    500     1.25   -0.01em       section / card heading
-        .text-subheading  16    500     1.4     0            minor heading / stat figure
-        .text-body        14    400     1.45    0            default body / table cell
-        .text-ui          14    500     1.4     0            buttons, nav, table head, row title
-        .text-caption     12    400     1.4     0            secondary / metadata
-        .text-label       10    500     normal  0.08em (↑)   status chips, eyebrows
-        .text-data        14    400     1.45    0            mono — addresses / hashes / numbers ── */
-  --font-suisse-intl: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --font-sans: var(--font-suisse-intl), system-ui, sans-serif;
-  --font-code: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
-  --font-mono: var(--font-code);
+        rem so the user's font-size preference applies (root 16px).
+        Display and title adapt; body, ui, caption, label and data stay fixed.
+        Weights are 400 and 500. Color stays on the element.
+        Role              Size                                      Weight  LH     Tracking      Use
+        .text-display     clamp(1.5rem, 1.2rem + 1.5vw, 1.75rem)    500     1.15   -0.015em      verdict headline only
+                          min 1.5rem (24px) · max 1.75rem (28px)
+        .text-title       clamp(1.125rem, 1rem + 0.6vw, 1.25rem)    500     1.2    -0.01em       page title
+                          min 1.125rem (18px) · max 1.25rem (20px)
+        .text-heading     1.125rem (18px)                           500     1.25   -0.01em       section / card heading
+        .text-subheading  1rem (16px)                               500     1.4     0            minor heading
+        .text-lead        1rem (16px)                               400     1.45    0            verdict reason, intro body
+        .text-body        0.875rem (14px)                           400     1.45    0            default body / table cell
+        .text-ui          0.875rem (14px)                           500     1.4     0            buttons, nav, table head, row title
+        .text-caption     0.75rem (12px)                            400     1.4     0            secondary / metadata
+        .text-eyebrow     0.75rem (12px)                            500     1.4     0.08em (↑)   section labels
+        .text-label       0.625rem (10px)                           500     normal  0.08em (↑)   map pills and chips only
+        .text-data        0.875rem (14px)                           400     1.45    0            mono — addresses / hashes / numbers ── */
+  /* Suisse Intl is the licensed brand face; Inter stands in until it's licensed for web. */
+  --font-brand: 'Suisse Intl', 'Inter', 'Inter Fallback', system-ui, sans-serif;
+  --font-sans: var(--font-brand);
+  --font-code: 'JetBrains Mono', 'JetBrains Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --tracking-display: -0.015em;
   --tracking-title: -0.01em;
   --tracking-label: 0.08em;
 
-  --type-display-size: 28px;
+  --type-display-size: clamp(1.5rem, 1.2rem + 1.5vw, 1.75rem);
   --type-display-weight: 500;
   --type-display-leading: 1.15;
 
-  --type-title-size: 20px;
+  --type-title-size: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
   --type-title-weight: 500;
   --type-title-leading: 1.2;
 
-  --type-heading-size: 18px;
+  --type-heading-size: 1.125rem;
   --type-heading-weight: 500;
   --type-heading-leading: 1.25;
 
-  --type-subheading-size: 16px;
+  --type-subheading-size: 1rem;
   --type-subheading-weight: 500;
   --type-subheading-leading: 1.4;
 
-  --type-body-size: 14px;
+  --type-lead-size: 1rem;
+  --type-lead-weight: 400;
+  --type-lead-leading: 1.45;
+
+  --type-body-size: 0.875rem;
   --type-body-weight: 400;
   --type-body-leading: 1.45;
 
-  --type-ui-size: 14px;
+  --type-ui-size: 0.875rem;
   --type-ui-weight: 500;
   --type-ui-leading: 1.4;
 
-  --type-caption-size: 12px;
+  --type-caption-size: 0.75rem;
   --type-caption-weight: 400;
   --type-caption-leading: 1.4;
 
-  --type-label-size: 10px;
+  --type-eyebrow-size: 0.75rem;
+  --type-eyebrow-weight: 500;
+  --type-eyebrow-leading: 1.4;
+
+  --type-label-size: 0.625rem;
   --type-label-weight: 500;
   --type-label-leading: normal;
 
-  --type-data-size: 14px;
+  --type-data-size: 0.875rem;
   --type-data-weight: 400;
   --type-data-leading: 1.45;
 
-  /* ── Space. 4px grid, tops out at 48px between sections.
-        token           px   role
-        --space-tight    4   icon↔label, chip internals
-        --space-inline   8   inline element groups
-        --space-snug    12   dense rows, table cells, form fields
-        --space-group   16   related control groups
-        --space-page    20   app content padding
-        --space-card    24   card padding + base vertical gutter
-        --space-block   32   separated blocks within a section
-        --space-region  40   sub-sections
-        --space-section 48   gap between major page sections ── */
-  --space-tight: 4px;
-  --space-inline: 8px;
-  --space-snug: 12px;
-  --space-group: 16px;
-  --space-page: 20px;
-  --space-card: 24px;
-  --space-block: 32px;
-  --space-region: 40px;
-  --space-section: 48px;
+  /* ── Space. 0.25rem grid, tops out at 3rem between sections.
+        token            rem      px   role
+        --space-tight    0.25     4    icon↔label, chip internals
+        --space-inline   0.5      8    inline element groups
+        --space-snug     0.75    12    dense rows, table cells, form fields
+        --space-group    1       16    related control groups
+        --space-page     1.25    20    app content padding
+        --space-card     1.5     24    card padding + base vertical gutter
+        --space-block    2       32    separated blocks within a section
+        --space-region   2.5     40    sub-sections
+        --space-section  3       48    gap between major page sections ── */
+  --space-tight: 0.25rem;
+  --space-inline: 0.5rem;
+  --space-snug: 0.75rem;
+  --space-group: 1rem;
+  --space-page: 1.25rem;
+  --space-card: 1.5rem;
+  --space-block: 2rem;
+  --space-region: 2.5rem;
+  --space-section: 3rem;
+
+  /* Component sizes. Hit area, controls, icons, and a few fixed measures. */
+  --size-touch: 2.75rem;
+  --size-control-sm: 2rem;
+  --size-control: 2.5rem;
+  --size-control-lg: 3rem;
+  --size-icon-sm: 1rem;
+  --size-icon: 1.125rem;
+  --size-dot: 0.625rem;
+  --measure-text: 44ch;
+  --measure-detail: 64ch;
+  --width-result: 36rem;
+  --width-console: 1400px;
+  --width-map: 420px;
+  --card-pad: var(--space-group);
 
   /* ── Radius. Controls, surfaces, and the pill. */
   --radius-control: 12px; /* inputs, nav, segments */
@@ -202,12 +305,45 @@
   --duration-cycle: calc(var(--duration-interaction) * 12);
   --stagger: calc(var(--duration-interaction) / 5);
 
+  /* ── Map. Stroke weights are screen px (pair with non-scaling-stroke).
+        *-edge is borders, strokes, icons and fills; *-text is type.
+        Movement stays on --map-reach. A tone colour appears only for an outcome. */
+  --map-stroke-hair: 1px;
+  --map-stroke-ring: 1.5px;
+  --map-stroke-emphasis: 2px;
+  --map-stroke-strong: 3px;
+  --map-reach: var(--color-accent);
+  --map-reach-fill: color-mix(in srgb, var(--blue-75) 52%, transparent);
+  --map-inactive: var(--color-text-disabled);
+  --map-core: var(--color-surface-sunken);
+  --map-core-edge: var(--color-border);
+  --map-on-mark: var(--color-on-tone);
+  --map-alpha-ghost: .2;
+  --map-alpha-muted: .5;
+  --map-alpha-live: .8;
+  --map-dash-inactive: 2 6;
+  --map-dash-caution: 5 4;
+  --map-dash-guide: 1 5;
+  --map-pulse-cycle: var(--duration-cycle);
+  --map-pulse-gap: var(--duration-beat); /* cycle / 3 */
+  --map-front-step: var(--duration-emphasis);
+  --map-flash: var(--duration-emphasis);
+  --map-burst: calc(var(--duration-interaction) * 2);
+  --map-pick-pulse: var(--duration-beat);
+
   /* Hover and press for outlined / selectable controls.
      Filled primaries use --color-accent-hover only. */
   --interaction-hover-fill: var(--color-ink-10);
   --interaction-hover-edge: var(--color-ink-80);
   --interaction-press-fill: var(--color-surface-alt);
   --interaction-selected-fill: var(--color-surface-alt);
+
+  /* ── Shadow. Same ink and blur.
+        Lift drops 1px, for a selected control.
+        Even has no offset, for the mast and the dashboard cards. */
+  --shadow-lift: 0 1px 2px rgba(14, 14, 15, 0.14);
+  --shadow-even: 0 0 2px rgba(14, 14, 15, 0.14);
+  --shadow-raise: 0 0 6px rgba(14, 14, 15, 0.35);
 
   /* ── Layout. Explorer / Tailwind: sm 640, md 768, lg 1024.
         Phone rules sit below sm. The console is one column below lg
@@ -220,19 +356,9 @@
   --inset: clamp(var(--space-card), 4vw, var(--space-section));
 }
 
-@media (min-width: 640px) {
-  :root {
-    --shell-pad: var(--space-page);
-    --shell-gap: var(--space-group);
-  }
-}
 
-@media (min-width: 1024px) {
-  :root {
-    --shell-pad: var(--space-card);
-    --shell-gap: var(--space-card);
-  }
-}
+
+
 
 /* Type roles. Size, weight, leading, tracking. Color stays on the element.
    Prefer these classes over ad-hoc font-size. */
@@ -264,6 +390,13 @@
   line-height: var(--type-subheading-leading);
   letter-spacing: 0;
 }
+.text-lead {
+  font-family: var(--font-sans);
+  font-weight: var(--type-lead-weight);
+  font-size: var(--type-lead-size);
+  line-height: var(--type-lead-leading);
+  letter-spacing: 0;
+}
 .text-body {
   font-family: var(--font-sans);
   font-weight: var(--type-body-weight);
@@ -285,6 +418,14 @@
   line-height: var(--type-caption-leading);
   letter-spacing: 0;
 }
+.text-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: var(--type-eyebrow-weight);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-leading);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
 .text-label {
   font-family: var(--font-sans);
   font-weight: var(--type-label-weight);
@@ -299,6 +440,18 @@
   font-size: var(--type-data-size);
   line-height: var(--type-data-leading);
   letter-spacing: 0;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Counts, hop labels, and $ figures. Addresses keep the slashed zero on .text-data. */
+.stat-v,
+.step-label,
+.step-kicker .kn,
+.cov-pill text,
+.cov-sum,
+.cov-status,
+.reach-line {
+  font-variant-numeric: tabular-nums;
 }
 
 .stack {
@@ -311,3 +464,8 @@
   flex-direction: column;
   gap: var(--space-section);
 }
+
+/* Fields stay at least 1rem so iOS does not zoom on focus. */
+input, textarea, select { font-size: 1rem; }
+
+/* Phone type steps. These utilities opt in; role classes are not restyled. */
