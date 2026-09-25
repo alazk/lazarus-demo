@@ -20,7 +20,14 @@ function scanMapController() {
     /** The front steps out to hop n; the pulses follow it. */
     reach(n) {
       const r = n === 0 ? COV_R[0] + 14 : COV_R[n];
-      if (wave) { wave.setAttribute("class", "swave on"); tweenAttr(wave, "r", r, MOTION.emphasis - Math.round(MOTION.interaction / 3)); }
+      if (wave) {
+        wave.setAttribute("class", "swave on");
+        if (motionReduced()) {
+          wave.setAttribute("r", r);
+          wave.style.opacity = "0";
+          requestAnimationFrame(() => { wave.style.opacity = ""; });
+        } else tweenAttr(wave, "r", r, MOTION.frontStep, easeNewton);
+      }
       if (pulse) { setPulseReach(pulse, r); pulse.setAttribute("display", "inline"); }
       const st = status(); if (st) st.textContent = words[n] || "";
     },
@@ -29,7 +36,9 @@ function scanMapController() {
       if (n === 0) {
         if (state === "listed") {
           q(".cov-core")?.setAttribute("class", "cov-core listed");
-          document.getElementById("cov-core-pick")?.classList.add("on");
+          const corePick = document.getElementById("cov-core-pick");
+          corePick?.classList.add("on");
+          beginAll(corePick);
         }
         syncCoverageRings(svg);
         return;
@@ -73,34 +82,34 @@ function renderChecking(address) {
   stage.innerHTML = `
     <div class="console still scan-shell">
       <div class="col">
-        <div class="text-label muted step-kicker"><span class="kn">1</span>Radius</div>
+        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">1</span>Radius</div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "scan")}</div>
         </div>
       </div>
       <div class="col">
-        <div class="text-label muted step-kicker"><span class="kn">2</span>Result</div>
+        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">2</span>Result</div>
         <div class="card card-result" id="panel">
           <div class="result-body">
             <div class="right" id="right-slot">
               <div class="text-title">Checking</div>
-              <p class="reason text-subheading">Scanning outward, then waiting on an operator quorum.</p>
+              <p class="reason text-lead">Scanning outward, then waiting on an operator quorum.</p>
               <div class="text-data result-addr">${esc(address)}</div>
             </div>
             <div class="trail">
-              <span class="trail-label">Scan</span>
+              <span class="trail-label text-eyebrow">Scan</span>
               <div class="steps">
                 ${STEP_LABELS.map((label, n) => `
                   <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
                     <span class="step-icon" aria-hidden="true"></span>
-                    <span class="step-label">${esc(STEP_TILE[n])}</span>
-                    <span class="step-note">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
+                    <span class="step-label text-ui">${esc(STEP_TILE[n])}</span>
+                    <span class="step-note text-eyebrow">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
                   </div>`).join("")}
-              </div>
-              <div class="attest pending" data-state="pending">
-                <span class="attest-icon" aria-hidden="true"></span>
-                <span class="attest-label">Attestation</span>
-                <span class="attest-note">pending</span>
+                <div class="step attest idle" data-state="pending">
+                  <span class="step-icon" aria-hidden="true"></span>
+                  <span class="step-label text-ui">Attest</span>
+                  <span class="step-note text-eyebrow">idle</span>
+                </div>
               </div>
             </div>
           </div>
@@ -189,8 +198,16 @@ function renderChecking(address) {
 function paintAttestation(state) {
   const row = document.querySelector(".attest");
   if (!row) return;
+  const view = state === "signing" ? "active"
+    : state === "attested" ? "clear"
+    : state === "failed" ? "failed"
+    : "idle";
+  const label = state === "attested" ? "attested"
+    : state === "signing" ? "signing"
+    : state === "failed" ? "failed"
+    : "idle";
   row.dataset.state = state;
-  row.className = "attest " + state;
-  const note = row.querySelector(".attest-note");
-  if (note) note.textContent = state;
+  row.className = "step attest " + view;
+  const note = row.querySelector(".step-note");
+  if (note) note.textContent = label;
 }

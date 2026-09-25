@@ -28,8 +28,6 @@ function renderWalletList(ready, prefill, extra = "") {
       ${rows.map((r) => {
         const d = DIST[r.key];
         const inside = d !== null && d !== undefined && d <= hops;
-        const out = outcomes[r.address.toLowerCase()];
-        const state = out && out.hops === hops ? out.state : "";
         const sub = walletSub(r.key, d);
         const chosen = r.address.toLowerCase() === chosenAddr;
         return `<button class="m-row wrow ${inside ? "in" : ""} ${chosen ? "chosen" : ""} ${walletStatus(d) ? "" : "nostatus"}"
@@ -39,11 +37,10 @@ function renderWalletList(ready, prefill, extra = "") {
           <span class="m-bar" aria-hidden="true"></span>
           <span class="w-letter" aria-hidden="true">${esc(WALLET_LETTER[r.key] || "")}</span>
           <span class="m-text">
-            <span class="m-name">${esc(WALLET_TITLE[r.key] || r.label || "")}</span>
-            <span class="m-sub">${walletSubHtml(r.key, d)}</span>
+            <span class="m-name text-ui text-ui--phone-subheading">${esc(WALLET_TITLE[r.key] || r.label || "")}</span>
+            <span class="m-sub text-caption text-caption--phone-body">${walletSubHtml(r.key, d)}</span>
           </span>
           <span class="w-addr">${esc(short(r.address))}</span>
-          <span class="m-dot ${state}" aria-label="${esc(outcomeDotLabel(state))}"></span>
         </button>`;
       }).join("")}
     </div>`;

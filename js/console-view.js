@@ -6,14 +6,14 @@ function renderConsole(prefill = "", error = "", still = false) {
   stage.innerHTML = `
     <div class="console ${still ? "still" : ""}">
       <div class="col">
-        <div class="text-label muted step-kicker"><span class="kn">1</span>Choose the radius</div>
+        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">1</span>Choose the radius</div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready)}</div>
         </div>
       </div>
 
       <div class="col">
-        <div class="text-label muted step-kicker"><span class="kn">2</span>Scan a wallet</div>
+        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">2</span>Scan a wallet</div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}
@@ -198,5 +198,5 @@ function renderConsole(prefill = "", error = "", still = false) {
   run.onclick = () => submit(String(input.value ?? "").trim());
   placePick(prefill);
   sync();
-  if (window.matchMedia("(min-width: 861px)").matches) input.focus();
+  if (window.matchMedia(`(min-width: ${BP.lg}px)`).matches) input.focus();
 }

@@ -43,6 +43,15 @@ async function submit(address) {
 }
 
 /* ── Verdict ─────────────────────────────────────────────────── */
+const STATUS_LABEL = {
+  clear: { tone: "pass", icon: "✓", label: "Clear" },
+  listed: { tone: "block", icon: "!", label: "Listed" },
+  exposed: { tone: "block", icon: "!", label: "Exposed" },
+  outside: { tone: "caution", icon: "⚠", label: "Outside policy" },
+  failed: { tone: "neutral", icon: "–", label: "Screening failed" },
+  unattested: { tone: "neutral", icon: "–", label: "Not attested" },
+};
+
 function renderPath(r) {
   const nodes = Array.isArray(r.path) && r.path.length > 1
     ? r.path
@@ -51,12 +60,13 @@ function renderPath(r) {
   const edges = r.edges || [];
   const body = nodes.map((addr, i) => {
     const role = i === 0 ? "You" : i === nodes.length - 1 ? "Lazarus" : "Via";
-    const node = `<span class="path-node"><span class="path-role">${role}</span><span class="text-data">${esc(short(addr))}</span></span>`;
+    const lazarus = i === nodes.length - 1 ? " is-lazarus" : "";
+    const node = `<span class="path-node${lazarus}"><span class="path-role text-eyebrow">${role}</span><span class="text-data">${esc(short(addr))}</span></span>`;
     if (i === nodes.length - 1) return `<span class="path-hop">${node}</span>`;
     const tx = edges[i]?.tx;
     const link = tx
-      ? `<a class="path-edge" href="https://etherscan.io/tx/${esc(tx)}" target="_blank" rel="noopener">${esc(short(tx))}<span aria-hidden="true"> ↗</span></a>`
-      : `<span class="path-edge" aria-hidden="true">→</span>`;
+      ? `<a class="path-edge text-caption" href="https://etherscan.io/tx/${esc(tx)}" target="_blank" rel="noopener">${esc(short(tx))}<span aria-hidden="true"> ↗</span></a>`
+      : `<span class="path-edge text-caption" aria-hidden="true">→</span>`;
     return `<span class="path-hop">${node}${link}</span>`;
   }).join("");
   return `<div class="path-strip">${body}</div>`;
@@ -78,17 +88,17 @@ function renderStats(r) {
   const isFirstEdge = typeof r.first_edge_usd === "number"
     && r.first_edge_usd === r.exposure_usd;
   const valueCell = (tx && isFirstEdge)
-    ? `<a class="stat-v stat-link" href="https://etherscan.io/tx/${esc(tx)}"
+    ? `<a class="stat-v text-title stat-link" href="https://etherscan.io/tx/${esc(tx)}"
          target="_blank" rel="noopener" title="The transfer this figure comes from"
          >${esc(value)} <span class="stat-ext">↗</span></a>`
-    : `<div class="stat-v">${esc(value)}</div>`;
+    : `<div class="stat-v text-title">${esc(value)}</div>`;
 
   return `<div class="stats">
-    <div class="stat"><div class="stat-k">Distance</div>
-      <div class="stat-v">${esc(distance)}</div></div>
-    <div class="stat"><div class="stat-k">Smallest transfer</div>${valueCell}</div>
-    <div class="stat"><div class="stat-k">Decision</div>
-      <div class="stat-v">${esc(decision)}</div></div>
+    <div class="stat"><div class="stat-k text-eyebrow">Distance</div>
+      <div class="stat-v text-title">${esc(distance)}</div></div>
+    <div class="stat"><div class="stat-k text-eyebrow">Smallest transfer</div>${valueCell}</div>
+    <div class="stat"><div class="stat-k text-eyebrow">Decision</div>
+      <div class="stat-v text-title">${esc(decision)}</div></div>
   </div>`;
 }
 
@@ -146,30 +156,37 @@ async function fillVerdict(r, outsideReach) {
 
   const detail = r.detail || r.attestation?.detail;
   const disagree = r.warning
-    ? `<div class="warnline" role="note">${WARN_ICON}<span><b>${esc(r.warning)}</b>${r.local_decision ? ` Local screening was ${esc(r.local_decision)}.` : ""}</span></div>`
+    ? `<div class="warnline" role="note">${WARN_ICON}<span>${esc(r.warning)}${r.local_decision ? ` Local screening was ${esc(r.local_decision)}.` : ""}</span></div>`
     : "";
   const outsideLine = outsideReach
     ? `<div class="warnline" role="note">${WARN_ICON}
-      <span><b>Exposure found ${esc(hopWord(r.hop_count))} out</b>, outside your reach
+      <span>Exposure found ${esc(hopWord(r.hop_count))} out, outside your reach
       of ${esc(hopWord(max))}.</span></div>`
     : "";
   const path = (key === "exposed" || key === "outside") ? renderPath(r) : "";
+  const status = STATUS_LABEL[key];
   right.innerHTML = `
-    <div class="text-display">${esc(headline)}</div>
-    ${outsideLine}
-    ${disagree}
-    <p class="reason text-subheading">${esc(reason)}</p>
+    <div class="result-lead">
+      <div class="result-status tone-${status.tone}">
+        <span class="result-status-icon" aria-hidden="true">${status.icon}</span>
+        <span class="text-eyebrow">${status.label}</span>
+      </div>
+      <div class="text-display">${esc(headline)}</div>
+      ${outsideLine}
+      ${disagree}
+      <p class="reason text-lead">${esc(reason)}</p>
+    </div>
     ${path}
-    ${detail ? `<div class="detail">${esc(detail)}</div>` : ""}
-    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}`;
+    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
+    ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");
   requestAnimationFrame(() => right.classList.remove("swapping"));
 
   actions.innerHTML = `
     <span class="line"></span>
-    <button class="btn btn-tertiary btn-md" id="again">New check</button>
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}`;
+       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}
+    <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
   actions.classList.add("on");
   // Back to the console without an entrance, so the map does not jump.
   document.getElementById("again").onclick = () => renderConsole(currentAddress || r.wallet || "", "", true);

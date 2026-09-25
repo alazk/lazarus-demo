@@ -3,6 +3,7 @@
    change can be checked without walking the demo or calling the API. */
 function paintSteps(kind, hitHop) {
   stage.querySelectorAll(".step").forEach((row) => {
+    if (row.classList.contains("attest")) return;
     const n = Number(row.dataset.step);
     const note = row.querySelector(".step-note");
     row.className = "step";
@@ -176,8 +177,8 @@ async function renderStates() {
     circle: {
       Outside: "This wallet sits beyond the chosen reach.",
       Covered: "This wallet sits inside the chosen reach.",
-      Selected: "The wallet being screened.",
-      Hover: "White fill, hover edge on the outline and letter.",
+      Selected: "Blue disc and white letter, with a blue ring. The fill grows from the centre.",
+      Hover: "The disc takes the hover wash. The letter stays as it is.",
       Clear: "No exposure at this wallet.",
       Exposed: "Exposure found at this wallet.",
       "Outside reach": "Exposure at this wallet is outside the reach.",
