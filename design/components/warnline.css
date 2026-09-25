@@ -1,0 +1,15 @@
+/* Warnline. */
+
+.result-lead .warnline{ margin:0 0 var(--space-group); }
+
+.warnline{ max-width:none; margin:0; white-space:normal; align-items:flex-start; }
+
+.warnline{
+  display: flex; align-items: flex-start; gap: var(--space-snug); margin-top: var(--space-group);
+  padding: var(--space-snug) var(--space-group); border-radius: var(--radius-control);
+  background: var(--tone-caution-wash); border: 1px solid var(--tone-caution-edge);
+  font-size: var(--type-body-size); line-height: var(--type-body-leading); color: var(--color-text);
+  max-width: var(--measure-text);
+}
+
+.warn-icon{ flex: 0 0 var(--space-page); width: var(--space-page); height: var(--space-page); color: var(--tone-caution-edge); margin-top: 1px; }

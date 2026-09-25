@@ -13,7 +13,7 @@
    Inter: avg 1241.7581 / 2048, ascent 1984, descent 494, line gap 0.
    JetBrains Mono: avg 600 / 1000, ascent 1020, descent 300, line gap 0. */
 
-@font-face {
+@font-face{
   font-family: "Inter";
   font-style: normal;
   font-weight: 400 500;
@@ -21,7 +21,7 @@
   src: url("/fonts/inter-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@font-face {
+@font-face{
   font-family: "Inter Fallback";
   src: local("Arial");
   size-adjust: 104.71%;
@@ -29,7 +29,7 @@
   descent-override: 23.04%;
   line-gap-override: 0%;
 }
-@font-face {
+@font-face{
   font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
@@ -37,7 +37,7 @@
   src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@font-face {
+@font-face{
   font-family: "JetBrains Mono Fallback";
   src: local("Arial");
   size-adjust: 103.61%;
@@ -46,7 +46,7 @@
   line-gap-override: 0%;
 }
 
-html {
+html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
@@ -55,7 +55,7 @@ html {
   font-feature-settings: "cv11";
 }
 
-:root {
+:root{
 
   /* ── Tier 1 · Primitives ───────────────────────────────────
      Only the ramp steps tier 2 references: bone, ink, blue, leaf, ruby, gold, white. */
@@ -289,93 +289,6 @@ html {
   --inset: clamp(var(--space-card), 4vw, var(--space-section));
 }
 
-
-
-
-
-/* Type roles. Size, weight, leading, tracking. Color stays on the element.
-   Prefer these classes over ad-hoc font-size. */
-.text-display {
-  font-family: var(--font-sans);
-  font-weight: var(--type-display-weight);
-  font-size: var(--type-display-size);
-  line-height: var(--type-display-leading);
-  letter-spacing: var(--tracking-display);
-}
-.text-title {
-  font-family: var(--font-sans);
-  font-weight: var(--type-title-weight);
-  font-size: var(--type-title-size);
-  line-height: var(--type-title-leading);
-  letter-spacing: var(--tracking-title);
-}
-.text-heading {
-  font-family: var(--font-sans);
-  font-weight: var(--type-heading-weight);
-  font-size: var(--type-heading-size);
-  line-height: var(--type-heading-leading);
-  letter-spacing: var(--tracking-title);
-}
-.text-subheading {
-  font-family: var(--font-sans);
-  font-weight: var(--type-subheading-weight);
-  font-size: var(--type-subheading-size);
-  line-height: var(--type-subheading-leading);
-  letter-spacing: 0;
-}
-.text-lead {
-  font-family: var(--font-sans);
-  font-weight: var(--type-lead-weight);
-  font-size: var(--type-lead-size);
-  line-height: var(--type-lead-leading);
-  letter-spacing: 0;
-}
-.text-body {
-  font-family: var(--font-sans);
-  font-weight: var(--type-body-weight);
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-leading);
-  letter-spacing: 0;
-}
-.text-ui {
-  font-family: var(--font-sans);
-  font-weight: var(--type-ui-weight);
-  font-size: var(--type-ui-size);
-  line-height: var(--type-ui-leading);
-  letter-spacing: 0;
-}
-.text-caption {
-  font-family: var(--font-sans);
-  font-weight: var(--type-caption-weight);
-  font-size: var(--type-caption-size);
-  line-height: var(--type-caption-leading);
-  letter-spacing: 0;
-}
-.text-eyebrow {
-  font-family: var(--font-sans);
-  font-weight: var(--type-eyebrow-weight);
-  font-size: var(--type-eyebrow-size);
-  line-height: var(--type-eyebrow-leading);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-.text-label {
-  font-family: var(--font-sans);
-  font-weight: var(--type-label-weight);
-  font-size: var(--type-label-size);
-  line-height: var(--type-label-leading);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-.text-data {
-  font-family: var(--font-code);
-  font-weight: var(--type-data-weight);
-  font-size: var(--type-data-size);
-  line-height: var(--type-data-leading);
-  letter-spacing: 0;
-  font-variant-numeric: tabular-nums slashed-zero;
-}
-
 /* Counts, hop labels, and $ figures. Addresses keep the slashed zero on .text-data. */
 .stat-v,
 .step-label,
@@ -383,22 +296,20 @@ html {
 .cov-pill text,
 .cov-sum,
 .cov-status,
-.reach-line {
+.reach-line{
   font-variant-numeric: tabular-nums;
 }
 
-.stack {
+.stack{
   display: flex;
   flex-direction: column;
   gap: var(--space-card);
 }
-.section-stack {
+.section-stack{
   display: flex;
   flex-direction: column;
   gap: var(--space-section);
 }
 
 /* Fields stay at least 1rem so iOS does not zoom on focus. */
-input, textarea, select { font-size: 1rem; }
-
-/* Phone type steps. These utilities opt in; role classes are not restyled. */
+input, textarea, select{ font-size: 1rem; }

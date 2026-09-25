@@ -147,3 +147,9 @@ State classes in use: `.sel`, `.chosen`, `.on`, `.held`, `.in`, `.out`, `.is-hov
 27. The picked wallet stays a tertiary outline through the scan. `syncCoverageRings` takes `colourPick: false` from the scan walk. `paintMapVerdict` applies pass, block, caution, or neutral when the outcome is known. Failed and unattested clear every band and leave the pick neutral.
 28. The scan front and the burst stay `--map-reach`. The ghost radius is the hover edge. Other wallets are a tertiary outline with no fill, including the intro caption. Coverage ticks in the list are border-strong, so choosing does not paint a second blue.
 29. While a scan is running, non-picked wallets still fade with `--map-alpha-ghost`. That is opacity, not a second hue.
+
+30. Styles were split by selector into one file per component, emitted in the old load order so an equal-specificity override still wins. Width queries stayed in `responsive.css`, because a media query cannot read a custom property.
+31. CSS no longer uses IDs. `#act-copy`, `#actions-slot`, `#home`, `#cov-svg`, and `#right-slot` are now `.act-copy`, `.actions`, `.badge`, `.cov-svg`, and `.right`. The ids stay so the scripts can find the nodes.
+32. `!important` remains only on the reduced-motion reset. The map's animation lock keeps `animation: none` without `!important`.
+33. Component scripts are classic scripts, not ES modules. `hops`, `view`, `pickAddr`, and `stage` are reassigned across the page, and a module graph would have to thread that state through the scan. Each component file exposes `render`, `update`, and `STATES`. Path and stats moved into their files. The intro composes the button. The scan, the map, and the act panel still live beside the view that owns the live radius and the API result.
+34. Class names stayed as they are. They are the contract the renderers and the kit query. A component's rules live in its own file.

@@ -1,0 +1,31 @@
+/* Field and its error. */
+
+.field{
+    width:100%; height:var(--size-control-lg); border:1px solid var(--color-text-disabled);
+    border-radius:var(--radius-control); background:var(--color-surface-raised);
+    padding:0 var(--space-group); font-family:var(--font-code); font-size:var(--type-subheading-size); color:var(--color-text);
+  }
+
+.field::placeholder{ color:var(--color-text-tertiary); }
+
+@media (hover:hover){ .field:hover, .field.is-hover { border-color:var(--state-hover-edge); background:var(--state-hover-fill); } }
+
+.field:active, .field.is-press{ background:var(--state-press-fill); }
+
+.field:disabled{ background:var(--color-surface-sunken); color:var(--state-disabled); opacity:1; }
+
+.field.invalid{ border-color:var(--tone-block-edge); }
+
+.err{ font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--tone-block-text); margin:0; }
+
+.err:empty{ display:none; }
+
+.addr-wrap{ display:flex; flex-direction:column; gap:var(--space-inline); }
+
+.card-check .addr-wrap{ display:none; }
+
+.card-check.show-paste .addr-wrap{ display:flex; }
+
+.field:focus-visible, .field.is-focus{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-width); }
+
+.field:disabled{ background:var(--color-surface-sunken); color:var(--state-disabled); opacity:1; }

@@ -76,7 +76,7 @@ function renderIntro() {
     <div class="intro">
       <div class="intro-grid">
         <div class="act">
-          <div id="act-copy">
+          <div class="act-copy" id="act-copy">
             ${ACTS.map((a, i) => `<div class="act-panel" aria-hidden="${i !== 0}">
               <div class="text-label text-label--phone-eyebrow">${esc(a.kicker)}</div>
               <div class="text-heading">${esc(a.title)}</div>
@@ -84,8 +84,8 @@ function renderIntro() {
             </div>`).join("")}
           </div>
           <div class="intro-foot">
-            <button class="btn btn-primary btn-lg" id="go-console">Screen a wallet</button>
-            <button class="btn btn-tertiary btn-md" id="next-act">Next</button>
+            ${button.render({ label: "Screen a wallet", id: "go-console", variant: "primary", size: "lg" })}
+            ${button.render({ label: "Next", id: "next-act", variant: "tertiary", size: "md" })}
             <div class="acts">
               ${ACTS.map((_, i) => `<button class="act-dot" type="button"
                 data-act="${i}" aria-label="Section ${i + 1}"></button>`).join("")}

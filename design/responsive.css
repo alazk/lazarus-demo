@@ -13,8 +13,8 @@
 .m-only { display: none; }
 
 /* The mast sits outside the stage, so its hit areas cannot use the frame query. */
-#home, .states-link { position: relative; }
-#home::after, .states-link::after {
+.badge, .states-link { position: relative; }
+.badge::after, .states-link::after {
   content: ""; position: absolute;
   inset: calc((var(--size-touch) - 100%) / -2);
 }
@@ -103,7 +103,7 @@ body {
   .console, .checking { padding: 0; gap: var(--space-group); }
   .console { display: flex; flex-direction: column; align-items: stretch; }
   .card, .card-cov, .card-check, .card-result { height: auto; overflow: visible; }
-  #act-copy { min-height: 0; }
+  .act-copy { min-height: 0; }
   .intro-grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "figure" "copy";
@@ -144,8 +144,8 @@ body {
   }
   .card-result .actions { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
   .card-result .actions .btn { width: 100%; }
-  .act-dot, #home, .stat-link { position: relative; }
-  .act-dot::after, #home::after, .stat-link::after {
+  .act-dot, .badge, .stat-link { position: relative; }
+  .act-dot::after, .badge::after, .stat-link::after {
     content: ""; position: absolute;
     inset: calc((var(--size-touch) - 100%) / -2);
   }

@@ -940,6 +940,18 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     { id: "composites", title: "Composites", sections: ["compare", "result", "path", "warnline", "stats", "detail", "error", "card"] },
     { id: "flows", title: "Flows", sections: ["intro", "step", "attestation", "act", "mast", "nav"] },
   ];
+  const componentList = [button, field, segment, walletRow, coverageMap, stepTrail, resultCard, pathStrip, stats, warnline, mast, actPanel];
+  const storyNames = new Set();
+  catalog.forEach((sec) => (sec.stories || []).forEach((item) => storyNames.add(item.story)));
+  window.__missingStories = [];
+  componentList.forEach((comp) => {
+    comp.STATES.forEach((state) => {
+      if (!storyNames.has(state)) {
+        window.__missingStories.push(state);
+        console.error("Missing story: " + state);
+      }
+    });
+  });
   document.title = "UI kit · Lazarus Scan";
 
   const kit = document.createElement("div");

@@ -1,0 +1,27 @@
+/* Segment control. */
+
+.cov-seg{
+    display:flex; gap:var(--space-tight); padding:var(--space-tight); margin:0 0 var(--space-group);
+    background:var(--color-surface-sunken); border-radius:var(--radius-control);
+  }
+
+.cov-seg .m-seg-btn{
+    min-width:84px; height:var(--size-control); padding:0 var(--space-group);
+    border:none; border-radius:var(--radius-control); background:transparent; cursor:pointer;
+    font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:var(--type-ui-weight); color:var(--color-text-secondary);
+    transition:background var(--duration-interaction), color var(--duration-interaction), box-shadow var(--duration-interaction);
+  }
+
+.cov-seg .m-seg-btn[aria-pressed="true"]{ background:var(--state-selected-fill); color:var(--color-text); box-shadow:var(--shadow-lift); }
+
+.cov-seg .m-seg-btn[aria-pressed="true"]:hover, .cov-seg .m-seg-btn[aria-pressed="true"].is-hover{ background:var(--state-selected-fill); }
+
+.cov-seg .m-seg-btn:disabled{ color:var(--state-disabled); opacity:1; cursor:not-allowed; background:transparent; }
+
+@media (hover:hover){
+    .m-seg-btn:not([aria-pressed="true"]):not(:disabled):hover,
+    .m-seg-btn.is-hover:not([aria-pressed="true"]) {
+      color:var(--color-text);
+      background:var(--state-hover-fill);
+    }
+  }

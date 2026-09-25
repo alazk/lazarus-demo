@@ -1,0 +1,92 @@
+/* Button. Filled, outlined, and the act dots. */
+
+button, a, .act-dot{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+
+.btn *{ pointer-events:none; }
+
+.act-dot{
+    width:var(--space-inline); height:var(--space-inline); padding:0; border:none;
+    border-radius:var(--radius-full); background:var(--color-border); cursor:pointer;
+    transition:background var(--duration-interaction);
+  }
+
+.act-dot[aria-current="step"], .act-dot[aria-current="step"]:hover, .act-dot[aria-current="step"].is-hover{ background:var(--color-text); }
+
+@media (hover:hover){
+    .act-dot:not([aria-current="step"]):hover, .act-dot.is-hover:not([aria-current="step"]) { background:var(--color-border-strong); }
+  }
+
+.btn{
+    border:none; border-radius:var(--radius-full); cursor:pointer;
+    font-family:var(--font-sans); font-weight:var(--type-ui-weight); font-size:var(--type-ui-size);
+    text-decoration:none;
+    display:inline-flex; align-items:center; justify-content:center; gap:var(--space-inline);
+    text-align:center; line-height:var(--type-ui-leading);
+    padding:var(--button-pad-y) var(--button-pad-x);
+    transition:background-color var(--duration-interaction) var(--ease-newton),
+      border-color var(--duration-interaction) var(--ease-newton),
+      color var(--duration-interaction) var(--ease-newton),
+      opacity var(--duration-interaction) var(--ease-newton),
+      transform var(--duration-interaction) var(--ease-newton);
+  }
+
+.btn:active, .btn.is-pressed, .btn.is-press{ transform:none; }
+
+.btn-lg, .btn-md{ min-height:var(--size-touch); }
+
+.btn-primary{ background:var(--color-accent); color:var(--color-on-accent); }
+
+@media (hover:hover){ .btn-primary:hover:not(:disabled), .btn-primary.is-hover:not(:disabled) { background:var(--color-accent-hover); } }
+
+.btn-primary:active:not(:disabled), .btn-primary.is-pressed:not(:disabled){ background:color-mix(in srgb, var(--color-text) 12%, var(--color-accent-hover)); }
+
+.btn-primary:disabled, .btn-primary[disabled]{ background:var(--color-surface-sunken); color:var(--state-disabled); opacity:1; cursor:not-allowed; }
+
+.btn.is-loading{ cursor:progress; }
+
+.btn.is-loading::after{
+    content:""; width:1em; height:1em; border-radius:var(--radius-full);
+    border:2px solid currentColor; border-right-color:transparent;
+    animation:btn-spin var(--duration-beat) linear infinite;
+  }
+
+@keyframes btn-spin{ to { transform:rotate(360deg); } }
+
+@media (prefers-reduced-motion:reduce){
+    .btn.is-loading::after { animation:none; }
+  }
+
+.btn-tertiary{ background:var(--color-surface); color:var(--color-text); border:1px solid var(--color-border); }
+
+@media (hover:hover){ .btn-tertiary:hover:not(:disabled), .btn-tertiary.is-hover:not(:disabled) { background:var(--state-hover-fill); border-color:var(--state-hover-edge); } }
+
+.btn-tertiary:active:not(:disabled), .btn-tertiary.is-pressed:not(:disabled){ background:var(--state-press-fill); }
+
+.btn-block{ width:100%; margin-top:var(--space-group); flex-shrink:0; }
+
+.card-result .actions .btn-primary,
+  .card-result .actions .btn-tertiary{ flex:0 1 auto; }
+
+@container result (max-width:40rem){
+    .card-result .right { gap:var(--space-group); }
+    .result-body { gap:var(--space-card); }
+    .path-strip { flex-direction:column; align-items:flex-start; gap:var(--space-snug); }
+    .path-hop { width:100%; }
+    .trail .steps { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .trail .lbl-long { display:none; }
+    .trail .lbl-short { display:inline; }
+    .card-result .stats { grid-template-columns:minmax(0,1fr); row-gap:var(--space-snug); }
+    .card-result .stat,
+    .card-result .stat + .stat {
+      border-left:none; margin-left:0; padding-left:0;
+    }
+    .card-result .stat + .stat {
+      border-top:1px solid var(--color-border);
+      padding-top:var(--space-snug);
+    }
+    .card-result .actions {
+      flex-direction:column; align-items:stretch; flex-wrap:nowrap;
+    }
+    .card-result .actions .btn { width:100%; }
+    .card-result .btn-long { display:none; }
+  }

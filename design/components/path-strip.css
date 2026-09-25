@@ -1,0 +1,30 @@
+/* Path strip. */
+
+@media (hover:hover){ .stat-link:hover, .path-edge:hover { text-decoration:underline; color:var(--color-text); } }
+
+.path-strip{
+    display:flex; flex-wrap:wrap; align-items:center;
+    gap:var(--space-group) var(--space-inline);
+  }
+
+.path-hop{ display:inline-flex; align-items:center; gap:var(--space-inline); max-width:100%; }
+
+.path-node{
+    display:flex; flex-direction:column; gap:var(--space-tight); min-width:0;
+    padding:var(--space-inline) var(--space-snug);
+    border:1px solid var(--color-border); border-radius:var(--radius-control);
+  }
+
+.path-node.is-lazarus{ border-color:var(--tone-block-edge); color:var(--tone-block-text); }
+
+.path-role{ color:var(--color-text-tertiary); }
+
+.path-node.is-lazarus .path-role,
+  .path-node.is-lazarus .text-data{ color:var(--tone-block-text); }
+
+.path-edge{
+    display:inline-flex; align-items:center; gap:var(--space-inline);
+    color:var(--color-accent); text-decoration:none; overflow-wrap:anywhere;
+  }
+
+.path-edge::before{ content:''; width:var(--space-group); height:1px; background:var(--color-border); }

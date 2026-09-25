@@ -1,0 +1,44 @@
+/* Mast: wordmark, product badge, network pill. */
+
+.mast{
+    background:var(--color-surface-raised); border:none; box-shadow:var(--shadow-even); border-radius:var(--radius-surface);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:var(--space-card); padding:var(--space-snug) var(--inset); flex-wrap:wrap; flex-shrink:0;
+  }
+
+.brand{ display:flex; align-items:center; gap:var(--space-group); }
+
+.wordmark{ height:var(--space-page); width:auto; color:var(--color-text); display:block; }
+
+.badge{
+    background:var(--color-text); color:var(--color-on-accent); border-radius:var(--radius-control);
+    padding:var(--space-inline) var(--space-group); font-size:var(--type-caption-size); font-weight:500;
+    letter-spacing:var(--tracking-label); text-transform:uppercase;
+    border:none; font-family:var(--font-sans); cursor:pointer;
+    transition:opacity var(--duration-interaction);
+  }
+
+@media (hover:hover){ .badge:hover { background:color-mix(in srgb, var(--color-on-accent) 16%, var(--color-text)); } }
+
+.pill{
+    display:flex; align-items:center; gap:var(--space-inline); height:var(--size-control);
+    border:none; box-shadow:var(--shadow-lift); border-radius:var(--radius-full);
+    padding:0 var(--space-group); background:var(--color-surface-sunken);
+    font-size:var(--type-body-size); font-weight:500; white-space:nowrap;
+  }
+
+.m-row:focus-visible, .m-row.is-focus, .m-seg-btn:focus-visible, .m-seg-btn.is-focus,
+  .paste-link:focus-visible, .paste-link.is-focus, .m-paste:focus-visible, .m-paste.is-focus,
+  .btn:focus-visible, .btn.is-focus, .states-link:focus-visible, .states-link.is-focus,
+  .act-dot:focus-visible, .act-dot.is-focus{
+    outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset);
+  }
+
+.pills{ display:flex; align-items:center; gap:var(--space-inline); }
+
+.states-link{
+    display:inline-flex; align-items:center; height:var(--size-control); padding:0 var(--space-group);
+    border:1px solid var(--color-border); border-radius:var(--radius-full);
+    background:var(--color-surface-raised); color:var(--color-text); text-decoration:none;
+    font-size:var(--type-body-size); font-weight:500; white-space:nowrap;
+  }
