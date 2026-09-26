@@ -30,6 +30,13 @@ body {
   padding-right: max(var(--space-group), env(safe-area-inset-right));
 }
 .stage { flex: none; overflow: visible; min-height: 0; height: auto; }
+@media (max-width: 639px) {
+  .stage:has(.intro) {
+    background: transparent;
+    outline: none;
+    border-radius: 0;
+  }
+}
 .mast {
   padding-top: max(var(--space-snug), env(safe-area-inset-top));
   padding-left: max(var(--space-group), env(safe-area-inset-left));
@@ -52,9 +59,9 @@ body {
     --shell-pad: var(--space-card);
     --shell-gap: var(--space-card);
   }
-  html, body { height: 100%; overflow: hidden; }
-  body { height: 100dvh; min-height: 0; padding: var(--shell-pad); }
-  .stage { flex: 1; min-height: 0; overflow: hidden; }
+  html, body { height: auto; min-height: 100%; overflow: auto; }
+  body { min-height: 100dvh; padding: var(--shell-pad); }
+  .stage { flex: 1 0 auto; min-height: 0; overflow: visible; height: auto; }
   .mast { padding: var(--space-snug) var(--inset); }
 }
 
@@ -75,7 +82,7 @@ body {
 @media (max-width: 639px) {
   .kit-scale-row { flex-direction: column; align-items: flex-start; }
   .kit-scale-meta { flex: none; width: 100%; }
-  .states-link { height: var(--size-control-sm); padding: 0 var(--space-inline); font-size: var(--type-caption-size); }
+  .states-link, .pill { height: var(--size-control-sm); padding: 0 var(--space-inline); font-size: var(--type-caption-size); }
 }
 
 /* ── Inside a phone-width stage or kit frame ─────────────────── */
@@ -100,22 +107,24 @@ body {
   }
   .text-display { max-width: none; text-wrap: balance; }
   .intro, .console, .checking { min-height: 0; overflow: visible; height: auto; }
-  .console, .checking { padding: 0; gap: var(--space-group); }
-  .console { display: flex; flex-direction: column; align-items: stretch; }
+  .checking { padding: 0; gap: var(--space-group); }
+  .console { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-group); padding: var(--space-card) var(--inset); }
   .card, .card-cov, .card-check, .card-result { height: auto; overflow: visible; }
   .act-copy { min-height: 0; }
   .intro-grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "figure" "copy";
     gap: var(--space-group);
-    padding: var(--space-group) 0;
+    padding: var(--space-group) var(--inset);
     align-items: stretch;
   }
+  .intro-foot { flex-direction: column; align-items: stretch; }
+  .intro-foot > .btn { width: 100%; }
   .cov-svg { width: min(100%, 17.5rem); max-width: none; margin-inline: auto; touch-action: manipulation; }
+  .cov-svg .cov-pill { display: none; }
   .ring-fig { width: min(100%, 20rem); max-width: none; }
   .ring-fig .cov-svg, .intro-map { width: 100%; }
-  .cov-map { order: -1; }
-  .cov-seg { width: 100%; margin: 0; }
+  .cov-seg { width: 100%; }
   .cov-seg .m-seg-btn {
     min-width: 0; flex: 1 1 0; height: var(--size-touch); min-height: var(--size-touch);
     overflow: hidden; text-overflow: ellipsis;
@@ -136,11 +145,12 @@ body {
   .card-check > .btn-block,
   .card-result .actions {
     position: sticky; bottom: 0; z-index: 2;
-    background: var(--color-surface-raised);
-    border-top: 1px solid var(--color-border);
     margin-top: var(--space-group);
-    padding-top: var(--space-snug);
     padding-bottom: max(var(--space-snug), env(safe-area-inset-bottom));
+  }
+  .card-result .actions {
+    background: var(--color-surface-raised);
+    padding-top: var(--space-snug);
   }
   .card-result .actions { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
   .card-result .actions .btn { width: 100%; }
@@ -150,6 +160,41 @@ body {
     inset: calc((var(--size-touch) - 100%) / -2);
   }
   .cov-pick { touch-action: none; }
+
+  /* A phone has no hover. Controls are default or selected. */
+  .btn-primary:hover:not(:disabled),
+  .btn-primary.is-hover:not(:disabled) { background: var(--color-accent); }
+  .btn-tertiary:hover:not(:disabled),
+  .btn-tertiary.is-hover:not(:disabled) {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+  .act-dot:not([aria-current="step"]):hover,
+  .act-dot.is-hover:not([aria-current="step"]) { background: var(--color-border); }
+  .m-row:not([aria-pressed="true"]):hover,
+  .m-row.is-hover:not([aria-pressed="true"]) { background: transparent; }
+  .m-seg-btn:not([aria-pressed="true"]):not(:disabled):hover,
+  .m-seg-btn.is-hover:not([aria-pressed="true"]) {
+    color: var(--color-text-secondary);
+    background: transparent;
+  }
+  .paste-link:hover, .paste-link.is-hover,
+  .m-paste:hover, .m-paste.is-hover {
+    background: none;
+    border-color: transparent;
+    color: var(--color-text-secondary);
+  }
+  .field:hover, .field.is-hover {
+    border-color: var(--color-text-disabled);
+    background: var(--color-surface-raised);
+  }
+  .cov-svg:not(.scanning) .wdot:not([aria-pressed="true"]):hover > circle:not(.wdot-ring):not(.wdot-fill),
+  .wdot.is-hover:not([aria-pressed="true"]) > circle:not(.wdot-ring):not(.wdot-fill) {
+    stroke: var(--color-text-tertiary);
+    fill: none;
+  }
+  .stat-link:hover { text-decoration: none; color: var(--color-text); }
+  .path-edge:hover { text-decoration: none; color: var(--color-accent); }
 }
 
 /* Map and list sit side by side once the stage or frame is at least 40rem. */

@@ -112,7 +112,7 @@ function renderConsole(prefill = "", error = "", still = false) {
     // next to impossible; the band under the pointer is what counts.
     if (matchMedia("(hover:hover)").matches) {
       svg.addEventListener("pointermove", (ev) => {
-        if (ev.pointerType === "touch") return;
+        if (ev.pointerType === "touch" || stage.clientWidth <= 639) return;
         stopRadiusDemo();                 // the reader is driving now
         const n = bandAt(ev);
         if (n) previewReach(n);
@@ -139,7 +139,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   stage.querySelectorAll(".m-seg-btn").forEach((b) => {
     b.onclick = () => setRule(Number(b.dataset.hops), usd);
     b.addEventListener("pointerenter", () => {
-      if (b.disabled || !matchMedia("(hover:hover)").matches) return;
+      if (b.disabled || !matchMedia("(hover:hover)").matches || stage.clientWidth <= 639) return;
       stopRadiusDemo();
       previewReach(Number(b.dataset.hops));
     });
