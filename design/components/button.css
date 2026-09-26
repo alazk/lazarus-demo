@@ -10,7 +10,7 @@ button, a, .act-dot{ touch-action:manipulation; -webkit-tap-highlight-color:tran
     transition:background var(--duration-interaction);
   }
 
-.act-dot[aria-current="step"], .act-dot[aria-current="step"]:hover, .act-dot[aria-current="step"].is-hover{ background:var(--color-text); }
+.act-dot[aria-current="step"], .act-dot[aria-current="step"]:hover, .act-dot[aria-current="step"].is-hover{ background:var(--color-accent); }
 
 @media (hover:hover){
     .act-dot:not([aria-current="step"]):hover, .act-dot.is-hover:not([aria-current="step"]) { background:var(--color-border-strong); }
@@ -72,7 +72,6 @@ button, a, .act-dot{ touch-action:manipulation; -webkit-tap-highlight-color:tran
     .result-body { gap:var(--space-card); }
     .path-strip { flex-direction:column; align-items:flex-start; gap:var(--space-snug); }
     .path-hop { width:100%; }
-    .trail .steps { grid-template-columns:repeat(2, minmax(0,1fr)); }
     .trail .lbl-long { display:none; }
     .trail .lbl-short { display:inline; }
     .card-result .stats { grid-template-columns:minmax(0,1fr); row-gap:var(--space-snug); }

@@ -3,7 +3,7 @@
 .dot{ width:8px; height:8px; border-radius:50%; background:var(--tone-pass-edge); }
 
 .stage{
-    background:var(--color-surface-raised); border:1px solid var(--color-border);
+    background:var(--color-surface-raised); border:none; outline:var(--frame-outline);
     border-radius:var(--radius-surface); overflow:hidden; display:flex;
     justify-content:center; flex:1; min-height:0;
   }
@@ -22,7 +22,8 @@
 
 .act p{ margin:var(--space-card) 0 0; color:var(--color-text-secondary); }
 
-.act-figure{ grid-area:figure; justify-self:center; align-self:center; min-width:0; width:100%; }
+.act-figure{ grid-area:figure; justify-self:stretch; align-self:stretch; min-width:0; width:100%; display:flex; }
+.act-figure > .card{ width:100%; height:auto; flex:1 1 auto; }
 
 
 .console{
@@ -37,11 +38,7 @@
 .card{
     display:flex; flex-direction:column; min-height:0; height:100%;
     border-radius:var(--radius-surface); padding:var(--card-pad);
-    background:var(--color-surface-raised); border:1px solid var(--color-border);
-  }
-
-.card-check, .card-cov{
-    border:none; box-shadow:var(--shadow-even);
+    background:var(--color-surface-raised); border:none; outline:var(--frame-outline);
   }
 
 .card-body{ min-height:0; display:flex; flex-direction:column; }

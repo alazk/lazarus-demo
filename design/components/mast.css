@@ -1,7 +1,7 @@
 /* Mast: wordmark, product badge, network pill. */
 
 .mast{
-    background:var(--color-surface-raised); border:none; box-shadow:var(--shadow-even); border-radius:var(--radius-surface);
+    background:var(--color-surface-raised); border:none; box-shadow:none; outline:var(--frame-outline); border-radius:var(--radius-surface);
     display:flex; align-items:center; justify-content:space-between;
     gap:var(--space-card); padding:var(--space-snug) var(--inset); flex-wrap:wrap; flex-shrink:0;
   }
@@ -22,8 +22,8 @@
 
 .pill{
     display:flex; align-items:center; gap:var(--space-inline); height:var(--size-control);
-    border:none; box-shadow:var(--shadow-lift); border-radius:var(--radius-full);
-    padding:0 var(--space-group); background:var(--color-surface-sunken);
+    border:1px solid var(--color-border); box-shadow:none; border-radius:var(--radius-full);
+    padding:0 var(--space-group); background:var(--color-surface-raised);
     font-size:var(--type-body-size); font-weight:500; white-space:nowrap;
   }
 

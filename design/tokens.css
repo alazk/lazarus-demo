@@ -49,7 +49,7 @@
 :root{
 
   /* ── Tier 1 · Primitives ───────────────────────────────────
-     Only the ramp steps tier 2 references: bone, ink, blue, leaf, ruby, gold, white. */
+     Only the ramp steps tier 2 references: bone, ink, leaf, ruby, gold, white. */
 
   --bone-50: #FBFCFE;
   --white: #FFFFFF;
@@ -60,9 +60,6 @@
   --ink-60: #737374; /* tertiary text; darker than ink-50 so it clears 4.5:1 on bone */
   --ink-70: #6B6B6C;
   --ink-100: #0E0E0F;
-
-  --blue-500: #3D6FE8;
-  --blue-600: #3764D1;
 
   --leaf-10: #E6F2EE;
   --leaf-50: #0B6E4F;
@@ -90,10 +87,10 @@
   --color-text-tertiary: var(--ink-60);
   --color-text-disabled: var(--ink-50);
 
-  --color-accent: var(--blue-500);
-  --color-accent-hover: var(--blue-600);
+  --color-accent: var(--ink-100);
+  --color-accent-hover: color-mix(in srgb, var(--white) 18%, var(--ink-100));
   --color-on-accent: var(--white);
-  --color-focus-ring: var(--blue-500);
+  --color-focus-ring: var(--ink-100);
 
   --tone-pass-wash: var(--leaf-10);
   --tone-pass-edge: var(--leaf-50);
@@ -128,6 +125,7 @@
 
   --shadow-lift: 0 1px 2px color-mix(in srgb, var(--color-text) 14%, transparent);
   --shadow-even: 0 0 2px color-mix(in srgb, var(--color-text) 14%, transparent);
+  --frame-outline: 1px solid color-mix(in srgb, var(--color-text) 14%, transparent);
 
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
