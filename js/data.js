@@ -30,10 +30,7 @@ const STEP_LABELS = [
   "Looking two hops out",
   "Looking three hops out",
 ];
-const WARN_ICON = `<svg class="warn-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M12 3.2 22.4 20.6H1.6Z" fill="currentColor"/>
-  <rect x="11" y="9" width="2" height="6.4" rx="1" fill="var(--color-on-accent)"/>
-  <circle cx="12" cy="17.7" r="1.2" fill="var(--color-on-accent)"/></svg>`;
+const WARN_ICON = iconSvg("Warning", "warn-icon");
 const STEP_TILE = ["Wallet", "1 hop", "2 hops", "3 hops"];
 const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three hops out"];
 
@@ -140,8 +137,8 @@ const ACTS = [
         + "addresses. But the money moved along a path. The wallet is not on "
         + "the list, it is one transfer from a wallet that is, and a list check "
         + "cannot tell you that.",
-    cover: "core",
-    note: "A list covers the centre only. The wallet you pay clears." },
+    cover: 1,
+    note: "A list covers one hop. The wallet you pay clears." },
 
   { kicker: "The policy", title: "Screen the path, not the address.",
     body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
