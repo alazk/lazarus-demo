@@ -65,17 +65,19 @@ function syncCoverageRings(svg, opts = {}) {
     r.setAttribute("data-reach", inside ? "in" : "out");
     r.setAttribute("class", "cov-ring");
     paint(r, signal(n));
-    if (hasResult) r.removeAttribute("aria-pressed");
-    else r.setAttribute("aria-pressed", String(n === hops));
+    const keepSelected = !hasResult || svg.classList.contains("scanning");
+    if (keepSelected) r.setAttribute("aria-pressed", String(n === hops));
+    else r.removeAttribute("aria-pressed");
   });
   svg.querySelectorAll(".cov-pill").forEach((g) => {
     const n = Number(g.dataset.ring);
     const inside = n <= hops;
-    g.setAttribute("data-reach", inside && !hasResult ? "in" : "out");
+    const keepSelected = !hasResult || svg.classList.contains("scanning");
+    g.setAttribute("data-reach", inside && keepSelected ? "in" : "out");
     g.setAttribute("class", "cov-pill");
     g.removeAttribute("data-state");
-    if (hasResult) g.removeAttribute("aria-pressed");
-    else g.setAttribute("aria-pressed", String(n === hops));
+    if (keepSelected) g.setAttribute("aria-pressed", String(n === hops));
+    else g.removeAttribute("aria-pressed");
   });
   svg.querySelectorAll(".wdot").forEach((el) => {
     const raw = el.dataset.dist;
@@ -181,6 +183,9 @@ async function renderStates() {
   const catalog = [];
   const slug = (name) => name.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
   const NOTES = {
+    icons: {
+      Scale: "Phosphor regular, the weight phosphoricons.com ships. One path per mark, drawn in currentColor.",
+    },
     button: {
       Primary: "One per view. The main action.",
       PrimaryHover: "One per view. The main action.",
@@ -226,7 +231,7 @@ async function renderStates() {
     circle: {
       Outside: "This wallet sits beyond the chosen reach.",
       Covered: "This wallet sits inside the chosen reach.",
-      Selected: "The picked wallet. Colour arrives with the outcome: pass, block, or caution. While choosing, the dot stays a tertiary outline.",
+      Selected: "The picked wallet. A black disc sits inside a black outer ring and the letter is white, including after the check finds a result.",
       Hover: "The outline takes the hover edge. The letter stays as it is.",
       Clear: "No exposure at this wallet.",
       Exposed: "Exposure found at this wallet.",
@@ -267,7 +272,7 @@ async function renderStates() {
       OneHop: "Screening 1 hop out.",
       TwoHops: "Screening 2 hops out.",
       ThreeHops: "Screening 3 hops out.",
-      Hover: "Blue dashed preview of a hop that is not the current reach. No fill, so inner rings stay visible.",
+      Hover: "Dashed preview of a hop that is not the current reach. No fill, so inner rings stay visible.",
       Scanning: "The check is moving outward from the centre.",
       Clear: "The disc is a neutral wash. No band is filled. The picked wallet has a pass outline.",
       Listed: "The core and the picked wallet are block. The reach stays context.",
@@ -360,12 +365,17 @@ async function renderStates() {
     const g = node.cloneNode(true);
     g.removeAttribute("transform");
     if (story !== "Selected") g.setAttribute("aria-pressed", "false");
+    else {
+      const fill = g.querySelector(".wdot-fill");
+      if (fill) fill.setAttribute("r", "13");
+    }
     const label = id === "label";
+    const selected = story === "Selected" && !label;
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "kit-glyph");
-    svg.setAttribute("viewBox", label ? "-36 -16 72 32" : "-18 -18 36 36");
-    svg.setAttribute("width", label ? "72" : "36");
-    svg.setAttribute("height", label ? "32" : "36");
+    svg.setAttribute("viewBox", label ? "-36 -16 72 32" : (selected ? "-22 -22 44 44" : "-18 -18 36 36"));
+    svg.setAttribute("width", label ? "72" : (selected ? "44" : "36"));
+    svg.setAttribute("height", label ? "32" : (selected ? "44" : "36"));
     svg.setAttribute("aria-hidden", "true");
     svg.append(g);
     add(id, title, story, svg);

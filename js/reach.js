@@ -59,6 +59,7 @@ function renderCoverage(ready, mode = "console") {
            aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
            aria-valuetext="${hopWord(hops)}">
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
+        <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="${n <= hops ? "in" : "out"}" aria-pressed="${n === hops}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         <circle class="map-focus map-focus-slider" cx="${c}" cy="${c}" r="${COV_R[hops]}" fill="none"/>
@@ -68,7 +69,6 @@ function renderCoverage(ready, mode = "console") {
           ${motionReduced() ? "" : `<animate attributeName="stroke-width" values="${mapStroke("--map-stroke-strong")};${mapStroke("--map-stroke-ring")}" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>`}
         </circle>
         <circle class="cov-ghost" id="cov-ghost" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
-        <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none"/>
         <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none" stroke-opacity="0">
           <animate attributeName="r" values="${motionReduced() ? `${COV_R[0]};${COV_R[0]}` : `${COV_R[0]};${COV_R[0] + 10}`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
           <animate attributeName="stroke-opacity" values="${motionReduced() ? `${mapToken("--map-alpha-ghost")};${mapToken("--map-alpha-muted")};${mapToken("--map-alpha-ghost")}` : `${mapToken("--map-alpha-live")};0`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
@@ -92,10 +92,12 @@ function renderCoverage(ready, mode = "console") {
         <g class="wdots">${ready.map((w) => {
           const [x, y] = walletXY(w.key), dd = DIST[w.key];
           const inside = dd === 0 || isCovered(dd);
+          const picked = (w.address || "").toLowerCase() === pickAddr;
           return `<g class="wdot${dd === 0 ? " on-core" : ""}" data-reach="${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
+            aria-pressed="${picked}"
             ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
-            <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="0"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text><circle class="map-focus" r="18" fill="none"/></g>`;
+            <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="${picked ? 13 : 0}"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text><circle class="map-focus" r="18" fill="none"/></g>`;
         }).join("")}</g>
       </svg>
       </div>
@@ -119,7 +121,7 @@ function placePick(addr) {
     const on = (el.dataset.addr || "").toLowerCase() === pickAddr;
     el.setAttribute("aria-pressed", String(on));
     const fill = el.querySelector(".wdot-fill");
-    if (fill) fill.setAttribute("r", "0");
+    if (fill) tweenAttr(fill, "r", on ? 13 : 0, MOTION.interaction, easeBack);
   });
   if (!w) {
     const core = document.getElementById("cov-core-pick");
@@ -192,7 +194,7 @@ function paintReach(n, ready, opts = {}) {
 
 /** Move the coverage to radius n on the map. */
 function drawRadius(n, dur = MOTION.emphasis, opts = {}) {
-  const ease = opts.ease || easeNewton;
+  const ease = opts.ease || easeBack;
   tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur, ease);
   paintReach(n, null, opts);
 }

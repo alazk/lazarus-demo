@@ -11,25 +11,21 @@ function scanMapController() {
   const words = ["Checking the wallet itself…", "Scanning one hop out…",
                  "Scanning two hops out…", "Scanning three hops out…"];
   return {
-    /** From the moment Run is pressed: pulse across the whole radius. */
+    /** From the moment Run is pressed: the tint starts at the centre. */
     idle() {
-      if (!pulse) return;
-      setPulseReach(pulse, COV_R[hops]);
-      pulse.setAttribute("display", "inline");
+      if (pulse) pulse.setAttribute("display", "none");
+      const disc = document.getElementById("cov-disc");
+      if (disc) disc.setAttribute("r", "0");
     },
-    /** The front steps out to hop n; the pulses follow it. */
+    /** One tinted disc grows out to the hop just checked. */
     reach(n) {
       const r = n === 0 ? COV_R[0] + 14 : COV_R[n];
-      if (wave) {
-        wave.setAttribute("class", "swave");
-        wave.dataset.state = "live";
-        if (motionReduced()) {
-          wave.setAttribute("r", r);
-          wave.style.opacity = "0";
-          requestAnimationFrame(() => { wave.style.opacity = ""; });
-        } else tweenAttr(wave, "r", r, MOTION.frontStep, easeNewton);
+      const disc = document.getElementById("cov-disc");
+      if (disc) {
+        if (motionReduced()) disc.setAttribute("r", r);
+        else tweenAttr(disc, "r", r, MOTION.emphasis, easeBack);
       }
-      if (pulse) { setPulseReach(pulse, r); pulse.setAttribute("display", "inline"); }
+      if (pulse) pulse.setAttribute("display", "none");
       const st = status(); if (st) st.textContent = words[n] || "";
     },
     settle(n, state) {
@@ -104,12 +100,12 @@ function renderChecking(address) {
               <div class="steps">
                 ${STEP_LABELS.map((label, n) => `
                   <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
-                    <span class="step-icon" aria-hidden="true"></span>
+                    ${stepIcon()}
                     <span class="step-label text-ui">${esc(STEP_TILE[n])}</span>
                     <span class="step-note text-eyebrow">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
                   </div>`).join("")}
                 <div class="step attest idle" data-state="pending">
-                  <span class="step-icon" aria-hidden="true"></span>
+                  ${stepIcon()}
                   <span class="step-label text-ui">Attest</span>
                   <span class="step-note text-eyebrow">idle</span>
                 </div>
@@ -122,8 +118,8 @@ function renderChecking(address) {
     </div>`;
   placePick(address);
   paintAttestation("pending");
-  // Pulse from the first moment: the wait for the operators is the longest
-  // part of a check, and it should not look idle.
+  // The tint starts at the centre immediately. The wait for the operators
+  // is the longest part of a check, and it should not look idle.
   scanMapController().idle();
 
   const rows = () => [...stage.querySelectorAll(".step")];
