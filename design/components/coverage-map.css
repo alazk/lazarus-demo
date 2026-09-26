@@ -44,8 +44,6 @@
 
 .cov-ring[aria-pressed="true"]{ stroke:var(--map-reach); stroke-dasharray:none; }
 
-.cov-svg.scanning .cov-ring[aria-pressed="true"]{ stroke:var(--color-border-strong); }
-
 .cov-ring[data-preview="true"]{
     fill:none; stroke:var(--state-hover-edge); stroke-dasharray:var(--map-dash-inactive); opacity:1;
   }
@@ -54,6 +52,25 @@
 
 .cov-ring[data-state="outside"]{
     stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); opacity:1;
+  }
+
+.cov-svg:has(.cov-ring[data-state="exposed"]),
+.cov-svg:has(.cov-ring[data-state="listed"]){
+    --map-inner:var(--tone-block-edge);
+  }
+
+.cov-svg:has(.cov-ring[data-state="outside"]){ --map-inner:var(--tone-caution-edge); }
+
+.cov-svg:has(.cov-ring[data-state="exposed"]) .cov-ring[data-reach="in"],
+.cov-svg:has(.cov-ring[data-state="listed"]) .cov-ring[data-reach="in"],
+.cov-svg:has(.cov-ring[data-state="outside"]) .cov-ring[data-reach="in"]{
+    stroke:var(--map-inner); stroke-dasharray:none;
+  }
+
+.cov-svg:has(.cov-ring[data-state="exposed"]) .cov-core,
+.cov-svg:has(.cov-ring[data-state="listed"]) .cov-core,
+.cov-svg:has(.cov-ring[data-state="outside"]) .cov-core{
+    stroke:var(--map-inner);
   }
 
 .cov-core{ fill:var(--color-surface-sunken); stroke:var(--color-border); stroke-width:var(--map-stroke-ring); }
@@ -89,13 +106,17 @@
 
 .cov-svg .intro-pick-plate{
     x:calc(-62px / var(--map-scale, 1));
-    y:calc(18px / var(--map-scale, 1));
+    y:calc(13px + 8px / var(--map-scale, 1));
     width:calc(124px / var(--map-scale, 1));
     height:calc(24px / var(--map-scale, 1));
     rx:calc(12px / var(--map-scale, 1));
   }
 
-.cov-svg .intro-pick-label{ y:calc(34px / var(--map-scale, 1)); }
+.cov-svg .intro-pick-label{
+    x:0;
+    y:calc(13px + 24.5px / var(--map-scale, 1));
+    text-anchor:middle;
+  }
 
 .cov-svg.is-compact .cov-pill{ display:none; }
 
@@ -104,13 +125,9 @@
 .cov.is-compact .reach-line,
   .ring-fig.is-compact .reach-line{ display:block; }
 
-.cov-pill[aria-pressed="true"] rect{ stroke:var(--map-reach); }
+.cov-pill[aria-pressed="true"] rect{ fill:var(--color-accent); stroke:var(--color-accent); }
 
-.cov-pill[aria-pressed="true"] text{ fill:var(--map-reach); }
-
-.cov-svg.scanning .cov-pill[aria-pressed="true"] rect{ stroke:var(--color-border); }
-
-.cov-svg.scanning .cov-pill[aria-pressed="true"] text{ fill:var(--color-text-tertiary); }
+.cov-pill[aria-pressed="true"] text{ fill:var(--color-on-accent); }
 
 .cov-pill.is-hover rect{ fill:var(--state-hover-fill); stroke:var(--state-hover-edge); }
 
@@ -147,6 +164,9 @@
 
 .cov-svg:not(.scanning) .cov-pick-ring{ stroke:none; }
 
+.cov-svg.scanning .cov-pick .cov-pick-ring,
+.cov-svg.scanning .cov-pick .cov-pick-dot{ fill:none; stroke:none; }
+
 .cov-pick.not .cov-pick-ring{ stroke:var(--color-text-disabled); }
 
 .cov-pick.found .cov-pick-ring{ stroke:var(--tone-block-edge); stroke-width:var(--map-stroke-strong); }
@@ -179,6 +199,9 @@
   }
 
 .swave[data-state="live"]{ opacity:var(--map-alpha-live); }
+
+.cov-svg.scanning .spulse{ display:none; }
+
 
 .swave[data-state="done"]{ opacity:0; }
 
@@ -292,16 +315,10 @@
 
 .wdot[data-reach="in"] text{ fill:var(--color-text-tertiary); }
 
-.wdot[aria-pressed="true"][data-state="clear"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){ stroke:var(--tone-pass-edge); fill:none; }
-
-.wdot[aria-pressed="true"][data-state="listed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus),
-  .wdot[aria-pressed="true"][data-state="exposed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){ stroke:var(--tone-block-edge); fill:none; }
-
-.wdot[aria-pressed="true"][data-state="outside"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){ stroke:var(--tone-caution-edge); stroke-dasharray:var(--map-dash-caution); fill:none; }
-
 .wdot.on-core circle{ fill:none; stroke:var(--color-text-tertiary); }
 
 .wdot.on-core text{ fill:var(--color-text); }
+
 
 .cov-svg:not(.scanning) .wdot{ cursor:pointer; }
 
@@ -319,15 +336,24 @@
     opacity:0; transition:opacity var(--duration-interaction) var(--ease-newton);
   }
 
-.wdot[aria-pressed="true"] > circle.wdot-ring,
-  .cov-svg .wdot[aria-pressed="true"] > circle.wdot-ring{
-    fill:none; stroke:none; opacity:0;
-  }
-
 .wdot > circle.wdot-fill,
   .cov-svg .wdot > circle.wdot-fill{
     fill:none; stroke:none; filter:none; pointer-events:none;
   }
+
+.wdot[aria-pressed="true"] > circle.wdot-fill,
+  .cov-svg .wdot[aria-pressed="true"] > circle.wdot-fill,
+  .kit-glyph .wdot[aria-pressed="true"] > circle.wdot-fill{
+    fill:var(--color-accent);
+  }
+
+.wdot[aria-pressed="true"] > circle.wdot-ring,
+  .cov-svg .wdot[aria-pressed="true"] > circle.wdot-ring{
+    fill:none; stroke:var(--color-accent); stroke-width:var(--map-stroke-emphasis); opacity:1;
+  }
+
+.wdot[aria-pressed="true"] text,
+  .kit-glyph .wdot[aria-pressed="true"] text{ fill:var(--color-on-accent); }
 
 .wdot text{ transition:fill var(--duration-interaction) var(--ease-newton); }
 
@@ -366,10 +392,12 @@ g.wdot{ fill:none; stroke:none; stroke-width:0; }
 
 .intro-map{ max-width:var(--width-map); }
 
+.intro-pick > circle{ fill:var(--color-surface-raised); }
+
 .intro-pick-plate{ fill:var(--color-surface-raised); stroke:var(--color-border); stroke-width:var(--map-stroke-hair); }
 
 .wdot .intro-pick-label{
-    font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:var(--type-caption-size);
+    font-family:var(--font-sans); font-weight:var(--type-eyebrow-weight); font-size:calc(var(--type-caption-size) / var(--map-scale, 1));
     line-height:var(--type-caption-leading); fill:var(--color-text-tertiary); stroke:none;
   }
 

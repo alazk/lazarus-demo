@@ -39,6 +39,8 @@ function motionReduced() {
     || !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
 /* cubic-bezier(0.22, 1, 0.36, 1). Must match --ease-newton. */
+/* Small overshoot, so a change of reach springs out or pulls in. */
+const easeBack = (t) => { const c1 = 1, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
 function easeNewton(t) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
@@ -199,6 +201,21 @@ function syncMapScale(svg) {
   const w = svg.clientWidth;
   const scale = w > 0 ? w / 400 : 1;
   svg.style.setProperty("--map-scale", String(scale));
+  // CSS x/y on SVG text are ignored, so these attributes stay in viewBox units.
+  // The circle sits in the third ring, above the label. Not on the outer edge.
+  const label = svg.querySelector(".intro-pick-label");
+  const pick = svg.querySelector(".intro-pick");
+  if (label && scale > 0) {
+    label.setAttribute("x", "0");
+    label.setAttribute("y", String(13 + 24.5 / scale));
+  }
+  if (pick && scale > 0 && svg.classList.contains("intro-map")) {
+    const py = COV_C + (COV_R[2] + COV_R[3]) / 2;
+    pick.setAttribute("transform", `translate(${COV_C} ${py.toFixed(2)})`);
+    const vbH = Math.max(400, py + 13 + 40 / scale);
+    svg.setAttribute("viewBox", `0 0 400 ${vbH.toFixed(2)}`);
+    svg.style.aspectRatio = `400 / ${vbH.toFixed(2)}`;
+  }
   const compact = w > 0 && w < 200;
   svg.classList.toggle("is-compact", compact);
   const host = svg.closest(".cov, .ring-fig");
