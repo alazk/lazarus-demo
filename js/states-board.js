@@ -284,6 +284,43 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     }));
     return { path: addrs, edges };
   };
+  const iconSpecimen = (name) => {
+    const row = document.createElement("div");
+    row.className = "kit-icon-row";
+    const bare = document.createElement("span");
+    bare.className = "kit-icon";
+    bare.innerHTML = iconSvg(name);
+    const small = document.createElement("span");
+    small.className = "kit-icon kit-icon-sm";
+    small.innerHTML = iconSvg(name);
+    row.append(bare, small);
+    const tones = { Check: ["pass"], Warning: ["block", "caution"], Minus: ["neutral"] }[name];
+    if (tones) {
+      tones.forEach((tone) => {
+        const disc = document.createElement("span");
+        disc.className = "kit-icon-mark tone-" + tone;
+        disc.innerHTML = iconSvg(name);
+        row.append(disc);
+      });
+    } else {
+      const inline = document.createElement("span");
+      inline.className = "kit-icon-inline text-ui";
+      inline.append(document.createTextNode("Open "));
+      inline.insertAdjacentHTML("beforeend", iconSvg(name, "icon"));
+      row.append(inline);
+    }
+    return row;
+  };
+  addScale("icons", "Icons", [
+    { heading: "Marks" },
+    ...ICON_CATALOG.filter((icon) => icon.name !== "ArrowRight" && icon.name !== "ArrowUpRight").map((icon) => ({
+      name: icon.name, note: icon.use, node: iconSpecimen(icon.name),
+    })),
+    { heading: "Arrows" },
+    ...ICON_CATALOG.filter((icon) => icon.name === "ArrowRight" || icon.name === "ArrowUpRight").map((icon) => ({
+      name: icon.name, note: icon.use, node: iconSpecimen(icon.name),
+    })),
+  ]);
   const typeSample = "The quick brown fox — 0x1a2b·9f0e";
   const typeProbe = document.createElement("div");
   typeProbe.hidden = true;
@@ -400,7 +437,6 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   const primitiveGroups = [
     ["Bone", (name) => name === "--bone-50" || name === "--white"],
     ["Ink", (name) => name.startsWith("--ink-")],
-    ["Blue", (name) => name.startsWith("--blue-")],
     ["Leaf", (name) => name.startsWith("--leaf-")],
     ["Ruby", (name) => name.startsWith("--ruby-")],
     ["Gold", (name) => name.startsWith("--gold-")],
@@ -435,7 +471,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   act = 0;
   renderIntro();
   stopAuto();
-  const radiusIntro = { none: "None", core: "Core", all: "All" };
+  const radiusIntro = { none: "None", core: "Core", all: "All", 1: "1 hop" };
   ACTS.forEach((item, i) => {
     paintAct(i, false);
     take("intro-map", "Intro map", radiusIntro[item.cover], ".intro-map");
@@ -747,8 +783,8 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   shootLayer("Scanning", () => {
     const svg = stage.querySelector(".cov-svg");
     svg.classList.add("scanning");
-    const wave = svg.querySelector(".swave");
-    if (wave) { wave.dataset.state = "live"; wave.setAttribute("r", String(COV_R[1])); }
+    const disc = svg.querySelector(".cov-disc");
+    if (disc) disc.setAttribute("r", String(COV_R[1]));
   });
   shootLayer("Clear", () => {
     quietMap();
@@ -929,12 +965,12 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     innerHTML: [
       "<p>Breakpoints: 640 and 1024. Card padding is space-group below 640 and space-card from 640. Phone gutters are max(space-group, the safe-area insets). The mast top padding includes safe-area-inset-top.</p>",
       "<p>Display type: 1.5rem at 320, 1.75rem at 768 and at 1440 (the clamp reaches its max near 587px). Title: 1.125rem at 320, 1.25rem at 768 and at 1440 (max near 667px).</p>",
-      "<p>Map labels: --map-scale = width / 400, so a 12px caption stays 12px. At a 200px map the scale is 0.5; at 280px it is 0.7; at 420px it is 1.05. Below 200px the hop pills hide and the caption carries the hop count.</p>",
+      "<p>Map labels: --map-scale = width / 400, so a 12px caption stays 12px. At a 200px map the scale is 0.5; at 280px it is 0.7; at 420px it is 1.05. On a phone-width frame the hop pills hide, because the segment above the map already names the reach. Below 200px the caption carries the hop count.</p>",
       "<p>Viewport queries that are not container queries: document scroll, safe areas, the 1024px shell, phone landscape, and this kit's own nav.</p>",
     ].join(""),
   }));
   const GROUPS = [
-    { id: "foundations", title: "Foundations", sections: ["typography", "spacing", "color", "radii", "motion", "responsive"] },
+    { id: "foundations", title: "Foundations", sections: ["icons", "typography", "spacing", "color", "radii", "motion", "responsive"] },
     { id: "primitives", title: "Primitives", sections: ["button", "badge", "field", "segment", "wallet-row", "ladder"] },
     { id: "coverage", title: "Coverage map", sections: ["coverage-map", "map-anatomy", "anatomy", "intro-map", "console-map"] },
     { id: "composites", title: "Composites", sections: ["compare", "result", "path", "warnline", "stats", "detail", "error", "card"] },

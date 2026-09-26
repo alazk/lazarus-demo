@@ -15,8 +15,8 @@ function renderPath(r) {
     if (i === nodes.length - 1) return `<span class="path-hop">${node}</span>`;
     const tx = edges[i]?.tx;
     const link = tx
-      ? `<a class="path-edge text-caption" href="https://etherscan.io/tx/${esc(tx)}" target="_blank" rel="noopener">${esc(short(tx))}<span aria-hidden="true"> ↗</span></a>`
-      : `<span class="path-edge text-caption" aria-hidden="true">→</span>`;
+      ? `<a class="path-edge text-caption" href="https://etherscan.io/tx/${esc(tx)}" target="_blank" rel="noopener">${esc(short(tx))}${iconSvg("ArrowUpRight", "icon")}</a>`
+      : `<span class="path-edge text-caption" aria-hidden="true">${iconSvg("ArrowRight", "icon")}</span>`;
     return `<span class="path-hop">${node}${link}</span>`;
   }).join("");
   return `<div class="path-strip">${body}</div>`;

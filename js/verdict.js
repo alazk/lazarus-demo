@@ -44,12 +44,12 @@ async function submit(address) {
 
 /* ── Verdict ─────────────────────────────────────────────────── */
 const STATUS_LABEL = {
-  clear: { tone: "pass", icon: "✓", label: "Clear" },
-  listed: { tone: "block", icon: "!", label: "Listed" },
-  exposed: { tone: "block", icon: "!", label: "Exposed" },
-  outside: { tone: "caution", icon: "⚠", label: "Outside policy" },
-  failed: { tone: "neutral", icon: "–", label: "Screening failed" },
-  unattested: { tone: "neutral", icon: "–", label: "Not attested" },
+  clear: { tone: "pass", icon: "Check", label: "Clear" },
+  listed: { tone: "block", icon: "Warning", label: "Listed" },
+  exposed: { tone: "block", icon: "Warning", label: "Exposed" },
+  outside: { tone: "caution", icon: "Warning", label: "Outside policy" },
+  failed: { tone: "neutral", icon: "Minus", label: "Screening failed" },
+  unattested: { tone: "neutral", icon: "Minus", label: "Not attested" },
 };
 
 async function fillVerdict(r, outsideReach) {
@@ -115,12 +115,14 @@ async function fillVerdict(r, outsideReach) {
     : "";
   const path = (key === "exposed" || key === "outside") ? renderPath(r) : "";
   const status = STATUS_LABEL[key];
+  const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
+      <div class="result-status tone-${status.tone}">
+        <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>
+        <span class="text-eyebrow">${status.label}</span>
+      </div>`;
   right.innerHTML = `
     <div class="result-lead">
-      <div class="result-status tone-${status.tone}">
-        <span class="result-status-icon" aria-hidden="true">${status.icon}</span>
-        <span class="text-eyebrow">${status.label}</span>
-      </div>
+      ${statusLine}
       <div class="text-display">${esc(headline)}</div>
       ${outsideLine}
       ${disagree}
@@ -135,7 +137,7 @@ async function fillVerdict(r, outsideReach) {
   actions.innerHTML = `
     <span class="line"></span>
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span><span aria-hidden="true">↗</span></a>` : ""}
+       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
     <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
   actions.dataset.state = "ready";
   // Back to the console without an entrance, so the map does not jump.

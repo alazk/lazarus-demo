@@ -20,7 +20,7 @@ function renderStats(r) {
   const valueCell = (tx && isFirstEdge)
     ? `<a class="stat-v text-title stat-link" href="https://etherscan.io/tx/${esc(tx)}"
          target="_blank" rel="noopener" title="The transfer this figure comes from"
-         >${esc(value)} <span class="stat-ext">↗</span></a>`
+         >${esc(value)} <span class="stat-ext">${iconSvg("ArrowUpRight", "icon")}</span></a>`
     : `<div class="stat-v text-title">${esc(value)}</div>`;
 
   return `<div class="stats">

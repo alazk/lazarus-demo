@@ -138,6 +138,11 @@ body.is-reduced *:not(.cov-svg *),
   body.is-reduced *:not(.cov-svg *)::before,
   body.is-reduced *:not(.cov-svg *)::after{ transition:none !important; animation:none !important; }
 
+.icon{
+  width:1em; height:1em; display:inline-block; flex:none;
+  vertical-align:-0.125em;
+}
+
 /* Addresses keep the slashed zero on .text-data. Counts and hop labels use tabular figures in their own rules. */
 /* Fields stay at least 1rem so iOS does not zoom on focus. */
 input, textarea, select{ font-size: 1rem; }

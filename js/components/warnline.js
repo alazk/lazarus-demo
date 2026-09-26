@@ -3,7 +3,7 @@
  * @property {string} text
  */
 function warnlineRender(props) {
-  return `<div class="warnline"><span class="warn-icon" aria-hidden="true"></span><p>${esc(props.text)}</p></div>`;
+  return `<div class="warnline">${iconSvg("Warning", "warn-icon")}<p>${esc(props.text)}</p></div>`;
 }
 function warnlineUpdate(el, props) {
   if (!el || !props) return;
