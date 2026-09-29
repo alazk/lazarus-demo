@@ -83,7 +83,7 @@ const OUTCOME = Object.freeze({
   clear:      { tone: "pass",    headline: "Compliant",                         kit: "Clear" },
   listed:     { tone: "block",   headline: "Non-compliant",                     kit: "Listed" },
   exposed:    { tone: "block",   headline: "Non-compliant",                     kit: "Exposed" },
-  outside:    { tone: "caution", headline: "Allowed · exposure outside policy", kit: "Outside reach" },
+  outside:    { tone: "caution", headline: "Compliant",                        kit: "Outside reach" },
   failed:     { tone: "neutral", headline: "Screening failed",                  kit: "Failed" },
   unattested: { tone: "neutral", headline: "Not attested",                      kit: "Not attested" },
 });

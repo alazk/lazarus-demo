@@ -21,6 +21,8 @@
     color:var(--color-text); text-decoration:none; border-bottom:1px solid var(--color-text-tertiary);
   }
 
+@media (hover:hover){ .stat-link:hover { text-decoration:underline; color:var(--color-text); } }
+
 .stat-ext{ display:inline-flex; align-items:center; font-size:var(--type-body-size); color:var(--color-text-secondary); }
 
 .card-result .stats{

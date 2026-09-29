@@ -124,7 +124,6 @@
   --state-disabled: var(--color-text-disabled);
 
   --shadow-lift: 0 1px 2px color-mix(in srgb, var(--color-text) 14%, transparent);
-  --shadow-even: 0 0 2px color-mix(in srgb, var(--color-text) 14%, transparent);
   --frame-outline: 1px solid color-mix(in srgb, var(--color-text) 14%, transparent);
 
   --focus-ring-width: 2px;
@@ -140,7 +139,6 @@
   --map-alpha-live: .8;
   --map-dash-inactive: 2 6;
   --map-dash-caution: 5 4;
-  --map-dash-guide: 1 5;
 
 
   /* ── Type. Explorer product scale, not the marketing site.
@@ -245,7 +243,7 @@
   --measure-text: 44ch;
   --measure-detail: 64ch;
   --width-result: 36rem;
-  --width-console: 1400px;
+  --width-console: 1440px;
   --width-map: 420px;
   --card-pad: var(--space-group);
 

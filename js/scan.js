@@ -23,27 +23,23 @@ function scanMapController() {
       const disc = document.getElementById("cov-disc");
       if (disc) {
         if (motionReduced()) disc.setAttribute("r", r);
-        else tweenAttr(disc, "r", r, MOTION.emphasis, easeBack);
+        else tweenAttr(disc, "r", r, MOTION.frontStep, easeNewton);
       }
       if (pulse) pulse.setAttribute("display", "none");
       const st = status(); if (st) st.textContent = words[n] || "";
     },
     settle(n, state) {
       if (!svg) return;
+      // The walk stays black and white. Colour is painted with the verdict,
+      // the same way a finished review result is.
       if (n === 0) {
         if (state === "listed") {
-          const core = q(".cov-core");
-          if (core) core.dataset.state = "listed";
           const corePick = document.getElementById("cov-core-pick");
           if (corePick) corePick.dataset.state = "live";
           beginAll(corePick);
         }
-        syncCoverageRings(svg, { colourPick: false });
         return;
       }
-      const band = q(`.cband[data-band="${n}"]`);
-      if (band) band.dataset.state = state;
-      syncCoverageRings(svg, { colourPick: false });
       if (state === "clear" && flash) { flash.setAttribute("r", COV_R[n]); beginAll(flash); }
     },
     found(n, warn) {
@@ -81,13 +77,19 @@ function renderChecking(address) {
   stage.innerHTML = `
     <div class="console still scan-shell">
       <div class="col">
-        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">1</span>Radius</div>
+        <div class="step-head">
+          <div class="text-eyebrow muted">Step 1</div>
+          <div class="text-heading">Radius</div>
+        </div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "scan")}</div>
         </div>
       </div>
       <div class="col">
-        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">2</span>Result</div>
+        <div class="step-head">
+          <div class="text-eyebrow muted">Step 2</div>
+          <div class="text-heading">Result</div>
+        </div>
         <div class="card card-result" id="panel">
           <div class="result-body">
             <div class="right" id="right-slot">
@@ -102,13 +104,8 @@ function renderChecking(address) {
                   <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
                     ${stepIcon()}
                     <span class="step-label text-ui">${esc(STEP_TILE[n])}</span>
-                    <span class="step-note text-eyebrow">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
+                    <span class="step-note text-lead">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
                   </div>`).join("")}
-                <div class="step attest idle" data-state="pending">
-                  ${stepIcon()}
-                  <span class="step-label text-ui">Attest</span>
-                  <span class="step-note text-eyebrow">idle</span>
-                </div>
               </div>
             </div>
           </div>
@@ -140,9 +137,11 @@ function renderChecking(address) {
       for (let n = 0; n < inside.length; n++) {
         const row = inside[n];
         row.classList.remove("idle");
+        if (!row.isConnected) return;
         row.classList.add("active");
         map.reach(n);
-        await wait(MOTION.emphasis);
+        await wait(MOTION.frontStep);
+        if (!row.isConnected) return;
         row.classList.remove("active");
 
         if ((kind === "listed" || kind === "exposed") && n === hit) {
@@ -154,7 +153,8 @@ function renderChecking(address) {
           row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
-          await wait(MOTION.emphasis - Math.round(MOTION.interaction / 3));
+          await wait(MOTION.interaction);
+          if (!row.isConnected) return;
           row.classList.add("waiting");
           paintAttestation("signing");
           return;
@@ -163,11 +163,13 @@ function renderChecking(address) {
         row.classList.add("resolved");
         row.querySelector(".step-note").textContent = "clear";
         map.settle(n, "clear");
-        await wait(Math.round(MOTION.interaction * 0.4));
+        await wait(MOTION.interaction);
+        if (!row.isConnected) return;
       }
       map.done();
 
       if (kind === "outside" && hit !== null && list[hit]) {
+        if (!list[hit].isConnected) return;
         await wait(MOTION.interaction);
         const row = list[hit];
         map.settle(hit, "outside");
@@ -176,7 +178,8 @@ function renderChecking(address) {
         row.dataset.state = "outside";
         row.classList.add("resolved");
         row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
-        await wait(MOTION.emphasis - Math.round(MOTION.interaction / 3));
+        await wait(MOTION.interaction);
+        if (!row.isConnected) return;
         row.classList.add("waiting");
         paintAttestation("signing");
         return;

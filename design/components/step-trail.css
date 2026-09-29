@@ -1,4 +1,4 @@
-/* Step trail, including the attestation tile. */
+/* Step trail. */
 
 .step{
     display:flex; align-items:center; justify-content:space-between; gap:var(--space-group);
@@ -7,12 +7,12 @@
     border:1.5px solid var(--color-border); border-radius:var(--radius-control);
     background:var(--color-surface-raised);
     color:var(--color-text-tertiary);
-    transition:opacity var(--duration-interaction), border-color var(--duration-interaction), color var(--duration-interaction), background var(--duration-interaction);
+    transition:opacity var(--duration-interaction) var(--ease-newton), border-color var(--duration-interaction) var(--ease-newton), color var(--duration-interaction) var(--ease-newton), background var(--duration-interaction) var(--ease-newton);
   }
 
 .step.active{ border-color:color-mix(in srgb, var(--color-text) 20%, transparent); color:var(--color-text); background:var(--color-surface-raised); }
 
-.step.active::after{ animation:sweep var(--duration-beat) var(--ease-newton) infinite;
+.step.active::after{ animation:sweep var(--duration-emphasis) var(--ease-newton) infinite;
     content:''; position:absolute; inset:0;
     background:linear-gradient(90deg, transparent 0%, var(--color-surface-sunken) 45%,
                color-mix(in srgb, var(--color-surface-raised) 90%, transparent) 50%, var(--color-surface-sunken) 55%, transparent 100%);
@@ -29,7 +29,7 @@
 
 .settled .step.waiting .step-note{ animation:none;  }
 
-.step[data-state="clear"], .step[data-state="attested"]{ color:var(--color-text); border-color:color-mix(in srgb, var(--tone-pass-edge) 30%, transparent); background:var(--color-surface-raised); }
+.step[data-state="clear"]{ color:var(--color-text); border-color:color-mix(in srgb, var(--tone-pass-edge) 30%, transparent); background:var(--color-surface-raised); }
 
 .step[data-state="listed"], .step[data-state="exposed"]{ color:var(--color-text); border-color:color-mix(in srgb, var(--tone-block-edge) 30%, transparent); background:var(--color-surface-raised); }
 
@@ -43,7 +43,7 @@
 
 .step.idle{ color:var(--state-disabled); opacity:1; }
 
-.step[data-state="clear"] .step-note, .step[data-state="attested"] .step-note{ color:var(--tone-pass-text); }
+.step[data-state="clear"] .step-note{ color:var(--tone-pass-text); }
 
 .step[data-state="listed"] .step-note, .step[data-state="exposed"] .step-note{ color:var(--tone-block-text); }
 
@@ -57,7 +57,7 @@
     border:1.5px solid var(--color-border); background:var(--color-surface-raised);
     display:flex; align-items:center; justify-content:center;
     font-size:var(--type-caption-size); font-weight:500; line-height:var(--type-title-leading);
-    transition:background var(--duration-interaction), border-color var(--duration-interaction), color var(--duration-interaction), transform var(--duration-interaction);
+    transition:background var(--duration-interaction) var(--ease-newton), border-color var(--duration-interaction) var(--ease-newton), color var(--duration-interaction) var(--ease-newton), transform var(--duration-interaction) var(--ease-newton);
   }
 
 .step.active .step-icon{ border-color:var(--color-text); }
@@ -65,14 +65,13 @@
 .step-glyph{ display:none; width:72%; height:72%; }
 
 .step[data-state="clear"] .step-glyph-check,
-.step[data-state="attested"] .step-glyph-check,
 .step[data-state="listed"] .step-glyph-warning,
 .step[data-state="exposed"] .step-glyph-warning,
 .step[data-state="outside"] .step-glyph-warning,
 .step[data-state="failed"] .step-glyph-minus,
 .step[data-state="unattested"] .step-glyph-minus{ display:block; }
 
-.step[data-state="clear"] .step-icon, .step[data-state="attested"] .step-icon{ background:var(--tone-pass-edge); border-color:var(--tone-pass-edge); color:var(--color-on-accent); }
+.step[data-state="clear"] .step-icon{ background:var(--tone-pass-edge); border-color:var(--tone-pass-edge); color:var(--color-on-accent); }
 
 .step[data-state="listed"] .step-icon, .step[data-state="exposed"] .step-icon{ background:var(--tone-block-edge); border-color:var(--tone-block-edge); color:var(--color-on-accent); }
 
@@ -113,12 +112,12 @@
 
 .card-result.settled .trail-label{ color:var(--color-text-secondary); }
 
-.trail .steps{ display:flex; flex-direction:row; flex-wrap:wrap; align-items:flex-start; justify-content:flex-start; gap:var(--space-snug); width:100%; max-width:none; }
+.trail .steps{ display:flex; flex-direction:row; flex-wrap:wrap; align-items:stretch; justify-content:flex-start; gap:var(--space-snug); width:100%; max-width:none; }
 
 .trail .step{
     display:grid; grid-template-columns:max-content max-content; grid-template-areas:"label icon" "note note";
     column-gap:var(--space-inline); row-gap:var(--space-tight);
-    align-items:center; justify-content:start; flex:0 0 auto; width:auto; min-width:max-content;
+    align-items:center; align-content:start; justify-content:start; flex:0 0 auto; align-self:stretch; width:auto; min-width:max-content; height:auto;
     padding:var(--space-snug); border-radius:var(--radius-control);
   }
 
@@ -129,7 +128,7 @@
   }
 
 .trail .step-note{
-    grid-area:note; min-height:1.4em; text-align:right;
+    grid-area:note; min-height:var(--type-lead-leading); text-align:left;
   }
 
 .step.beyond{
@@ -141,13 +140,5 @@
 
 .step.beyond .step-icon{ border-style: dashed; background: transparent; }
 
-.step-kicker{
-    display:flex; align-items:center; gap:var(--space-inline); color:var(--color-text);
-    font-size:var(--type-body-size); letter-spacing:var(--tracking-label);
-  }
-
-.step-kicker .kn{
-    width:var(--space-page); height:var(--space-page); border-radius:50%; background:var(--color-text); color:var(--color-on-accent);
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size:var(--type-caption-size); letter-spacing:0; flex:none;
-   font-variant-numeric:tabular-nums;}
+.step-head{ display:flex; flex-direction:column; gap:var(--space-tight); }
+.step-head .text-heading{ margin:0; }

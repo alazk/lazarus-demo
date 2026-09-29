@@ -23,6 +23,16 @@
     padding:var(--space-card) var(--inset);
   }
 
+.stage:has(.intro),
+.stage:has(.console){
+    background:transparent; outline:none; border-radius:0;
+  }
+
+.intro .card,
+.console .card{
+    outline:none; background:transparent;
+  }
+
 .act-panel{
     grid-area:1 / 1; opacity:0; visibility:hidden;
     transition:opacity var(--duration-interaction) var(--ease-newton), visibility 0s linear var(--duration-interaction);

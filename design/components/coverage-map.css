@@ -2,8 +2,6 @@
 
 .reach-line{ display:none;  font-variant-numeric:tabular-nums;}
 
-.reach-list .label{ display:block; margin-bottom:var(--space-inline); }
-
 .cov{ width:100%; min-height:0; display:flex; flex-direction:column; align-items:center; }
 
 .cov-map{ width:100%; min-height:0; min-width:0; display:flex; align-items:center; justify-content:center; }
@@ -125,9 +123,9 @@
 .cov.is-compact .reach-line,
   .ring-fig.is-compact .reach-line{ display:block; }
 
-.cov-pill[aria-pressed="true"] rect{ fill:var(--color-accent); stroke:var(--color-accent); }
+.cov-pill[aria-pressed="true"] rect{ fill:var(--white); stroke:var(--color-text); }
 
-.cov-pill[aria-pressed="true"] text{ fill:var(--color-on-accent); }
+.cov-pill[aria-pressed="true"] text{ fill:var(--color-text); }
 
 .cov-pill.is-hover rect{ fill:var(--state-hover-fill); stroke:var(--state-hover-edge); }
 
@@ -177,8 +175,6 @@
 
 .cov-sum{ margin:var(--space-group) 0 0; font-size:var(--type-subheading-size); line-height:var(--type-subheading-leading); text-align:center;  font-variant-numeric:tabular-nums;}
 
-.cov-hint{ margin:var(--space-tight) 0 0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-tertiary); text-align:center; }
-
 @media (prefers-reduced-motion:reduce){
     .cov-disc, .cov-pick { transition:none; }
   }
@@ -186,10 +182,6 @@
 .cov-sum{ margin-top:var(--space-snug); }
 
 .cov-ring{ cursor:pointer; }
-
-.scan-map{ width:min(100%, 17.5rem); margin:0 0 var(--space-card); }
-
-.scan-svg{ width:100%; height:auto; display:block; overflow:visible; }
 
 .swave{
     fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-emphasis); opacity:0;
@@ -221,9 +213,7 @@
     fill:none; stroke:var(--map-reach); stroke-width:var(--map-stroke-strong); pointer-events:none;
   }
 
-.cov-svg:has(.cov-core[data-state="listed"]) .cov-core-pick{ stroke:var(--tone-block-edge); }
-
-.scan-map{ width:min(100%, 17.5rem); margin:0 auto var(--space-card); }
+.cov-svg:has(.cov-core[data-state="listed"]) .cov-core-pick{ stroke:var(--color-text); }
 
 .cov-foot{
     height:auto; width:100%; display:flex; flex-direction:column; align-items:center;
@@ -247,9 +237,11 @@
 
 .cov-core{ transition:fill var(--duration-emphasis); }
 
-.cov-core[data-state="listed"]{ fill:var(--tone-block-edge); stroke:var(--tone-block-edge); }
+.cov-core[data-state="listed"]{ fill:var(--color-text); stroke:var(--color-text); }
 
 .cov-core[data-state="listed"] ~ .cov-core-label{ fill:var(--color-on-accent); }
+
+.cov-svg:has(.cov-core[data-state="listed"]) .wdot.on-core text{ fill:var(--color-on-accent); }
 
 .cov-svg.scanning{ cursor:default; }
 
@@ -279,13 +271,6 @@
   }
 
 .intro-pick.not .intro-pick-label{ fill:var(--color-text-tertiary); }
-
-.reach-edge{
-  display: flex; align-items: center; gap: var(--space-inline); margin: 2px 0;
-  color: var(--color-text-secondary);
-}
-
-.reach-edge::before, .reach-edge::after{ content: ""; flex: 1; height: 1px; background: var(--color-text-disabled); }
 
 .ring-fig .intro-map{ align-self: center; }
 
@@ -354,6 +339,20 @@
 
 .wdot[aria-pressed="true"] text,
   .kit-glyph .wdot[aria-pressed="true"] text{ fill:var(--color-on-accent); }
+
+.cov-svg .wdot[data-state="exposed"] > circle.wdot-fill,
+  .kit-glyph .wdot[data-state="exposed"] > circle.wdot-fill{
+    fill:var(--tone-block-edge);
+  }
+
+.cov-svg .wdot[data-state="exposed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+    fill:var(--tone-block-edge); stroke:var(--tone-block-edge);
+  }
+
+.cov-svg .wdot[data-state="exposed"] > circle.wdot-ring,
+  .kit-glyph .wdot[data-state="exposed"] > circle.wdot-ring{
+    stroke:var(--tone-block-edge); opacity:1;
+  }
 
 .wdot text{ transition:fill var(--duration-interaction) var(--ease-newton); }
 

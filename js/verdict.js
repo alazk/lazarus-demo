@@ -1,6 +1,6 @@
 /* ── Submit ──────────────────────────────────────────────────── */
 async function submit(address) {
-  if (inFlight) return;
+  if (inFlight || (typeof reviewActive !== "undefined" && reviewActive)) return;
   const input = document.getElementById("addr");
   if (!/^0x[0-9a-fA-F]{40}$/.test(address)) {
     if (input) {
@@ -52,6 +52,17 @@ const STATUS_LABEL = {
   unattested: { tone: "neutral", icon: "Minus", label: "Not attested" },
 };
 
+/** The same band spec the review fixtures paint, derived from a real result. */
+function bandsForOutcome(r, key) {
+  const max = r.dataset?.max_hops ?? hops;
+  const hit = typeof r.hop_count === "number" ? r.hop_count : null;
+  if (key === "listed") return { core: true };
+  if (key === "exposed" && hit != null) return { clear: Math.max(0, hit - 1), exposed: hit };
+  if (key === "outside" && hit != null) return { clear: max, outside: hit };
+  if (key === "clear") return { clear: max };
+  return null;
+}
+
 async function fillVerdict(r, outsideReach) {
   const panel = document.getElementById("panel");
   const right = document.getElementById("right-slot");
@@ -62,6 +73,8 @@ async function fillVerdict(r, outsideReach) {
   const max = r.dataset?.max_hops ?? hops;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
   const key = outcomeOf(r, outsideReach);
+  const bands = bandsForOutcome(r, key);
+  if (bands) paintBands(bands);
   paintMapVerdict(key);
   const headline = OUTCOME[key].headline;
   let reason;
@@ -88,9 +101,10 @@ async function fillVerdict(r, outsideReach) {
 
   right.classList.add("swapping");
   await new Promise((res) => setTimeout(res, Math.round(MOTION.interaction * 0.75)));
+  if (!panel.isConnected || !right.isConnected) return;
   panel.dataset.state = key;
   panel.classList.add("settled");
-  if (currentAddress && key !== "failed" && key !== "unattested") {
+  if (view !== "review" && currentAddress && key !== "failed" && key !== "unattested") {
     outcomes[currentAddress] = { state: key, hops: r.dataset?.max_hops ?? hops };
     if (view === "states") kitOutcomeKeys.add(currentAddress);
   }
@@ -113,12 +127,11 @@ async function fillVerdict(r, outsideReach) {
       <span>Exposure found ${esc(hopWord(r.hop_count))} out, outside your reach
       of ${esc(hopWord(max))}.</span></div>`
     : "";
-  const path = (key === "exposed" || key === "outside") ? renderPath(r) : "";
   const status = STATUS_LABEL[key];
   const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
       <div class="result-status tone-${status.tone}">
         <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>
-        <span class="text-eyebrow">${status.label}</span>
+        <span class="text-label">${status.label}</span>
       </div>`;
   right.innerHTML = `
     <div class="result-lead">
@@ -128,7 +141,6 @@ async function fillVerdict(r, outsideReach) {
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
     </div>
-    ${path}
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");

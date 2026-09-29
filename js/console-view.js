@@ -6,14 +6,20 @@ function renderConsole(prefill = "", error = "", still = false) {
   stage.innerHTML = `
     <div class="console ${still ? "still" : ""}">
       <div class="col">
-        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">1</span>Choose the radius</div>
+        <div class="step-head">
+          <div class="text-eyebrow muted">Step 1</div>
+          <div class="text-heading">Choose the radius</div>
+        </div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready)}</div>
         </div>
       </div>
 
       <div class="col">
-        <div class="text-label text-label--phone-eyebrow muted step-kicker"><span class="kn">2</span>Scan a wallet</div>
+        <div class="step-head">
+          <div class="text-eyebrow muted">Step 2</div>
+          <div class="text-heading">Scan a wallet</div>
+        </div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
             ${renderLadder(ready, prefill)}

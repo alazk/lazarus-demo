@@ -15,8 +15,8 @@ function renderChain() {
       <circle class="cov-core" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
       <text class="cov-core-label" x="${c}" y="${c + 5}" text-anchor="middle">Lazarus</text>
       ${pills}
-      <g class="wdot intro-pick" data-reach="out" transform="translate(${c} ${py.toFixed(1)})">
-        <circle r="13"/><text y="4.5" text-anchor="middle">W</text>
+      <g class="wdot intro-pick" aria-pressed="true" data-reach="out" transform="translate(${c} ${py.toFixed(1)})">
+        <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="13"/><text y="4.5" text-anchor="middle">W</text>
         <rect class="intro-pick-plate" x="0" y="18" width="124" height="24" rx="12"/>
         <text class="intro-pick-label" x="0" y="30" text-anchor="middle">Wallet you pay</text>
       </g>
@@ -55,6 +55,8 @@ function paintAct(n, animate = true) {
       g.setAttribute("data-reach", n <= hops ? "in" : "out");
       g.setAttribute("aria-pressed", String(n === hops));
     });
+    if (a.cover === "all") svg.dataset.verdict = "block";
+    else delete svg.dataset.verdict;
     const pick = svg.querySelector(".intro-pick");
     if (pick) {
       pick.setAttribute("class", "wdot intro-pick");

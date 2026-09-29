@@ -99,15 +99,13 @@ body {
     line-height: var(--type-body-leading);
     letter-spacing: 0;
   }
-  .text-label--phone-eyebrow,
-  .reach-edge {
+  .text-label--phone-eyebrow {
     font-size: var(--type-eyebrow-size);
     font-weight: var(--type-eyebrow-weight);
     line-height: var(--type-eyebrow-leading);
   }
   .text-display { max-width: none; text-wrap: balance; }
-  .intro, .console, .checking { min-height: 0; overflow: visible; height: auto; }
-  .checking { padding: 0; gap: var(--space-group); }
+  .intro, .console { min-height: 0; overflow: visible; height: auto; }
   .console { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-group); padding: var(--space-card) var(--inset); }
   .card, .card-cov, .card-check, .card-result { height: auto; overflow: visible; }
   .act-copy { min-height: 0; }
@@ -191,10 +189,9 @@ body {
   .cov-svg:not(.scanning) .wdot:not([aria-pressed="true"]):hover > circle:not(.wdot-ring):not(.wdot-fill),
   .wdot.is-hover:not([aria-pressed="true"]) > circle:not(.wdot-ring):not(.wdot-fill) {
     stroke: var(--color-text-tertiary);
-    fill: none;
+    fill: transparent;
   }
   .stat-link:hover { text-decoration: none; color: var(--color-text); }
-  .path-edge:hover { text-decoration: none; color: var(--color-accent); }
 }
 
 /* Map and list sit side by side once the stage or frame is at least 40rem. */
@@ -204,5 +201,138 @@ body {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: stretch;
     gap: var(--space-block);
+  }
+}
+
+/* Compliant is green. Non-compliant is red. */
+.cband[data-state="clear"]{ fill:var(--tone-pass-wash); }
+
+.cov-svg:has(.cband[data-state="clear"]):not(:has(.cband[data-state="exposed"])):not(:has(.cband[data-state="listed"])):not(:has(.cov-core[data-state="listed"])) .cov-ring,
+.cov-svg:has(.cband[data-state="clear"]):not(:has(.cband[data-state="exposed"])):not(:has(.cband[data-state="listed"])):not(:has(.cov-core[data-state="listed"])) .cov-core{
+  stroke:var(--tone-pass-edge);
+}
+.cov-svg:not(.intro-map):has(.cband[data-state="clear"]):not(:has(.cband[data-state="exposed"])):not(:has(.cband[data-state="listed"])):not(:has(.cov-core[data-state="listed"])) .cov-disc{
+  fill:var(--tone-pass-wash);
+}
+
+.cov-svg .wdot[data-state="clear"] > circle.wdot-ring,
+.cov-svg .wdot[data-state="clear"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  stroke:var(--tone-pass-edge);
+}
+.cov-svg .wdot[data-state="clear"] > circle.wdot-fill,
+.cov-svg .wdot[data-state="clear"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  fill:var(--tone-pass-edge);
+}
+
+.cov-svg:has(.cov-core[data-state="listed"]) .cov-disc,
+.cov-svg:has(.cband[data-state="listed"]) .cov-disc,
+.cov-svg:has(.cband[data-state="exposed"]) .cov-disc,
+.cov-svg:has(.cov-core[data-state="listed"]) .cband,
+.cov-svg:has(.cband[data-state="exposed"]) .cband[data-state="clear"]{
+  fill:var(--tone-block-wash);
+}
+
+.cov-core[data-state="listed"]{
+  fill:var(--tone-block-wash); stroke:var(--tone-block-edge);
+}
+
+.cov-core[data-state="listed"] ~ .cov-core-label{ fill:var(--tone-block-text); }
+
+.cov-svg:has(.cov-core[data-state="listed"]) .cov-core-pick{ stroke:var(--tone-block-edge); }
+
+.cov-svg:has(.cov-core[data-state="listed"]) .cov-ring,
+.cov-svg:has(.cband[data-state="listed"]) .cov-ring,
+.cov-svg:has(.cband[data-state="exposed"]) .cov-ring{
+  stroke:var(--tone-block-edge);
+}
+
+.cov-svg .wdot[data-state="listed"] > circle.wdot-ring,
+.cov-svg .wdot[data-state="exposed"] > circle.wdot-ring,
+.cov-svg .wdot[data-state="listed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus),
+.cov-svg .wdot[data-state="exposed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  stroke:var(--tone-block-edge);
+}
+.cov-svg .wdot[data-state="listed"] > circle.wdot-fill,
+.cov-svg .wdot[data-state="exposed"] > circle.wdot-fill,
+.cov-svg .wdot[data-state="listed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus),
+.cov-svg .wdot[data-state="exposed"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  fill:var(--tone-block-edge);
+}
+
+.cov-svg .wdot[data-state="outside"] > circle.wdot-ring,
+.cov-svg .wdot[data-state="outside"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  stroke:var(--tone-caution-edge);
+}
+.cov-svg .wdot[data-state="outside"] > circle.wdot-fill,
+.cov-svg .wdot[data-state="outside"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  fill:var(--tone-caution-edge);
+}
+
+/* The radius tint grows without a stroke. The hop rings stay. */
+.cov-svg:not(.scanning):has(.cov-ring[aria-pressed="true"]) .cov-disc{
+  stroke:none;
+}
+
+/* The wallet mark is a hollow stroke. A transparent fill keeps the look and
+   makes the whole disc a target, so a click selects that wallet. */
+.cov-svg:not(.scanning) .wdot:not(.intro-pick) > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  fill: transparent;
+}
+
+/* The dot that travels between wallets: a small black fill, no outline, no outer ring. */
+.cov-svg:not(.scanning) .cov-pick-ring,
+.cov-svg:not(.scanning) .cov-pick.not .cov-pick-ring,
+.cov-svg:not(.scanning) .cov-pick.on-core .cov-pick-ring,
+.cov-svg:not(.scanning) .cov-pick.dragging .cov-pick-ring{
+  stroke: none;
+  opacity: 0;
+}
+.cov-svg:not(.scanning) .cov-pick-dot,
+.cov-svg:not(.scanning) .cov-pick.not .cov-pick-dot,
+.cov-svg:not(.scanning) .cov-pick.on-core .cov-pick-dot,
+.cov-svg:not(.scanning) .cov-pick.dragging .cov-pick-dot{
+  fill: var(--color-accent);
+  stroke: none;
+}
+
+/* The intro wallet uses the selected mark: a solid disc and a white letter. */
+.intro-map .intro-pick[aria-pressed="true"] > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus){
+  fill:transparent; stroke:none;
+}
+.intro-map .intro-pick[aria-pressed="true"] > circle.wdot-ring{
+  fill:none; stroke:var(--color-accent); opacity:1;
+}
+.intro-map .intro-pick[aria-pressed="true"] > circle.wdot-fill{
+  fill:var(--color-accent);
+}
+.intro-map .intro-pick[aria-pressed="true"] > circle.wdot-fill + text{
+  fill:var(--color-on-accent);
+}
+.intro-map .intro-pick[aria-pressed="true"] .intro-pick-label{
+  fill:var(--color-text-tertiary);
+}
+
+/* The intro's third step is the non-compliant reach: red tint, red wallet. */
+.cov-svg.intro-map[data-verdict="block"]:not(.scanning) .cov-disc{
+  fill:var(--tone-block-wash); stroke:var(--tone-block-edge);
+}
+.intro-map[data-verdict="block"] .cov-ring,
+.intro-map[data-verdict="block"] .cov-core{
+  stroke:var(--tone-block-edge);
+}
+.intro-map[data-verdict="block"] .intro-pick[aria-pressed="true"] > circle.wdot-ring{
+  stroke:var(--tone-block-edge); opacity:1;
+}
+.intro-map[data-verdict="block"] .intro-pick[aria-pressed="true"] > circle.wdot-fill{
+  fill:var(--tone-block-edge);
+}
+.intro-map[data-verdict="block"] .intro-pick > circle.wdot-fill + text{
+  fill:var(--color-on-accent);
+}
+
+@media (hover: hover) {
+  .cov-svg:not(.scanning) .wdot:not([aria-pressed="true"]):hover > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus),
+  .cov-svg:not(.scanning) .wdot.is-hover:not([aria-pressed="true"]) > circle:not(.wdot-ring):not(.wdot-fill):not(.map-focus) {
+    fill: transparent;
   }
 }
