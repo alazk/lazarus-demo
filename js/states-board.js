@@ -112,7 +112,7 @@ function mountMapAnatomy(catalog) {
     })
   ));
   story("Dash scale", "Inactive, caution, and the wallet guide.", row(
-    ["--map-dash-inactive", "--map-dash-caution", "--map-dash-guide"].map((token) => {
+    ["--map-dash-inactive", "--map-dash-caution"].map((token) => {
       const svg = svgBox(72);
       const ring = circle(svg, { cx: "36", cy: "36", r: "24", fill: "none", class: "cov-ring" });
       ring.style.stroke = token === "--map-dash-caution" ? "var(--tone-caution-edge)" : "var(--map-reach)";
@@ -212,9 +212,9 @@ function mountMapAnatomy(catalog) {
     anim(ring, "stroke-opacity", (motionReduced() ? mapToken("--map-alpha-live") : "1") + ";0", MOTION.burst + "ms", true);
     return svg;
   }));
-  story("Listed core", "Ruby pulse and a white label.", replay(() => {
+  story("Listed core", "A block wash, a block outline, and a block label.", replay(() => {
     const svg = svgBox(120);
-    circle(svg, { cx: "60", cy: "60", r: "22", class: "cov-core listed" });
+    circle(svg, { cx: "60", cy: "60", r: "22", class: "cov-core", "data-state": "listed" });
     const label = document.createElementNS(SVG, "text");
     label.setAttribute("class", "cov-core-label");
     label.setAttribute("x", "60");
@@ -313,11 +313,11 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   };
   addScale("icons", "Icons", [
     { heading: "Marks" },
-    ...ICON_CATALOG.filter((icon) => icon.name !== "ArrowRight" && icon.name !== "ArrowUpRight").map((icon) => ({
+    ...ICON_CATALOG.filter((icon) => icon.name !== "ArrowUpRight").map((icon) => ({
       name: icon.name, note: icon.use, node: iconSpecimen(icon.name),
     })),
     { heading: "Arrows" },
-    ...ICON_CATALOG.filter((icon) => icon.name === "ArrowRight" || icon.name === "ArrowUpRight").map((icon) => ({
+    ...ICON_CATALOG.filter((icon) => icon.name === "ArrowUpRight").map((icon) => ({
       name: icon.name, note: icon.use, node: iconSpecimen(icon.name),
     })),
   ]);
@@ -402,7 +402,8 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     name: "Roles",
     note: "Surface, text, accent, focus, and danger.",
     node: ramp([
-      ["Surface", "--color-surface", "Page background."],
+      ["Raised", "--color-surface-raised", "Page, mast, and cards."],
+      ["Surface", "--color-surface", "Tertiary buttons."],
       ["On surface", "--color-text", "Primary text."],
       ["Muted", "--color-text-secondary", "Secondary text."],
       ["Accent", "--color-accent", "Buttons, links, coverage reach."],
@@ -613,11 +614,6 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   });
   paintAttestation("signing");
   take("step", "Step", "Signing", ".trail");
-  take("attestation", "Attestation", "Signing", ".attest");
-  ["pending", "attested", "failed"].forEach((state) => {
-    paintAttestation(state);
-    take("attestation", "Attestation", state[0].toUpperCase() + state.slice(1), ".attest");
-  });
 
   const base = (extra) => ({
     dataset: { max_hops: hops },
@@ -733,7 +729,6 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       if (dot) takeGlyph("circle", "Circle", spec.radius, dot);
     }
     if (spec.step) take("step", "Step", spec.step, ".trail");
-    if (stage.querySelector(".path-strip")) take("path", "Path", spec.story, ".path-strip");
     if (stage.querySelector(".warnline")) take("warnline", "Warnline", spec.story, ".warnline");
     if (spec.story === "Clear") take("stats", "Stats", "Clear", ".stats");
     if (spec.story === "Failed") take("detail", "Detail", "Failed", ".detail");
@@ -973,10 +968,10 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     { id: "foundations", title: "Foundations", sections: ["icons", "typography", "spacing", "color", "radii", "motion", "responsive"] },
     { id: "primitives", title: "Primitives", sections: ["button", "badge", "field", "segment", "wallet-row", "ladder"] },
     { id: "coverage", title: "Coverage map", sections: ["coverage-map", "map-anatomy", "anatomy", "intro-map", "console-map"] },
-    { id: "composites", title: "Composites", sections: ["compare", "result", "path", "warnline", "stats", "detail", "error", "card"] },
-    { id: "flows", title: "Flows", sections: ["intro", "step", "attestation", "act", "mast", "nav"] },
+    { id: "composites", title: "Composites", sections: ["compare", "result", "warnline", "stats", "detail", "error", "card"] },
+    { id: "flows", title: "Flows", sections: ["intro", "step", "act", "mast", "nav"] },
   ];
-  const componentList = [button, field, segment, walletRow, coverageMap, stepTrail, resultCard, pathStrip, stats, warnline, mast, actPanel];
+  const componentList = [button, field, segment, walletRow, coverageMap, stepTrail, resultCard, stats, warnline, mast, actPanel];
   const storyNames = new Set();
   catalog.forEach((sec) => (sec.stories || []).forEach((item) => storyNames.add(item.story)));
   window.__missingStories = [];
@@ -1088,6 +1083,45 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       parent.append(wrap);
     });
   };
+  const grouped = new Set(["button", "badge", "field", "segment", "wallet-row", "step"]);
+  const paintGroup = (parent, stories, sectionId) => {
+    const wrap = document.createElement("div");
+    wrap.className = "kit-story";
+    wrap.id = sectionId + "-scale";
+    const frame = document.createElement("div");
+    frame.className = "kit-frame";
+    const list = document.createElement("div");
+    list.className = "kit-scale";
+    stories.forEach((story) => {
+      const item = document.createElement("div");
+      item.className = "kit-scale-row";
+      item.id = story.id;
+      const meta = document.createElement("div");
+      meta.className = "kit-scale-meta";
+      const name = document.createElement("span");
+      name.className = "kit-scale-name";
+      name.textContent = story.story;
+      meta.append(name);
+      if (story.note) {
+        const note = document.createElement("span");
+        note.className = "kit-scale-note";
+        note.textContent = story.note;
+        meta.append(note);
+      }
+      const sample = document.createElement("div");
+      sample.className = "kit-scale-sample";
+      if (story.node) sample.append(story.node);
+      item.append(meta, sample);
+      list.append(item);
+    });
+    frame.append(list);
+    frame.querySelectorAll("button, a, input, svg").forEach((el) => { el.tabIndex = -1; });
+    frame.querySelectorAll("a").forEach((el) => {
+      el.addEventListener("click", (e) => e.preventDefault());
+    });
+    wrap.append(frame);
+    parent.append(wrap);
+  };
   GROUPS.forEach((group) => {
     const groupNav = document.createElement("div");
     groupNav.className = "kit-nav-group";
@@ -1163,7 +1197,8 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
           block.append(partHead);
           paintStories(block, part.stories, section.id);
         });
-      } else paintStories(block, section.stories, section.id);
+      } else if (grouped.has(section.id)) paintGroup(block, section.stories, section.id);
+      else paintStories(block, section.stories, section.id);
       groupBlock.append(block);
     });
     nav.append(groupNav);
@@ -1178,15 +1213,16 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   const mark = new IntersectionObserver((entries) => {
     entries.forEach((entry) => { entry.target.dataset.kitSeen = entry.isIntersecting ? "1" : ""; });
     nav.querySelectorAll("[aria-current]").forEach((el) => el.removeAttribute("aria-current"));
-    const seen = [...main.querySelectorAll(".kit-section, .kit-story")].filter((el) => el.dataset.kitSeen);
+    const seen = [...main.querySelectorAll(".kit-section, .kit-story, .kit-scale-row[id]")].filter((el) => el.dataset.kitSeen);
     const first = seen[0];
     if (!first) return;
     const sectionEl = first.classList.contains("kit-section") ? first : first.closest(".kit-section");
-    const storyEl = seen.find((el) => el.classList.contains("kit-story"));
+    const storyEl = seen.find((el) => el.classList.contains("kit-scale-row"))
+      || seen.find((el) => el.classList.contains("kit-story"));
     if (sectionEl) currentFor(sectionEl.id)?.setAttribute("aria-current", "true");
     if (storyEl) currentFor(storyEl.id)?.setAttribute("aria-current", "true");
   }, { rootMargin: "-10% 0px -70% 0px", threshold: 0 });
-  main.querySelectorAll(".kit-section, .kit-story").forEach((el) => mark.observe(el));
+  main.querySelectorAll(".kit-section, .kit-story, .kit-scale-row[id]").forEach((el) => mark.observe(el));
   document.body.classList.remove("is-building");
   document.body.classList.add("is-states");
   stopAuto();

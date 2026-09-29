@@ -3,10 +3,12 @@
    file cannot hold the page blank. Painting twice shows an empty console. */
 document.getElementById("home").onclick = () => {
   const leavingKit = kitActive || document.body.classList.contains("is-states");
+  const leavingReview = typeof reviewActive !== "undefined" && reviewActive;
   document.body.classList.remove("is-states", "is-building", "is-reduced");
+  if (leavingReview) leaveReview();
   clearKitOutcomes();
   freezeUrl = false;
-  if (view === "intro" && !leavingKit) return;
+  if (view === "intro" && !leavingKit && !leavingReview) return;
   if (leavingKit) kitActive = false;
   view = "intro"; act = 0;
   document.title = "Newton — Lazarus Scan";
@@ -36,7 +38,11 @@ window.addEventListener("popstate", (e) => {
     try { return new URLSearchParams(location.search).has("states"); }
     catch (e) { return false; }
   };
-  if (!wantStates()) renderIntro();
+  const wantReview = () => {
+    try { return new URLSearchParams(location.search).has("review"); }
+    catch (e) { return false; }
+  };
+  if (!wantStates() && !wantReview()) renderIntro();
   const data = await wallets;
   const loaded = data?.wallets;
   if (wantStates()) {
@@ -45,6 +51,13 @@ window.addEventListener("popstate", (e) => {
     radiusDemoShown = true;
     freezeUrl = true;
     await renderStates();
+    return;
+  }
+  if (wantReview()) {
+    if (Array.isArray(loaded)) presets = loaded.filter((w) => w.address);
+    stopAuto();
+    const picked = new URLSearchParams(location.search).get("radius") || "two";
+    await renderReview(picked);
     return;
   }
   if (!Array.isArray(loaded)) return;

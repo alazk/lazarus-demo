@@ -15,6 +15,7 @@ function setRule(nextHops, nextUsd) {
   if (document.querySelector(".console")) applyReach();
   else renderConsole(document.getElementById("addr")?.value || "", "", true);
   syncUrl();
+  if (typeof noteReviewRadius === "function") noteReviewRadius(hops);
 }
 
 /* The example wallets in order of distance, with a bar marking the ones the

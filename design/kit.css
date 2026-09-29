@@ -176,8 +176,10 @@
   }
 
 .kit-frame.kit-wrap{
-    width:fit-content; max-width:100%;
+    width:100%; max-width:100%;
   }
+
+.kit-scale-row[id]{ scroll-margin-top:calc(var(--size-touch) + var(--space-section)); }
 
 .kit-frame.kit-wrap .cov-seg{ margin:0; width:auto; }
 

@@ -231,7 +231,7 @@ async function renderStates() {
     circle: {
       Outside: "This wallet sits beyond the chosen reach.",
       Covered: "This wallet sits inside the chosen reach.",
-      Selected: "The picked wallet. A black disc sits inside a black outer ring and the letter is white, including after the check finds a result.",
+      Selected: "The picked wallet is a solid black disc with a white letter. No outer ring.",
       Hover: "The outline takes the hover edge. The letter stays as it is.",
       Clear: "No exposure at this wallet.",
       Exposed: "Exposure found at this wallet.",
@@ -256,7 +256,7 @@ async function renderStates() {
     "intro-map": {
       None: "No reach is drawn, so every ring sits outside coverage.",
       Core: "Reach covers only the Lazarus address.",
-      All: "Reach covers every hop.",
+      All: "Reach covers every hop. The disc, the rings, and the wallet you pay are block.",
     },
     "console-map": {
       Phases: "Hover, keyboard focus, and the scan moving outward.",
@@ -274,9 +274,9 @@ async function renderStates() {
       ThreeHops: "Screening 3 hops out.",
       Hover: "Dashed preview of a hop that is not the current reach. No fill, so inner rings stay visible.",
       Scanning: "The check is moving outward from the centre.",
-      Clear: "The disc is a neutral wash. No band is filled. The picked wallet has a pass outline.",
-      Listed: "The core and the picked wallet are block. The reach stays context.",
-      Exposed: "The found band is a block wash. Its ring, the path mark, and the picked wallet are block.",
+      Clear: "A pass wash on the disc and the bands inside reach. The picked wallet is a solid pass disc.",
+      Listed: "The core is a block wash with a block outline and a block label. The picked wallet is a solid block disc.",
+      Exposed: "The found band is a block wash. Its ring and the picked wallet are block.",
       "Outside reach": "The found band is a caution wash with a dashed caution ring. The picked wallet is caution.",
       Focus: "Keyboard focus on the reach slider.",
     },
@@ -288,16 +288,6 @@ async function renderStates() {
       "Outside reach": "Exposure found outside the reach.",
       Failed: "This step could not be read.",
       Signing: "The hops are read. Waiting for the attestation to be signed.",
-    },
-    attestation: {
-      Pending: "The check has not asked for a signature yet.",
-      Signing: "The signature is in flight.",
-      Attested: "The quorum signed this decision.",
-      Failed: "The decision was not signed.",
-    },
-    path: {
-      Exposed: "You, the wallets in between, and Lazarus. One explorer link per transfer.",
-      "Outside reach": "The same path, when the link sits beyond the reach.",
     },
     warnline: {
       "Outside reach": "Exposure exists, beyond the reach you set.",
@@ -331,7 +321,7 @@ async function renderStates() {
       Panel: "One act of the opening. The copy and the map change together.",
     },
     mast: {
-      Default: "The product name and the way into the kit.",
+      Default: "A raised bar with an outline frame. The product name and the way into the kit.",
     },
     card: {
       Policy: "The reach control.",

@@ -1,0 +1,23 @@
+/* Radius review. A bar above the dashboard, separate from the check itself. */
+
+.review-bar{
+  display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-inline) var(--space-group);
+  flex-shrink:0; min-height:var(--size-control);
+}
+
+.review-bar .text-label{ margin:0; }
+
+.review-pick{
+  height:var(--size-control); max-width:100%;
+  border:1px solid var(--color-border); border-radius:var(--radius-control);
+  background:var(--color-surface-raised); color:var(--color-text);
+  font-family:var(--font-sans); font-size:var(--type-body-size);
+  padding:0 var(--space-group);
+}
+
+.review-note{
+  margin:0; color:var(--color-text-tertiary);
+  font-size:var(--type-caption-size); line-height:var(--type-caption-leading);
+}
+
+.states-link[aria-current="page"]{ box-shadow:var(--state-selected-mark); }
