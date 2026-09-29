@@ -11,11 +11,13 @@
 // Env:
 //   NEWTON_API_KEY        gateway key
 //   NEWTON_POLICY_CLIENT  policy client contract address, from deployment
-//   DEMO_PRIVATE_KEY      funded Sepolia key that signs task submissions
 //   SEPOLIA_RPC_URL       optional, defaults to Alchemy's public demo endpoint
 //   NEWTON_EXPLORER_BASE  optional, defaults to the public explorer
 //
-// With any of the first three unset the endpoint still screens and returns a
+// No private key is needed. The gateway authenticates with the API key and the
+// operators evaluate the policy, so nothing here signs a transaction.
+//
+// With either of the first two unset the endpoint still screens and returns a
 // result, marked as unattested. The demo stays usable before the policy exists.
 
 import screen from "./screen.js";
@@ -39,13 +41,18 @@ async function runScreening(address) {
 function newtonConfigured() {
   return Boolean(
     process.env.NEWTON_API_KEY &&
-    process.env.NEWTON_POLICY_CLIENT &&
-    process.env.DEMO_PRIVATE_KEY
+    process.env.NEWTON_POLICY_CLIENT
   );
 }
 
-/** evaluation_result is a byte array: a trailing 1 allows, all zeros denies. */
-function decodeResult(bytes) {
+// Protocol 0.7 returns a boolean `allowed`. Before it, the verdict arrived as
+// `evaluation_result`, a byte array whose trailing 1 allowed and whose zeros
+// denied. Both are read here so a client that has not been migrated yet still
+// reports a verdict rather than an unexplained failure.
+function decodeVerdict(taskResponse) {
+  if (!taskResponse) return null;
+  if (typeof taskResponse.allowed === "boolean") return taskResponse.allowed;
+  const bytes = taskResponse.evaluation_result;
   if (!Array.isArray(bytes) || bytes.length === 0) return null;
   return bytes[bytes.length - 1] === 1;
 }
@@ -54,8 +61,13 @@ function decodeResult(bytes) {
 // surfacing as "Unexpected end of JSON input" with no status to go on. The
 // gateway's newt_createTask works directly, so this speaks to it instead.
 // Gateway fields are snake_case, chain_id is a hex string, and wasm_args is
-// hex-encoded UTF-8 JSON — without it the oracle screens nothing and the
+// hex-encoded UTF-8 JSON. Without it the oracle screens nothing and the
 // policy fails closed.
+//
+// Under protocol 0.7 a client holds a policy set and wasm_args is an array with
+// one entry per policy in that set. Our clients carry a single policy, so the
+// array has one element. Sending the bare string to a 0.7 client is rejected
+// before the oracle runs.
 async function submitToNewton(walletAddress, policy) {
   const gateway = process.env.NEWTON_GATEWAY_URL
     || "https://gateway.testnet.newton.xyz/rpc";
@@ -83,14 +95,25 @@ async function submitToNewton(walletAddress, policy) {
           chain_id: "0x" + SEPOLIA_CHAIN_ID.toString(16),
           function_signature: "",
         },
-        wasm_args: "0x" + Buffer.from(
-          JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
+        wasm_args: [
+          "0x" + Buffer.from(
+            JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
+        ],
         timeout: 60,
       },
     }),
   });
 
   const text = await resp.text();
+  // A 401 here is almost always ownership rather than a bad key: under 0.7
+  // the policy client's owner must be the wallet behind NEWTON_API_KEY. The
+  // clients deploy cleanly when it is not, and every task fails at this line.
+  if (resp.status === 401) {
+    throw new Error(
+      "gateway rejected the task (HTTP 401). Check that the policy client's " +
+      "owner is the wallet behind NEWTON_API_KEY."
+    );
+  }
   if (!text) throw new Error(`gateway returned an empty body (HTTP ${resp.status})`);
 
   let payload;
@@ -106,8 +129,8 @@ async function submitToNewton(walletAddress, policy) {
     throw new Error(`task did not succeed: ${JSON.stringify(result?.error ?? result)}`);
   }
 
-  const allowed = decodeResult(result.task_response?.evaluation_result);
-  if (allowed === null) throw new Error("task returned no evaluation result");
+  const allowed = decodeVerdict(result.task_response);
+  if (allowed === null) throw new Error("task returned no verdict");
 
   return {
     task_id: result.task_id,
