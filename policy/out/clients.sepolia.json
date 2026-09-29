@@ -1,0 +1,46 @@
+{
+  "h1v0": {
+    "address": "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
+    "env": "NEWTON_POLICY_CLIENT_H1V0",
+    "max_hops": 1,
+    "min_exposure_usd": 0,
+    "policy": "0xcd23ab50D9a3867B9B75E72f7087B420d62BF65f",
+    "expireAfter": 300,
+    "policyId": "0x8a319ac96283614cd1a150395360fa2d1ccd49ea20e6354d0e8707c40313c71c",
+    "owner": "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48",
+    "deployedAt": "2026-09-28T11:29:17.021Z"
+  },
+  "h2v0": {
+    "address": "0x426B922f21bdb1201Cac1470d224B6F9b92630fe",
+    "env": "NEWTON_POLICY_CLIENT_H2V0",
+    "max_hops": 2,
+    "min_exposure_usd": 0,
+    "policy": "0xcd23ab50D9a3867B9B75E72f7087B420d62BF65f",
+    "expireAfter": 300,
+    "policyId": "0x0446260ce4dc510a73e6130c4351f43e406cb91a3d89be2b776ce18d3ff5378b",
+    "owner": "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48",
+    "deployedAt": "2026-09-28T11:29:49.973Z"
+  },
+  "h3v0": {
+    "address": "0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8",
+    "env": "NEWTON_POLICY_CLIENT",
+    "max_hops": 3,
+    "min_exposure_usd": 0,
+    "policy": "0xcd23ab50D9a3867B9B75E72f7087B420d62BF65f",
+    "expireAfter": 300,
+    "policyId": "0xcedadfbb28854fb4686862601e2ed5962bcddc0b2b89418b91936a29ad4932dd",
+    "owner": "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48",
+    "deployedAt": "2026-09-28T11:30:27.011Z"
+  },
+  "h3v1m": {
+    "address": "0x4f15C595E8a6332A56A2101b61239FB2cE9163F6",
+    "env": "NEWTON_POLICY_CLIENT_H3V1M",
+    "max_hops": 3,
+    "min_exposure_usd": 1000000,
+    "policy": "0xcd23ab50D9a3867B9B75E72f7087B420d62BF65f",
+    "expireAfter": 300,
+    "policyId": "0xd150c18fd3804f92e140292068e426217744c01244f6ba2f154ae22d8e95db58",
+    "owner": "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48",
+    "deployedAt": "2026-09-28T11:30:52.064Z"
+  }
+}
