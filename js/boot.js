@@ -1,6 +1,15 @@
 /* ── Boot ────────────────────────────────────────────────────────
    Wait for the example wallets before the first paint, with a cap so a slow
-   file cannot hold the page blank. Painting twice shows an empty console. */
+   file cannot hold the page blank. Painting twice shows an empty console.
+   Review and the UI kit stay off the product header. On a local host they
+   sit under the mast; a live host never inserts them. */
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+  const dev = document.createElement("nav");
+  dev.className = "dev-links";
+  dev.innerHTML = `<a class="states-link" href="?review=1">Review</a><a class="states-link" href="?states=1">UI kit</a>`;
+  document.querySelector(".mast")?.after(dev);
+}
+
 document.getElementById("home").onclick = () => {
   const leavingKit = kitActive || document.body.classList.contains("is-states");
   const leavingReview = typeof reviewActive !== "undefined" && reviewActive;
