@@ -1,11 +1,74 @@
 {
-  "routes": [
-    { "src": "/data/(?!demo_wallets\\.json$).*", "status": 404 },
-    { "src": "/(README|AUDIT)\\.md", "status": 404 },
-    { "src": "/(scripts|policy|case-study|\\.arkham_cache)(/.*)?", "status": 404 },
-    { "src": "/design-[^/]*", "status": 404 },
-    { "src": "/\\.env.*", "status": 404 },
-    { "src": "/package(-lock)?\\.json", "status": 404 },
-    { "src": "/api/envcheck", "status": 404 }
+  "redirects": [
+    {
+      "source": "/data/seeds.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/data/services.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/data/halo.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/data/halo.backup.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/data/prices.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/data/config.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/README.md",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/AUDIT.md",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/package.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/package-lock.json",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/scripts/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/policy/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/case-study/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/.arkham_cache/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    }
   ]
 }
