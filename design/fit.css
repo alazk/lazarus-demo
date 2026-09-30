@@ -1,0 +1,62 @@
+/* One screen on laptops and desktops. Loaded last.
+   From 1024px wide the console should never need a scroll: the map takes
+   whatever height the shell leaves, and short screens trade some air for it. */
+
+@media (min-width: 1024px) {
+  :root { --map-chrome: 372px; }
+  body:not(.is-states) .console .cov-svg,
+  body:not(.is-states) .intro-map { max-width: min(var(--width-map), calc(100dvh - var(--map-chrome))); }
+}
+
+@media (min-width: 1024px) and (max-height: 860px) {
+  :root {
+    --shell-pad: var(--space-snug);
+    --shell-gap: var(--space-snug);
+    --map-chrome: 300px;
+  }
+  .mast { padding-block: var(--space-inline); }
+  .console { padding-block: 0; }
+  .result-body { gap: var(--space-group); }
+  .card-result .right { gap: var(--space-snug); }
+  .result-lead .text-display { margin-bottom: var(--space-snug); }
+  .card-result .actions { margin-top: var(--space-group); flex-direction: row; flex-wrap: nowrap; align-items: center; }
+  .card-result .actions .btn { flex: 1 1 0; width: auto; }
+}
+
+@media (min-width: 1024px) and (max-height: 700px) {
+  .console .col { gap: var(--space-inline); }
+  .card-result { gap: var(--space-snug); }
+  .result-body { gap: var(--space-snug); }
+  .result-status { margin-bottom: var(--space-tight); }
+  .result-lead .text-display { margin-bottom: var(--space-inline); }
+  .result-lead .warnline { margin-bottom: var(--space-inline); padding-block: var(--space-inline); }
+  .trail-label { margin-bottom: var(--space-inline); }
+  .trail .step { padding: var(--space-inline) var(--space-snug); }
+  .card-result .actions { margin-top: var(--space-snug); }
+}
+
+/* Narrow laptops: keep the three result numbers on one row. */
+@media (min-width: 1024px) and (max-height: 700px) {
+  .card-result .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--space-group); }
+  .card-result .stat + .stat { border-top: none; padding-top: 0; }
+}
+
+/* Short screens with a mouse: the example rows can be denser than a touch target. */
+@media (min-width: 1024px) and (max-height: 700px) and (pointer: fine) {
+  .m-row { min-height: 2.25rem; }
+  .m-row .m-text { padding-block: var(--space-tight); }
+}
+
+/* Narrow laptops: the four scan steps share one row, and captions stay on one line. */
+@media (min-width: 1024px) and (max-width: 1279px) and (max-height: 700px) {
+  :root { --map-chrome: 318px; }
+  .card-check .try-wallet .label { margin-bottom: var(--space-tight); }
+  .result-lead .warnline { padding-block: var(--space-tight); }
+  .trail-label { margin-bottom: var(--space-tight); }
+  .card-result .stat-v { margin-top: 0; }
+  .trail .steps { flex-wrap: nowrap; gap: var(--space-inline); }
+  .trail .step { flex: 1 1 0; min-width: 0; padding-inline: var(--space-inline); }
+  .trail .lbl-long { display: none; }
+  .trail .lbl-short { display: inline; }
+  .ring-note { white-space: nowrap; font-size: var(--type-caption-size); line-height: var(--type-caption-leading); }
+}
