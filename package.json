@@ -5,13 +5,13 @@
   "engines": {
     "node": ">=18"
   },
+  "dependencies": {
+    "@newton-xyz/sdk": "^1.1.1",
+    "viem": "^2.56.9"
+  },
   "devDependencies": {
     "@bytecodealliance/componentize-js": "^0.22.0",
     "@bytecodealliance/jco": "^1.33.0",
-    "solc": "^0.8.37",
-    "viem": "^2.56.9"
-  },
-  "dependencies": {
-    "@newton-xyz/sdk": "^1.1.1"
+    "solc": "^0.8.37"
   }
 }
