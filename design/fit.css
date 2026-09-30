@@ -60,3 +60,15 @@
   .trail .lbl-short { display: inline; }
   .ring-note { white-space: nowrap; font-size: var(--type-caption-size); line-height: var(--type-caption-leading); }
 }
+
+/* Step 2 reads as one group: the list, the paste link and the run button sit
+   together, centred against the map, rather than list at the top and button
+   pinned to the bottom of the card. */
+@media (min-width: 1024px) {
+  .card-check { justify-content: center; }
+  .card-check > .card-body { flex: 0 1 auto; }
+  .card-check > .btn-block { margin-top: var(--space-card); }
+}
+@media (min-width: 1024px) and (max-height: 700px) {
+  .card-check > .btn-block { margin-top: var(--space-snug); }
+}
