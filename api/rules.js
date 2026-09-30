@@ -59,18 +59,19 @@ export default function handler(req, res) {
           "a major exchange would be three hops from Lazarus.",
       },
       {
-        title: "High-degree addresses are treated the same way",
+        title: "Contracts end a path too",
         detail:
-          `Any address with more than ${cfg.high_degree_tx_count ?? "n"} ` +
-          "transactions is treated as a service whether or not it is labelled, " +
-          "which catches the hubs no attribution source has named.",
+          "A path only counts when every address between the wallet and the " +
+          "Lazarus address is itself a wallet. Routers, WETH and bridges are used " +
+          "by millions of people, so a path through one says nothing about you.",
       },
       {
         title: "Every transfer is valued in dollars",
         detail:
-          "At the price on the day it happened, not today's. Stablecoins count " +
-          "one-to-one; ETH and BTC pegged assets use daily closes. A token with " +
-          "no price is ignored entirely, which is what keeps spam tokens out.",
+          "At the price on the day it happened, not today's. Tokens are " +
+          "recognised by contract address, so a look-alike called USDT counts " +
+          "for nothing. Stablecoins count one-to-one; ETH and BTC pegged assets " +
+          "use daily closes, and the latest close after the price file ends.",
       },
       {
         title: "Small transfers are ignored",
@@ -80,11 +81,12 @@ export default function handler(req, res) {
           "that happens rather than a theory.",
       },
       {
-        title: "Any amount counts",
+        title: "The floor belongs to the rule",
         detail:
-          "The policy blocks on exposure of any size. Raising that threshold is " +
-          "a change to the policy, not to the evidence: the same path is found " +
-          "either way, and only the decision about it moves.",
+          "Radii of one, two and three hops block exposure of any size. A " +
+          "separate rule blocks at three hops only when the exposure is worth " +
+          "$1 million or more. The same path is found either way; only the " +
+          "decision about it moves.",
       },
       {
         title: "Exposure is worth its weakest link",
@@ -92,6 +94,13 @@ export default function handler(req, res) {
           "The value of an exposure is the smallest transfer along the path. A " +
           "wallet that received $500,000 from an intermediary that received $30 " +
           "from a Lazarus address is exposed to $30, not $500,000.",
+      },
+      {
+        title: "Recent history only",
+        detail:
+          "The check reads the wallet's most recent 2,000 transfers of each " +
+          "kind. A link older than that on a very busy wallet is not seen, and " +
+          "the response says so with history_truncated.",
       },
       {
         title: "Distance is measured to three hops",

@@ -618,6 +618,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   const base = (extra) => ({
     dataset: { max_hops: hops },
     explorer_url: "https://www.newton.xyz",
+    attestation: { status: "ATTESTED" },
     ...extra,
   });
   const results = [

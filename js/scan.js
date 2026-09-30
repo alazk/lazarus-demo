@@ -144,6 +144,18 @@ function renderChecking(address) {
     async settle(hitAt, kind) {
       const list = rows();
       if (!list.length) return;
+      // A check that did not complete says nothing about any ring.
+      if (kind === "failed") {
+        list.forEach((row) => {
+          row.classList.remove("active");
+          row.classList.add("resolved", "idle");
+          row.dataset.state = "skipped";
+          const note = row.querySelector(".step-note");
+          if (note) note.textContent = "not checked";
+        });
+        map.done("Not screened");
+        return;
+      }
       const inside = list.filter((r) => Number(r.dataset.step) <= hops);
       const hit = hitAt === null || hitAt === undefined ? null : hitAt;
 

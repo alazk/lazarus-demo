@@ -13,7 +13,7 @@ function money(n) {
   return "$" + Math.round(n);
 }
 /* The deployed contracts, so the policy can be read rather than trusted. */
-const POLICY_ADDRESS = "0x5A46A90e0B26Ed56201F24620dbF701D53433BB8";
+const POLICY_ADDRESS = "0xCC3957c06472f9E599ED2eebA754D5854F23321b";
 
 /* Every combination below is a policy client already bound to the policy
    with those parameters. Selecting one selects which contract the check is
@@ -87,14 +87,17 @@ const OUTCOME = Object.freeze({
   failed:     { tone: "neutral", headline: "Screening failed",                  kit: "Failed" },
   unattested: { tone: "neutral", headline: "Not attested",                      kit: "Not attested" },
 });
+/* The attested decision is the authority. A pass is shown only for an
+   attested ALLOW; anything unrecognised is treated as a failed check, so an
+   unexpected response can never read as Compliant. */
 function outcomeOf(result, outsideReach) {
-  if (!result) return "clear";
-  if (result.status === "SCREENING_FAILED") return "failed";
+  if (!result || result.status === "SCREENING_FAILED") return "failed";
   if (result.status === "ATTESTATION_FAILED" || result.attestation?.status === "NOT_CONFIGURED") return "unattested";
+  if (result.decision !== "ALLOW" && result.decision !== "DENY") return "failed";
   if (result.direct_match) return "listed";
-  if (outsideReach) return "outside";
-  if (result.exposure) return "exposed";
-  return "clear";
+  if (result.decision === "DENY") return result.exposure ? "exposed" : "failed";
+  if (result.attestation?.status !== "ATTESTED") return "unattested";
+  return result.exposure ? "outside" : "clear";
 }
 function outcomeDotLabel(state) {
   return OUTCOME[state]?.headline || "";
@@ -128,7 +131,7 @@ const CHAIN = ["Lazarus wallet", "Direct counterparty", "Second degree", "Wallet
 const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
     body: "A North Korean state hacking operation. They have taken billions from "
-        + "exchanges and bridges, and their addresses are designated by OFAC.",
+        + "exchanges and bridges, and is under US sanctions. Arkham attributes thousands of addresses to it.",
     cover: "none",
     note: "Lazarus at the centre. Each ring is one transfer out." },
 

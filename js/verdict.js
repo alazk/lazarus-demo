@@ -22,8 +22,13 @@ async function submit(address) {
   try {
     const resp = await fetch("/api/evaluate?address=" + encodeURIComponent(address)
       + "&max_hops=" + hops + "&min_usd=" + usd);
-    const result = await resp.json();
-    if (result.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
+    let result = null;
+    try { result = await resp.json(); } catch (e) { result = null; }
+    if (result?.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
+    if (!resp.ok || !result) {
+      result = { wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
+        detail: result?.reason || `The check did not complete (HTTP ${resp.status}).` };
+    }
 
     // A path found but allowed means the policy's value floor let it through:
     // its own outcome, not a plain pass.
@@ -32,7 +37,16 @@ async function submit(address) {
       && typeof result.hop_count === "number" && result.hop_count > hops;
     const key = outcomeOf(result, outsideReach);
     const finding = key === "listed" || key === "exposed" || key === "outside";
-    await search.settle(finding ? result.hop_count : null, key);
+    // Unattested results were still screened: the trail shows what the
+    // screening found, not a blanket "clear".
+    let trailKind = key, trailHit = finding ? result.hop_count : null;
+    if (key === "unattested") {
+      if (result.direct_match) { trailKind = "listed"; trailHit = 0; }
+      else if (result.exposure && typeof result.hop_count === "number") {
+        trailKind = result.hop_count <= hops ? "exposed" : "outside"; trailHit = result.hop_count;
+      } else trailKind = "clear";
+    }
+    await search.settle(trailHit, trailKind);
     await fillVerdict(result, outsideReach);
   } catch (e) {
     await fillVerdict({
