@@ -22,8 +22,26 @@
 
 import screen from "./screen.js";
 
-const EXPLORER_BASE =
-  process.env.NEWTON_EXPLORER_BASE || "https://explorer.newton.xyz/task";
+// Confirmed against a real task: the network is a path segment, and
+// /task/<id> without it returns 404.
+const EXPLORER_DEFAULT = "https://explorer.newton.xyz/testnet/task";
+
+// A base that is not an absolute http(s) URL would be resolved relative to this
+// site, turning every attestation link into a 404 on our own domain. Ignore
+// anything that cannot be a link and fall back to the known-good default.
+function explorerBase() {
+  const configured = (process.env.NEWTON_EXPLORER_BASE || "").trim();
+  if (/^https?:\/\/[^\s]+$/i.test(configured)) {
+    return configured.replace(/\/+$/, "");
+  }
+  if (configured) {
+    console.warn(
+      `NEWTON_EXPLORER_BASE is not an absolute URL (${configured}), using ${EXPLORER_DEFAULT}`);
+  }
+  return EXPLORER_DEFAULT;
+}
+
+const EXPLORER_BASE = explorerBase();
 
 const SEPOLIA_CHAIN_ID = 11155111;
 
