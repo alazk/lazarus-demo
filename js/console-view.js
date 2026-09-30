@@ -60,7 +60,10 @@ function renderConsole(prefill = "", error = "", still = false) {
 
   // Coverage map: tap a ring to set the coverage; drag the wallet dot along
   // its line to move between wallets; arrow keys step the coverage.
+  // On a phone the list is the only way to choose a wallet. The map still
+  // sets the radius.
   const svg = document.getElementById("cov-svg");
+  const phoneMap = () => stage.clientWidth <= 639;
   let dragged = false;
   if (svg) {
     const pick = document.getElementById("cov-pick");
@@ -72,6 +75,7 @@ function renderConsole(prefill = "", error = "", still = false) {
     const bandFor = (r) => r < COV_R[0] + 14 ? 0 : r < COV_R[1] ? 1 : r < COV_R[2] ? 2 : r < COV_R[3] ? 3 : null;
     let dragging = false, current;
     pick?.addEventListener("pointerdown", (ev) => {
+      if (phoneMap()) return;
       ev.stopPropagation(); ev.preventDefault();
       dragging = true; dragged = false;
       pick.setPointerCapture?.(ev.pointerId);
@@ -126,7 +130,11 @@ function renderConsole(prefill = "", error = "", still = false) {
       svg.addEventListener("pointerleave", endPreview);
     }
     svg.querySelectorAll(".wdot").forEach((el) => {
-      const choose = (e) => { e.stopPropagation(); selectAddress(el.dataset.addr); };
+      const choose = (e) => {
+        if (phoneMap()) return;
+        e.stopPropagation();
+        selectAddress(el.dataset.addr);
+      };
       el.addEventListener("click", choose);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(e); } });
     });

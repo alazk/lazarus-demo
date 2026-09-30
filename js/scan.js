@@ -70,6 +70,19 @@ function scanMapController() {
   };
 }
 
+/* How many columns keep a wrapped trail even. Four tabs are two by two.
+   An even count stays in pairs, unless three across divides it cleanly.
+   An odd count uses whichever split leaves the last row fuller. */
+function stepColumns(count) {
+  const n = count | 0;
+  if (n <= 1) return 1;
+  if (n <= 3) return n;
+  if (n % 2 === 0 && n % 3 !== 0) return 2;
+  if (n % 3 === 0) return 3;
+  const tail = (cols) => n % cols || cols;
+  return tail(3) > tail(2) ? 3 : 2;
+}
+
 function renderChecking(address) {
   document.title = "Checking… · Lazarus Scan";
   stage.className = "stage";
@@ -99,7 +112,7 @@ function renderChecking(address) {
             </div>
             <div class="trail">
               <span class="trail-label text-eyebrow">Scan</span>
-              <div class="steps">
+              <div class="steps" style="--step-cols:${stepColumns(STEP_LABELS.length)}">
                 ${STEP_LABELS.map((label, n) => `
                   <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
                     ${stepIcon()}

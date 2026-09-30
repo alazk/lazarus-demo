@@ -24,8 +24,8 @@ html, body { height: auto; overflow: visible; }
 body {
   min-height: 100dvh;
   height: auto;
-  padding-top: 0;
-  padding-bottom: var(--space-group);
+  padding-top: max(var(--space-page), env(safe-area-inset-top));
+  padding-bottom: max(var(--space-group), env(safe-area-inset-bottom));
   padding-left: max(var(--space-group), env(safe-area-inset-left));
   padding-right: max(var(--space-group), env(safe-area-inset-right));
 }
@@ -38,12 +38,40 @@ body {
   }
 }
 .mast {
-  padding-top: max(var(--space-snug), env(safe-area-inset-top));
+  padding-top: var(--space-snug);
   padding-left: max(var(--space-group), env(safe-area-inset-left));
   padding-right: max(var(--space-group), env(safe-area-inset-right));
 }
 .brand, .mast { min-width: 0; }
 .brand, .pills { flex-wrap: wrap; max-width: 100%; }
+
+/* One row. The wordmark, badge, and network pill shrink so the mast does not wrap. */
+@media (max-width: 639px) {
+  body {
+    padding-left: max(var(--space-group), env(safe-area-inset-left));
+    padding-right: max(var(--space-group), env(safe-area-inset-right));
+  }
+  .mast {
+    flex-wrap: nowrap;
+    gap: var(--space-inline);
+    padding: var(--space-snug) var(--space-inline);
+  }
+  .brand, .pills { flex-wrap: nowrap; }
+  .brand { gap: var(--space-inline); min-width: 0; }
+  .pills { flex: none; }
+  .wordmark { height: 0.875rem; flex: none; }
+  .badge, .pill { white-space: nowrap; flex: none; }
+  .badge {
+    padding: var(--space-tight) var(--space-inline);
+    font-size: var(--type-label-size);
+  }
+  .pill {
+    height: var(--size-control-sm);
+    padding-inline: var(--space-snug);
+    font-size: var(--type-caption-size);
+    gap: var(--space-tight);
+  }
+}
 
 @media (min-width: 640px) {
   :root {
@@ -106,14 +134,14 @@ body {
   }
   .text-display { max-width: none; text-wrap: balance; }
   .intro, .console { min-height: 0; overflow: visible; height: auto; }
-  .console { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-group); padding: var(--space-card) var(--inset); }
+  .console { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-group); padding: var(--space-group) var(--space-inline); }
   .card, .card-cov, .card-check, .card-result { height: auto; overflow: visible; }
   .act-copy { min-height: 0; }
   .intro-grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "figure" "copy";
     gap: var(--space-group);
-    padding: var(--space-group) var(--inset);
+    padding: var(--space-group) var(--space-inline);
     align-items: stretch;
   }
   .intro-foot { flex-direction: column; align-items: stretch; }
@@ -122,23 +150,65 @@ body {
   .cov-svg .cov-pill { display: none; }
   .ring-fig { width: min(100%, 20rem); max-width: none; }
   .ring-fig .cov-svg, .intro-map { width: 100%; }
-  .cov-seg { width: 100%; }
+  .console .card { padding-inline: 0; }
+  .card-check > .btn-block { width: 100%; align-self: stretch; }
+  .cov { align-items: stretch; }
+  .cov-seg { width: 100%; align-self: stretch; }
+  /* Rows share the width and wrap. --step-cols comes from stepColumns. */
+  .trail .steps { --step-cols: 2; }
+  .trail .step {
+    flex: 1 1 calc((100% / var(--step-cols)) - var(--space-snug));
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+  }
   .cov-seg .m-seg-btn {
     min-width: 0; flex: 1 1 0; height: var(--size-touch); min-height: var(--size-touch);
     overflow: hidden; text-overflow: ellipsis;
   }
   .m-only { display: block; }
   .d-only { display: none; }
-  .m-only .m-row { min-height: var(--size-touch); }
-  .m-only .m-text {
-    flex-direction: row; align-items: center; justify-content: space-between;
-    gap: var(--space-inline); padding-block: 0; min-width: 0;
+  .m-only .m-row {
+    display: grid;
+    position: relative;
+    grid-template-columns: 4px auto minmax(0, 1fr) auto;
+    grid-template-areas: "bar letter name name" "bar letter sub addr";
+    align-items: center;
+    column-gap: var(--space-snug);
+    row-gap: var(--space-tight);
+    min-height: var(--size-touch);
+    padding: var(--space-snug) var(--space-group) var(--space-snug) 0;
   }
-  .m-only .m-name, .m-only .m-sub {
-    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  .m-only .m-bar,
+  .m-only .m-row[data-reach="in"] .m-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: transparent;
   }
-  .m-only .m-name { flex: 1 1 auto; }
-  .m-only .m-sub { flex: 0 1 auto; text-align: right; }
+  .m-only .m-row[aria-pressed="true"] .m-bar {
+    background: var(--color-text);
+  }
+  .m-only .w-letter { grid-area: letter; }
+  .m-only .m-text { display: contents; }
+  .m-only .m-name {
+    grid-area: name;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+  .m-only .m-sub {
+    grid-area: sub;
+    align-self: start;
+    min-width: 0;
+    text-align: left;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+  .m-only .w-addr { grid-area: addr; align-self: start; margin-left: 0; padding-left: 0; }
   .btn-primary, .btn-lg, .btn-block { min-height: var(--size-control-lg); }
   .card-check > .btn-block,
   .card-result .actions {
@@ -157,7 +227,11 @@ body {
     content: ""; position: absolute;
     inset: calc((var(--size-touch) - 100%) / -2);
   }
-  .cov-pick { touch-action: none; }
+  .cov-svg:not(.scanning) .wdot,
+  .cov-svg:not(.scanning) .cov-pick {
+    pointer-events: none;
+    cursor: default;
+  }
 
   /* A phone has no hover. Controls are default or selected. */
   .btn-primary:hover:not(:disabled),
