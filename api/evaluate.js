@@ -20,6 +20,7 @@
 // With either of the first two unset the endpoint still screens and returns a
 // result, marked as unattested. The demo stays usable before the policy exists.
 
+import { randomUUID } from "node:crypto";
 import screen from "./screen.js";
 
 // Confirmed against a real task: the network is a path segment, and
@@ -63,16 +64,10 @@ function newtonConfigured() {
   );
 }
 
-// Protocol 0.7 returns a boolean `allowed`. Before it, the verdict arrived as
-// `evaluation_result`, a byte array whose trailing 1 allowed and whose zeros
-// denied. Both are read here so a client that has not been migrated yet still
-// reports a verdict rather than an unexplained failure.
+// Protocol 0.7 returns a boolean `allowed`. Anything else is not a verdict.
 function decodeVerdict(taskResponse) {
-  if (!taskResponse) return null;
-  if (typeof taskResponse.allowed === "boolean") return taskResponse.allowed;
-  const bytes = taskResponse.evaluation_result;
-  if (!Array.isArray(bytes) || bytes.length === 0) return null;
-  return bytes[bytes.length - 1] === 1;
+  if (taskResponse && typeof taskResponse.allowed === "boolean") return taskResponse.allowed;
+  return null;
 }
 
 // The SDK's submitEvaluationRequest returns an empty body through this path,
@@ -91,6 +86,7 @@ async function submitToNewton(walletAddress, policy) {
     || "https://gateway.testnet.newton.xyz/rpc";
 
   const resp = await fetch(gateway, {
+    signal: AbortSignal.timeout(70000),
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -98,7 +94,7 @@ async function submitToNewton(walletAddress, policy) {
     },
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       method: "newt_createTask",
       params: {
         policy_client: policy.address,
@@ -180,11 +176,11 @@ function configured() {
 function clientFor(rawHops, rawUsd) {
   const available = configured();
   if (available.length === 0) return null;
-  const hops = Number(rawHops);
-  const usd = Number(rawUsd);
-  return available.find((c) => c.hops === hops && c.usd === usd)
-    || available.find((c) => c.hops === 3 && c.usd === 0)
-    || available[0];
+  // No parameters means the default rule. A rule that was asked for but has no
+  // deployed client is refused, never swapped for a different one.
+  const hops = rawHops === undefined || rawHops === "" ? 3 : Number(rawHops);
+  const usd = rawUsd === undefined || rawUsd === "" ? 0 : Number(rawUsd);
+  return available.find((c) => c.hops === hops && c.usd === usd) || "unsupported";
 }
 
 /**
@@ -194,6 +190,8 @@ function clientFor(rawHops, rawUsd) {
  * smallest transfer is worth at least min_exposure_usd.
  */
 function decisionUnder(screening, rule) {
+  // An unscreened wallet is denied, exactly as the policy denies it.
+  if (screening.status === "SCREENING_FAILED" || screening.exposure === undefined) return "DENY";
   if (screening.direct_match) return "DENY";
   if (screening.exposure
       && typeof screening.hop_count === "number" && screening.hop_count <= rule.hops
@@ -206,13 +204,47 @@ export function availableRules() {
   return configured().map(({ hops, usd }) => ({ hops, usd }));
 }
 
+/** The reason line under the rule that was actually applied. */
+function reasonUnder(screening, rule, allowed) {
+  const hops = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
+  if (screening.direct_match) return "Direct Lazarus match";
+  if (!screening.exposure) {
+    return screening.counterparties_examined === 0
+      ? "No qualifying transfers found for this wallet"
+      : "No Lazarus exposure found within 3 hops";
+  }
+  const found = `${hops(screening.hop_count)} Lazarus exposure`;
+  if (!allowed) return `${found}, inside the rule`;
+  if (screening.hop_count > rule.hops) return `${found}, outside a radius of ${hops(rule.hops)}`;
+  if (Number(screening.exposure_usd ?? 0) < rule.usd) return `${found}, below the rule's value floor`;
+  return `${found}, but the operators allowed it`;
+}
+
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   const address = String(req.query?.address || req.body?.address || "").trim();
+
+  // Refuse an undeployed rule before spending any Etherscan calls on it.
+  const policy = newtonConfigured() ? clientFor(req.query?.max_hops, req.query?.min_usd) : null;
+  if (policy === "unsupported") {
+    return res.status(400).json({
+      status: "UNSUPPORTED_RULE",
+      reason: "No policy client is deployed for that radius and floor.",
+      rules: availableRules(),
+    });
+  }
 
   const screening = await runScreening(address);
 
   if (screening.status === "INVALID_ADDRESS") {
     return res.status(400).json(screening);
+  }
+
+  // A wallet that could not be screened is not sent for attestation: the
+  // result would be a verdict with no evidence behind it. It is reported as a
+  // failed check and denied.
+  if (screening.status === "SCREENING_FAILED") {
+    return res.status(200).json({ ...screening, attestation: { status: "SKIPPED" } });
   }
 
   if (!newtonConfigured()) {
@@ -222,7 +254,6 @@ export default async function handler(req, res) {
     });
   }
 
-  const policy = clientFor(req.query?.max_hops, req.query?.min_usd);
   if (!policy) {
     return res.status(200).json({
       ...screening,
@@ -234,6 +265,7 @@ export default async function handler(req, res) {
   try {
     attestation = await submitToNewton(screening.wallet, policy);
   } catch (err) {
+    console.error("attestation failed", screening.wallet, policy.env, err);
     // An attestation we could not obtain is not a pass. The screening result
     // is still reported, but the decision reverts to deny, the same way the
     // policy itself behaves when it cannot reach a conclusion.
@@ -245,7 +277,7 @@ export default async function handler(req, res) {
       status: "ATTESTATION_FAILED",
       decision: "DENY",
       reason: "Screened, but the policy evaluation could not be attested",
-      attestation: { status: "FAILED", detail: String(err.message || err) },
+      attestation: { status: "FAILED", detail: "The operators' decision could not be obtained." },
     });
   }
 
@@ -268,6 +300,7 @@ export default async function handler(req, res) {
     rules: availableRules(),
     decision: attestation.allowed ? "ALLOW" : "DENY",
     status: attestation.allowed ? "COMPLIANT" : "NON_COMPLIANT",
+    reason: reasonUnder(screening, policy, attestation.allowed),
     explorer_url: attestation.explorer_url,
     attestation: {
       status: "ATTESTED",

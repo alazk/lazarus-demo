@@ -1,0 +1,11 @@
+{
+  "routes": [
+    { "src": "/data/(?!demo_wallets\\.json$).*", "status": 404 },
+    { "src": "/(README|AUDIT)\\.md", "status": 404 },
+    { "src": "/(scripts|policy|case-study|\\.arkham_cache)(/.*)?", "status": 404 },
+    { "src": "/design-[^/]*", "status": 404 },
+    { "src": "/\\.env.*", "status": 404 },
+    { "src": "/package(-lock)?\\.json", "status": 404 },
+    { "src": "/api/envcheck", "status": 404 }
+  ]
+}

@@ -87,6 +87,8 @@ function reviewBase(addr, extra) {
     wallet: addr,
     dataset: { max_hops: hops },
     explorer_url: "https://www.newton.xyz",
+    decision: "ALLOW",
+    attestation: { status: "ATTESTED" },
     ...extra,
   };
 }
