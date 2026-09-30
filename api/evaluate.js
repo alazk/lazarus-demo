@@ -187,6 +187,20 @@ function clientFor(rawHops, rawUsd) {
     || available[0];
 }
 
+/**
+ * What the policy should decide for this screening under one client's rule,
+ * mirroring params_schema.json: a known Lazarus address is always denied;
+ * otherwise deny only when the exposure sits at or within max_hops and its
+ * smallest transfer is worth at least min_exposure_usd.
+ */
+function decisionUnder(screening, rule) {
+  if (screening.direct_match) return "DENY";
+  if (screening.exposure
+      && typeof screening.hop_count === "number" && screening.hop_count <= rule.hops
+      && Number(screening.exposure_usd ?? 0) >= rule.usd) return "DENY";
+  return "ALLOW";
+}
+
 /** The rules actually deployed, so the page offers only what exists. */
 export function availableRules() {
   return configured().map(({ hops, usd }) => ({ hops, usd }));
@@ -238,8 +252,14 @@ export default async function handler(req, res) {
   // Newton is the authority on the decision; this service only supplies the
   // input. If the two disagree, that is a defect worth seeing rather than
   // smoothing over, so it is reported instead of being resolved silently.
-  const localAllow = screening.decision === "ALLOW";
-  const disagreement = localAllow !== attestation.allowed;
+  //
+  // The comparison has to use the rule the operators were actually asked about.
+  // screening.decision is computed at the screen's fixed depth and ignores the
+  // radius, so comparing against it reported a disagreement for every wallet
+  // whose exposure sits past the chosen radius, which the policy correctly
+  // allows.
+  const localDecision = decisionUnder(screening, policy);
+  const disagreement = (localDecision === "ALLOW") !== attestation.allowed;
 
   res.status(200).json({
     ...screening,
@@ -258,7 +278,7 @@ export default async function handler(req, res) {
     },
     ...(disagreement && {
       warning: "The attested decision differs from the local screening result",
-      local_decision: screening.decision,
+      local_decision: localDecision,
     }),
   });
 }
