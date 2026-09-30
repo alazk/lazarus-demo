@@ -217,16 +217,3 @@ npx vercel --prod
 
 Environment variables only apply to deployments created after they are set, so
 the redeploy is not optional.
-
-## Two things that will waste your time
-
-**Deployment protection.** Vercel gates deployments by default, returning a 302
-to an SSO page. A signed-in browser passes and everything looks fine, while
-anonymous callers, which is what Newton operators are, get HTML instead of JSON.
-Test with `curl`, never with a browser, and note that disabling protection only
-affects deployments made afterwards.
-
-**A missing Etherscan key is silent.** `call()` returns an empty list on a
-rejected key, so a build with a placeholder key runs for an hour and maps
-nothing. If the first progress line of a halo build shows zero level-one hits,
-stop: the key is wrong.
