@@ -33,6 +33,14 @@ const PAGE = 2000;
 // ---------------------------------------------------------------------------
 
 async function etherscan(params) {
+  // Without a key every call returns NOTOK, and an empty result would read as
+  // "no exposure found". A screening that cannot see the chain has to fail,
+  // never answer clean.
+  if (process.env.ETHERSCAN_API_KEY === undefined ||
+      process.env.ETHERSCAN_API_KEY === "") {
+    throw new Error("ETHERSCAN_API_KEY is not set, so the chain cannot be read");
+  }
+
   const query = new URLSearchParams({
     ...params,
     chainid: String(CFG.chain_id),
@@ -46,15 +54,32 @@ async function etherscan(params) {
       continue;
     }
     const body = await resp.json();
+
+    // A populated result.
     if (body.status === "1" && Array.isArray(body.result)) return body.result;
-    if (typeof body.result === "string") {
-      if (body.result.includes("No transactions")) return [];
-      if (body.result.toLowerCase().includes("rate limit")) {
-        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
-        continue;
-      }
+
+    const message = String(body.message ?? "");
+    const resultText = typeof body.result === "string" ? body.result : "";
+
+    // An empty history is reported as status 0, with either an empty array or a
+    // "No transactions found" string. Both genuinely mean nothing to trace.
+    if (/no transactions/i.test(message) || /no transactions/i.test(resultText)) {
+      return [];
     }
-    return [];
+
+    // Rate limiting deserves another attempt.
+    if (/rate limit|max calls|max rate/i.test(resultText) ||
+        /rate limit|max calls|max rate/i.test(message)) {
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+      continue;
+    }
+
+    // Anything else is the API refusing to answer, most often a missing or
+    // invalid key. Throwing routes it to the fail-closed path; returning an
+    // empty list here would be indistinguishable from a wallet with no
+    // exposure, which is the one wrong answer this service must never give.
+    throw new Error(
+      `etherscan refused the request: ${resultText || message || "unknown reason"}`);
   }
   throw new Error("etherscan unavailable");
 }

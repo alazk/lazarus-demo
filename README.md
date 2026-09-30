@@ -201,7 +201,7 @@ The demo is illustrative and is not a regulatory or legal determination.
 | `NEWTON_POLICY_CLIENT` | attestation | from `policy deploy` |
 | `DEMO_PRIVATE_KEY` | attestation | funded Sepolia key, throwaway only |
 | `SEPOLIA_RPC_URL` | attestation | optional |
-| `NEWTON_EXPLORER_BASE` | attestation | optional; confirm the real path on a first task |
+| `NEWTON_EXPLORER_BASE` | attestation | optional; defaults to `https://explorer.newton.xyz/testnet/task`, confirmed against a real task |
 | `ARKHAM_API_KEY` | rebuilding seeds | not needed to run the demo |
 
 With the three attestation variables unset the app screens as normal and marks
