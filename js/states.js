@@ -255,6 +255,7 @@ async function renderStates() {
     },
     "intro-map": {
       Why: "No reach is drawn, so every ring sits outside coverage.",
+      Demo: "Every ring is covered and nothing is decided yet.",
       Policy: "A 2-hop policy. The wallet you pay sits outside it.",
       Enforcement: "A 3-hop policy covers the wallet, so the disc, the rings and the wallet are block.",
     },

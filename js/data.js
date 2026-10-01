@@ -168,6 +168,13 @@ const ACTS = [
     cover: 0, verdict: false,
     note: "Lazarus at the centre. Each ring is one transfer out." },
 
+  { kicker: "What this demo does", title: "Check a wallet before you pay it.",
+    body: "Choose a policy, pick a wallet and run the check. The policy looks for "
+        + "a path from the wallet to a known Lazarus address, and Newton Protocol "
+        + "operators sign its answer onchain.",
+    cover: 3, verdict: false,
+    note: "The wallet you pay sits somewhere on these rings." },
+
   { kicker: "Part 1 · The check", title: "A policy decides what to check.",
     body: "A policy is a rule plus the data it reads. Here the data is a wallet "
         + "scanner built on a list of known Lazarus addresses, and the rule is how many hops "
@@ -176,7 +183,7 @@ const ACTS = [
     note: "This policy covers 2 hops. The wallet at 3 is outside it." },
 
   { kicker: "Part 2 · Enforcement", title: "Newton enforces it.",
-    body: "Newton's operator set runs the policy on the wallet you are about to "
+    body: "Newton Protocol operators run the policy on the wallet you are about to "
         + "pay, and a quorum signs the result. The signed result can't be "
         + "altered, and anyone can check it on the explorer.",
     cover: 3, verdict: true,

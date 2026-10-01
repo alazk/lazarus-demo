@@ -125,13 +125,13 @@ body.is-states .flow{ display:none; }
 
 /* ── Verdict ──────────────────────────────────────────────────── */
 .decided{
-  display:flex; align-items:center; gap:var(--space-group);
+  display:flex; flex-direction:column; align-items:stretch; gap:var(--space-snug);
   padding:var(--space-group); width:100%;
   border:1px solid var(--color-border); border-radius:var(--radius-control);
   background:var(--color-surface-raised);
 }
 .decided-text{ flex:1 1 auto; min-width:0; }
-.card-result .actions .decided-btn{ flex:none; width:auto; }
+.card-result .actions .decided-btn{ flex:none; width:100%; }
 .decided-head{ display:flex; align-items:center; gap:var(--space-inline); color:var(--color-text); }
 .decided-head .text-ui{ font-weight:500; }
 .decided-icon{ flex:none; width:16px; height:16px; fill:currentColor; }
@@ -147,6 +147,8 @@ body.is-states .flow{ display:none; }
 
 /* Short laptop screens trade air for the map, as fit.css does. */
 @media (min-width: 1024px) and (max-height: 860px){
+  .decided{ padding:var(--space-snug) var(--space-group); gap:var(--space-inline); }
+  .card-result .actions{ gap:var(--space-inline); }
   .card-rules > .card-body{ gap:var(--space-group); }
   .card-rules > .btn-block{ margin-top:var(--space-group); }
 }
@@ -195,8 +197,11 @@ body.is-states .flow{ display:none; }
   .decided-head .text-ui{ font-size:var(--type-caption-size); }
 }
 
-/* The result closes with Newton's part: the signed card, then New check. */
-.card-result .actions{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:var(--space-snug); }
+/* The result closes with Newton's part: the signed card, then New check.
+   It follows the scan steps at the card's own gap instead of being pushed to
+   the bottom of the column, which left a hole on tall screens. */
+.card-result .result-body{ flex:0 0 auto; }
+.card-result .actions{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:var(--space-snug); margin-top:0; }
 .card-result .actions > .btn{ flex:none; width:100%; }
 @container result (max-width: 360px){
   .decided{ flex-direction:column; align-items:stretch; }

@@ -473,7 +473,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   renderIntro();
   stopAuto();
   // The intro acts: why, then the policy and enforcement.
-  const introStory = ["Why", "Policy", "Enforcement"];
+  const introStory = ["Why", "Demo", "Policy", "Enforcement"];
   ACTS.forEach((item, i) => {
     paintAct(i, false);
     take("intro-map", "Intro map", introStory[i] || "Act" + (i + 1), ".intro-map");

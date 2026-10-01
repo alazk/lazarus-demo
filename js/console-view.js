@@ -32,7 +32,7 @@ function renderConsole(prefill = "", error = "", still = false, opts = {}) {
         </div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
-            <p class="part-note">Newton's operator set runs your policy on this wallet, and a quorum signs the result.</p>
+            <p class="part-note">Newton Protocol operators run your policy on this wallet, and a quorum signs the result.</p>
             ${renderLadder(ready, prefill)}
             <div class="d-only try-wallet">
               <span class="label">Example wallets</span>

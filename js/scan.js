@@ -108,7 +108,7 @@ function renderChecking(address) {
           <div class="result-body">
             <div class="right" id="right-slot">
               <div class="text-title">Checking</div>
-              <p class="reason text-lead">Newton's operator set is evaluating this wallet against your policy. This can take up to a minute.</p>
+              <p class="reason text-lead">Newton Protocol operators are evaluating this wallet against your policy. This can take up to a minute.</p>
               <div class="text-data result-addr">${esc(address)}</div>
             </div>
             <div class="trail">

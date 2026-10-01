@@ -124,7 +124,7 @@ async function fillVerdict(r, outsideReach) {
   } else if (key === "unattested") {
     reason = r.attestation?.status === "NOT_CONFIGURED"
       ? "This is a local result only. It was not sent to Newton."
-      : "The wallet was read, but Newton's evaluation did not come back, "
+      : "The wallet was read, but no evaluation came back from the Newton Protocol operators, "
         + "so the page treats it as non-compliant.";
   } else if (key === "outside" && belowFloor(r)) {
     reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
@@ -173,11 +173,11 @@ async function fillVerdict(r, outsideReach) {
   const decided = attested
     ? `<div class="decided">
         <div class="decided-text">
-          <div class="decided-head"><span class="text-ui">Signed by Newton's operators</span></div>
+          <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span></div>
           <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this answer.</p>
         </div>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"
-          target="_blank" rel="noopener"><span>View signed result</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
+          target="_blank" rel="noopener"><span>View the attestation on Newton Explorer</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
       </div>`
     : "";
   const head = document.getElementById("result-head");
