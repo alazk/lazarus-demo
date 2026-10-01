@@ -1,27 +1,38 @@
+/* ── Step 2: enforcement ──────────────────────────────────────────
+   The policy is already chosen, so the map here only shows what it covers;
+   the reader picks a wallet and asks Newton to run the policy on it. The
+   radius is changed on the policy step. */
 function renderConsole(prefill = "", error = "", still = false) {
   document.title = "Lazarus Scan · Newton";
+  view = "console";
+  paintFlow("scan");
   const ready = presets.filter((p) => p.address);
   const pasted = prefill && !ready.some((r) => r.address.toLowerCase() === String(prefill).trim().toLowerCase());
+  const rule = ruleNow();
   stage.className = "stage";
   stage.innerHTML = `
     <div class="console ${still ? "still" : ""}">
       <div class="col">
         <div class="step-head">
-          <div class="text-eyebrow muted">Step 1</div>
-          <div class="text-heading">Choose the radius</div>
+          <div class="text-eyebrow muted">Your policy</div>
+          <div class="step-title">
+            <div class="text-heading">${esc(rule.name)}</div>
+            <button class="link-btn" type="button" id="change-policy">Change</button>
+          </div>
         </div>
         <div class="card card-policy card-cov">
-          <div class="card-body">${renderCoverage(ready)}</div>
+          <div class="card-body">${renderCoverage(ready, document.body.classList.contains("is-building") ? "console" : "pick")}</div>
         </div>
       </div>
 
       <div class="col">
         <div class="step-head">
-          <div class="text-eyebrow muted">Step 2</div>
-          <div class="text-heading">Scan a wallet</div>
+          <div class="text-eyebrow muted">How Newton enforces it</div>
+          <div class="text-heading">Pick a wallet to check</div>
         </div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
+            <p class="part-note">Newton's operator set enforces your policy on this wallet and a quorum signs the result. It is as good as the policy and its data.</p>
             ${renderLadder(ready, prefill)}
             <div class="d-only try-wallet">
               <span class="label">Example wallets</span>
@@ -42,6 +53,7 @@ function renderConsole(prefill = "", error = "", still = false) {
 
   const input = document.getElementById("addr");
   const run = document.getElementById("run");
+  document.getElementById("change-policy").onclick = () => { if (!inFlight) { renderPolicy(); syncUrl(true); } };
 
   const selectAddress = (addr, opts = {}) => {
     const a = String(addr || "").toLowerCase();
@@ -58,10 +70,8 @@ function renderConsole(prefill = "", error = "", still = false) {
     sync();
   };
 
-  // Coverage map: tap a ring to set the coverage; drag the wallet dot along
-  // its line to move between wallets; arrow keys step the coverage.
-  // On a phone the list is the only way to choose a wallet. The map still
-  // sets the radius.
+  // Coverage map: tap a wallet, or drag the wallet dot along its line to
+  // move between wallets. On a phone the list is the only way to choose.
   const svg = document.getElementById("cov-svg");
   const phoneMap = () => stage.clientWidth <= 639;
   let dragged = false;
@@ -108,28 +118,8 @@ function renderConsole(prefill = "", error = "", still = false) {
     pick?.addEventListener("pointerup", drop);
     pick?.addEventListener("pointercancel", drop);
 
-    const bandAt = (ev) => {
-      const pt = svg.createSVGPoint();
-      pt.x = ev.clientX; pt.y = ev.clientY;
-      const m = svg.getScreenCTM();
-      if (!m) return null;
-      const q = pt.matrixTransform(m.inverse());
-      const r = Math.hypot(q.x - COV_C, q.y - COV_C);
-      return r <= COV_R[1] ? 1 : r <= COV_R[2] ? 2 : 3;
-    };
-    // Hovering anywhere over the map previews the radius under the pointer.
-    // The rings themselves are outlines, so hovering their 1.5px stroke was
-    // next to impossible; the band under the pointer is what counts.
-    if (matchMedia("(hover:hover)").matches) {
-      svg.addEventListener("pointermove", (ev) => {
-        if (ev.pointerType === "touch" || stage.clientWidth <= 639) return;
-        stopRadiusDemo();                 // the reader is driving now
-        const n = bandAt(ev);
-        if (n) previewReach(n);
-      });
-      svg.addEventListener("pointerleave", endPreview);
-    }
     svg.querySelectorAll(".wdot").forEach((el) => {
+      el.style.cursor = "pointer";
       const choose = (e) => {
         if (phoneMap()) return;
         e.stopPropagation();
@@ -138,32 +128,9 @@ function renderConsole(prefill = "", error = "", still = false) {
       el.addEventListener("click", choose);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(e); } });
     });
-    svg.addEventListener("click", (ev) => {
-      if (dragged) { dragged = false; return; }    // the end of a drag, not a tap
-      if (ev.target.closest && ev.target.closest("#cov-pick, .wdot")) return;
-      const n = bandAt(ev); if (n) setRule(n, usd);
-    });
-    svg.addEventListener("keydown", (e) => {
-      if (["ArrowRight", "ArrowUp"].includes(e.key)) { e.preventDefault(); setRule(Math.min(3, hops + 1), usd); }
-      if (["ArrowLeft", "ArrowDown"].includes(e.key)) { e.preventDefault(); setRule(Math.max(1, hops - 1), usd); }
-    });
+    svg.addEventListener("click", () => { if (dragged) dragged = false; });
   }
 
-  // The coverage switches, under the map on desktop and on the phone.
-  stage.querySelectorAll(".m-seg-btn").forEach((b) => {
-    b.onclick = () => setRule(Number(b.dataset.hops), usd);
-    b.addEventListener("pointerenter", () => {
-      if (b.disabled || !matchMedia("(hover:hover)").matches || stage.clientWidth <= 639) return;
-      stopRadiusDemo();
-      previewReach(Number(b.dataset.hops));
-    });
-    b.addEventListener("pointerleave", endPreview);
-  });
-
-  // Any touch, click or key ends the opening demonstration.
-  ["pointerdown", "keydown", "wheel"].forEach((ev) =>
-    stage.addEventListener(ev, () => stopRadiusDemo(), { once: true, passive: true }));
-  playRadiusDemo();
   stage.querySelectorAll(".m-row").forEach((b) => {
     b.onclick = () => {
       stage.querySelector(".card-check")?.classList.remove("show-paste");
@@ -183,15 +150,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   const dPaste = document.getElementById("d-paste");
   if (dPaste) dPaste.onclick = openPaste;
   const paste = document.getElementById("m-paste");
-  if (paste) paste.onclick = () => {
-    stage.querySelectorAll(".m-row").forEach((x) => {
-      x.setAttribute("aria-pressed", "false");
-    });
-    stage.querySelector(".card-check")?.classList.add("show-paste");
-    input.value = "";
-    sync();
-    input.focus();
-  };
+  if (paste) paste.onclick = openPaste;
 
   const valid = (v) => /^0x[0-9a-fA-F]{40}$/.test(String(v ?? "").trim());
   const sync = () => { run.disabled = !valid(input.value); };

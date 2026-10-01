@@ -254,9 +254,9 @@ async function renderStates() {
       List: "The phone list of wallets, in order of distance.",
     },
     "intro-map": {
-      None: "No reach is drawn, so every ring sits outside coverage.",
-      Core: "Reach covers only the Lazarus address.",
-      All: "Reach covers every hop. The disc, the rings, and the wallet you pay are block.",
+      Why: "No reach is drawn, so every ring sits outside coverage.",
+      Policy: "A 2-hop policy. The wallet you pay sits outside it.",
+      Enforcement: "A 3-hop policy covers the wallet, so the disc, the rings and the wallet are block.",
     },
     "console-map": {
       Phases: "Hover, keyboard focus, and the scan moving outward.",

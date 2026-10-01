@@ -1,0 +1,153 @@
+/* The three steps: the step bar in the header, the policy step, and the
+   notes that say which part is speaking. Loaded last. */
+
+/* ── Step bar ─────────────────────────────────────────────────── */
+.flow{ flex:1 1 auto; display:flex; justify-content:center; min-width:0; }
+.flow[hidden]{ display:none; }
+.flow-list{ display:flex; align-items:center; gap:var(--space-inline); margin:0; padding:0; list-style:none; }
+.flow-item{ display:flex; align-items:center; gap:var(--space-inline); }
+.flow-line{ display:block; width:var(--space-block); height:1px; background:var(--color-border); }
+.flow-item[data-state="done"] .flow-line,
+.flow-item[data-state="current"] .flow-line{ background:var(--color-border-strong); }
+
+.flow-step{
+  display:inline-flex; align-items:center; gap:var(--space-inline);
+  height:var(--size-control-sm); padding:0 var(--space-snug) 0 var(--space-tight);
+  border:1px solid transparent; border-radius:var(--radius-full); background:none;
+  font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:500;
+  color:var(--color-text-tertiary); white-space:nowrap;
+}
+.flow-step[aria-current="step"]{ color:var(--color-text); }
+.flow-item[data-state="done"] .flow-step{ color:var(--color-text-secondary); cursor:pointer; }
+@media (hover:hover){
+  .flow-item[data-state="done"] .flow-step:hover{ background:var(--state-hover-fill); border-color:var(--state-hover-edge); color:var(--color-text); }
+}
+.flow-step:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
+.flow-step[disabled]{ cursor:default; }
+
+.flow-n{
+  flex:none; width:24px; height:24px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--color-surface-sunken); color:var(--color-text-secondary);
+  font-size:var(--type-caption-size); font-weight:500; font-variant-numeric:tabular-nums;
+}
+.flow-n svg{ width:12px; height:12px; fill:currentColor; }
+.flow-step[aria-current="step"] .flow-n{ background:var(--color-text); color:var(--color-on-accent); }
+
+/* A phone puts the step bar on its own row under the brand, and only the
+   current step keeps its name. */
+@media (max-width: 639px){
+  .mast:has(.flow:not([hidden])){ flex-wrap:wrap; row-gap:var(--space-inline); }
+  .flow{ order:3; flex-basis:100%; justify-content:center; }
+  .flow-line{ width:var(--space-group); }
+  .flow-item:not([data-state="current"]) .flow-label{ display:none; }
+  .flow-item:not([data-state="current"]) .flow-step{ padding-right:var(--space-tight); }
+}
+
+/* ── Column heads ─────────────────────────────────────────────── */
+.step-title{ display:flex; align-items:baseline; gap:var(--space-snug); flex-wrap:wrap; }
+.step-title .text-heading{ margin:0; }
+.link-btn{
+  padding:0; border:none; background:none; cursor:pointer;
+  font-family:var(--font-sans); font-size:var(--type-ui-size); font-weight:500;
+  color:var(--color-text-secondary); text-decoration:underline; text-underline-offset:3px;
+}
+@media (hover:hover){ .link-btn:hover{ color:var(--color-text); } }
+.link-btn:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); border-radius:4px; }
+
+/* What each part does, in one line, where that part is on screen. */
+.part-note{
+  margin:0; max-width:60ch;
+  font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary);
+}
+.decided a{ white-space:nowrap; }
+.part-note a, .policy-facts a, .decided a{ color:inherit; text-decoration:underline; text-underline-offset:3px; }
+@media (hover:hover){ .part-note a:hover, .policy-facts a:hover, .decided a:hover{ color:var(--color-text); } }
+
+/* ── Policy step ──────────────────────────────────────────────── */
+.rule-row .m-text{ padding-block:var(--space-snug); }
+.rule-row .m-sub{ white-space:normal; overflow:visible; text-overflow:clip; }
+.rule-row{ padding-left:0; }
+.rule-row[aria-checked="true"]{ background:transparent; box-shadow:var(--state-selected-mark); }
+.rule-row[aria-checked="true"] .m-bar{ background:var(--color-text); }
+@media (hover:hover){ .rule-row[aria-checked="true"]:hover{ background:transparent; } }
+body.is-states .flow{ display:none; }
+
+.policy-facts{
+  display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--space-snug) var(--space-group);
+  margin:0;
+}
+.policy-facts dt{
+  font-size:var(--type-eyebrow-size); font-weight:var(--type-eyebrow-weight); line-height:var(--type-eyebrow-leading);
+  letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--color-text-tertiary);
+}
+.policy-facts dd{ margin:var(--space-tight) 0 0; min-width:0; }
+.policy-facts a{
+  display:inline-flex; align-items:center; gap:var(--space-tight);
+  font-family:var(--font-code); font-size:var(--type-body-size); color:var(--color-text);
+  white-space:nowrap;
+}
+.policy-facts .icon{ width:12px; height:12px; flex:none; fill:currentColor; }
+
+/* The rule as the policy will evaluate it. */
+.rule-box{
+  display:flex; flex-direction:column; gap:var(--space-tight);
+  padding:var(--space-snug) var(--space-group);
+  border-radius:var(--radius-control); background:var(--color-surface-sunken);
+}
+.rule-text{ margin:0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text); text-wrap:pretty; }
+.rule-params{ margin:0; font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text-secondary); }
+
+/* The rules card reads as one group, like the scan card. */
+.card-rules{ justify-content:center; }
+.card-rules > .card-body{ flex:0 1 auto; gap:var(--space-card); }
+.card-rules > .btn-block{ margin-top:var(--space-card); }
+
+/* The map on the scan step only shows the policy, so it is not a control. */
+.console:not(.is-policy) .cov-svg[role="img"]{ cursor:default; }
+
+/* ── Verdict ──────────────────────────────────────────────────── */
+.decided{
+  display:flex; align-items:flex-start; gap:var(--space-inline);
+  margin:var(--space-snug) 0 0; max-width:60ch;
+  font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary);
+}
+.decided-icon{ flex:none; width:16px; height:16px; margin-top:2px; fill:currentColor; }
+
+/* Short laptop screens trade air for the map, as fit.css does. */
+@media (min-width: 1024px) and (max-height: 860px){
+  /* The three rules sit in one row, so the rule and its contracts still fit. */
+  .rule-list{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .rule-list .rule-row{ border-top:none; }
+  .rule-list .rule-row + .rule-row{ border-left:1px solid var(--color-surface-sunken); }
+  .card-rules > .card-body{ gap:var(--space-group); }
+  .card-rules > .btn-block{ margin-top:var(--space-group); }
+  .rule-row .m-text{ padding-block:var(--space-inline); }
+}
+@media (min-width: 1024px) and (max-height: 700px){
+  .card-rules > .card-body{ gap:var(--space-inline); }
+  .card-rules > .btn-block{ margin-top:var(--space-snug); }
+  .rule-row .m-text{ padding-block:var(--space-tight); }
+  .decided{ margin-top:var(--space-tight); font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
+  .decided-icon{ width:14px; height:14px; margin-top:1px; }
+  .rule-box{ padding:var(--space-inline) var(--space-snug); gap:0; }
+  .policy-facts{ row-gap:0; }
+  .policy-facts dd{ margin-top:0; }
+  .part-note{ font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
+}
+
+/* Phones: facts stack, the scan note stays. */
+@container frame (max-width: 639px){
+  .policy-facts{ grid-template-columns:minmax(0, 1fr); }
+  .policy-facts > div{ display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-group); }
+  .policy-facts dd{ margin:0; }
+}
+
+/* Narrow laptops of any height: the four scan steps share one row, as
+   fit.css already does on short ones, so the verdict keeps to one screen. */
+@media (min-width: 1024px) and (max-width: 1279px){
+  .trail .steps{ flex-wrap:nowrap; gap:var(--space-inline); }
+  .trail .step{ flex:1 1 0; min-width:0; padding-inline:var(--space-inline); }
+  .trail .lbl-long{ display:none; }
+  .trail .lbl-short{ display:inline; }
+}

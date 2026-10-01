@@ -12,10 +12,15 @@ let pickAddr = "";
 
 const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
 const isCovered = (d) => d !== null && d !== undefined && d !== "" && Number(d) <= hops;
-function coverageSummary(ready) {
-  const covered = ready.filter((w) => isCovered(DIST[w.key])).length;
-  return `Screening <b>${hopWord(hops)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+/** The line under the map: the reach, any value floor, and how many of the
+ *  example wallets the rule would block. */
+function coverText(n, ready) {
+  const covered = ready.filter((w) => coversWallet(w.key, DIST[w.key], n)).length;
+  const f = floorAt(n);
+  const floor = f ? `, <b>${money(f)} floor</b>` : "";
+  return `Screening <b>${hopWord(n)}</b> out${floor} · ${covered} of ${ready.length} example wallets covered`;
 }
+function coverageSummary(ready) { return coverText(hops, ready); }
 function onRay(r) {
   const a = RAY_DEG * Math.PI / 180;
   return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
@@ -66,7 +71,9 @@ function tweenAttr(el, attr, to, dur = MOTION.emphasis, ease = easeNewton) {
   const t0 = performance.now();
   const step = (now) => {
     const t = Math.min(1, (now - t0) / dur);
-    el.setAttribute(attr, (from + (to - from) * ease(t)).toFixed(2));
+    let v = from + (to - from) * ease(t);
+    if (attr === "r" && v < 0) v = 0;          // an overshooting ease must not draw a negative radius
+    el.setAttribute(attr, v.toFixed(2));
     if (t < 1) el["_tw_" + attr] = requestAnimationFrame(step);
   };
   el["_tw_" + attr] = requestAnimationFrame(step);
@@ -154,7 +161,7 @@ function previewReach(n) {
   });
   document.getElementById("cov-ghost")?.removeAttribute("data-state");
   const ready = presets.filter((p) => p.address);
-  const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
+  const covered = ready.filter((w) => coversWallet(w.key, DIST[w.key], n)).length;
   const sum = document.getElementById("cov-sum");
   if (sum) sum.innerHTML = `Would cover <b>${covered} of ${ready.length}</b> example wallets at ${hopWord(n)}`;
 }

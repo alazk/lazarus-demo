@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Newton — Lazarus Scan</title>
+<title>Lazarus Scan · Newton</title>
 <meta name="description" content="Screen a wallet for its distance to a known Lazarus Group address, and have an operator quorum attest the decision onchain." />
 <!-- How the link unfurls when shared. Update og:url and og:image if the
      demo moves to another domain; scrapers need absolute URLs. Bump ?v= on
@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="/design/kit.css" />
 <link rel="stylesheet" href="/design/review.css" />
 <link rel="stylesheet" href="/design/fit.css" />
+<link rel="stylesheet" href="/design/flow.css" />
 </head>
 <body>
 
@@ -103,6 +104,7 @@
     </svg>
     <button class="badge" id="home" type="button">Lazarus Scan</button>
   </div>
+  <nav class="flow" id="flow" aria-label="Steps" hidden></nav>
   <div class="pills"><span class="pill"><span class="dot"></span>Sepolia</span></div>
 </div>
 
@@ -126,6 +128,7 @@
 <script src="/js/map.js"></script>
 <script src="/js/reach.js"></script>
 <script src="/js/console-view.js"></script>
+<script src="/js/flow.js"></script>
 <script src="/js/scan.js"></script>
 <script src="/js/verdict.js"></script>
 <script src="/js/states.js"></script>

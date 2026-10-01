@@ -472,12 +472,13 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   act = 0;
   renderIntro();
   stopAuto();
-  const radiusIntro = { none: "None", core: "Core", all: "All", 1: "1 hop" };
+  // The intro acts: why, then the policy and enforcement.
+  const introStory = ["Why", "Policy", "Enforcement"];
   ACTS.forEach((item, i) => {
     paintAct(i, false);
-    take("intro-map", "Intro map", radiusIntro[item.cover], ".intro-map");
-    if (item.cover === "none") takeGlyph("label", "Label", "Outside", stage.querySelector(".intro-map .cov-pill"));
-    if (item.cover === "all") takeGlyph("label", "Label", "Covered", stage.querySelector('.intro-map .cov-pill[data-reach="in"]'));
+    take("intro-map", "Intro map", introStory[i] || "Act" + (i + 1), ".intro-map");
+    if (i === 1) takeGlyph("label", "Label", "Outside", stage.querySelector('.intro-map .cov-pill[data-reach="out"]'));
+    if (i === 2) takeGlyph("label", "Label", "Covered", stage.querySelector('.intro-map .cov-pill[data-reach="in"]'));
     if (i === 0) {
       take("button", "Button", "Primary", "#go-console");
       const primary = stage.querySelector("#go-console")?.cloneNode(true);

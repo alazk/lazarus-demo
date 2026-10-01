@@ -20,7 +20,7 @@ document.getElementById("home").onclick = () => {
   if (view === "intro" && !leavingKit && !leavingReview) return;
   if (leavingKit) kitActive = false;
   view = "intro"; act = 0;
-  document.title = "Newton — Lazarus Scan";
+  document.title = "Lazarus Scan · Newton";
   try { history.replaceState({ view: "intro" }, "", location.pathname); } catch (e) {}
   renderIntro();
 };
@@ -30,8 +30,8 @@ window.addEventListener("popstate", (e) => {
   const v = e.state?.view;
   if (!v || v === "intro") { view = "intro"; act = 0; renderIntro(); return; }
   const s = stateFromUrl();
-  if (s?.hops) hops = s.hops;
-  view = "console";
+  if (s?.hops) { hops = s.hops; usd = s.usd; }
+  if (v === "policy") { renderPolicy(); return; }
   renderConsole(s?.address || "", "", true);
 });
 
@@ -74,15 +74,16 @@ window.addEventListener("popstate", (e) => {
   // A shared link names the radius and the wallet: open the console on it.
   const shared = stateFromUrl();
   if (shared && view === "intro" && !inFlight) {
-    if (shared.hops) hops = shared.hops;
+    if (shared.hops) { hops = shared.hops; usd = shared.usd; }
     stopAuto();
-    view = "console";
     radiusDemoShown = true;            // the link already says what to look at
+    if (shared.step === "policy") { renderPolicy(); return; }
     renderConsole(shared.address || "", "", true);
     return;
   }
-  // If the reader is already on the console, give it the examples now.
+  // If the reader is already past the intro, give it the examples now.
   if (view === "console" && !inFlight && document.getElementById("addr")) {
     renderConsole(document.getElementById("addr").value || "", "", true);
   }
+  if (view === "policy" && !inFlight) renderPolicy();
 })();

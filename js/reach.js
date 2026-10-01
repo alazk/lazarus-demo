@@ -5,6 +5,8 @@
 function stateUrl() {
   const p = new URLSearchParams();
   p.set("hops", String(hops));
+  if (usd) p.set("floor", String(usd));
+  if (view === "policy") p.set("step", "policy");
   const addr = (document.getElementById("addr")?.value || "").trim();
   const known = presets.find((w) => w.address.toLowerCase() === addr.toLowerCase());
   if (known) p.set("wallet", WALLET_LETTER[known.key] || known.key);
@@ -25,12 +27,16 @@ function stateFromUrl() {
   let params;
   try { params = new URLSearchParams(location.search); } catch (e) { return null; }
   const h = Number(params.get("hops"));
+  const f = Number(params.get("floor")) || 0;
   const w = (params.get("wallet") || "").trim();
   if (!h && !w) return null;
   const letter = w.length === 1 ? w.toUpperCase() : "";
   const byLetter = Object.keys(WALLET_LETTER).find((k) => WALLET_LETTER[k] === letter);
   const preset = byLetter ? presets.find((p) => p.key === byLetter) : null;
+  const known = RULES.some((r) => r.hops === h && r.usd === f);
   return {
+    step: params.get("step") === "policy" ? "policy" : "scan",
+    usd: known ? f : 0,
     hops: HOP_CHOICES.includes(h) ? h : null,
     address: preset ? preset.address : (/^0x[0-9a-fA-F]{40}$/.test(w) ? w : ""),
   };
@@ -39,6 +45,8 @@ function stateFromUrl() {
 let mapMode = "console";
 function renderCoverage(ready, mode = "console") {
   mapMode = mode;
+  // Only the policy step (and the kit's console) changes the radius here.
+  const slider = mode === "console" || mode === "policy";
   const c = COV_C, k = COV_R[hops] / COV_R[3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
@@ -48,14 +56,14 @@ function renderCoverage(ready, mode = "console") {
   }).join("");
   return `
     <div class="cov">
-      ${mode === "scan" ? "" : `
+      ${mode !== "console" ? "" : `
       <div class="cov-seg" role="group" aria-label="Coverage">
         ${[1, 2, 3].map((n) => `<button class="m-seg-btn text-ui" type="button"
           data-hops="${n}" aria-pressed="${n === hops}"
           ${HOP_CHOICES.includes(n) ? "" : "disabled"}>${hopWord(n)}</button>`).join("")}
       </div>`}
       <div class="cov-map">
-      <svg class="cov-svg ${mode === "scan" ? "scanning" : ""}" id="cov-svg" viewBox="0 0 400 400" tabindex="${mode === "scan" ? "-1" : "0"}" role="${mode === "scan" ? "img" : "slider"}"
+      <svg class="cov-svg ${mode === "scan" ? "scanning" : ""}" id="cov-svg" viewBox="0 0 400 400" tabindex="${slider ? "0" : "-1"}" role="${slider ? "slider" : "img"}"
            aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
            aria-valuetext="${hopWord(hops)}">
         <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
@@ -91,12 +99,12 @@ function renderCoverage(ready, mode = "console") {
         </g>
         <g class="wdots">${ready.map((w) => {
           const [x, y] = walletXY(w.key), dd = DIST[w.key];
-          const inside = dd === 0 || isCovered(dd);
+          const inside = coversWallet(w.key, dd);
           const picked = (w.address || "").toLowerCase() === pickAddr;
-          return `<g class="wdot${dd === 0 ? " on-core" : ""}" data-reach="${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-dist="${dd ?? ""}"
+          return `<g class="wdot${dd === 0 ? " on-core" : ""}" data-reach="${inside ? "in" : "out"}" data-addr="${esc(w.address)}" data-key="${esc(w.key)}" data-dist="${dd ?? ""}"
             transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"
             aria-pressed="${picked}"
-            ${mode === "scan" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
+            ${mode === "scan" || mode === "policy" ? "" : `role="button" tabindex="0" aria-label="Wallet ${esc(WALLET_LETTER[w.key] || "")}"`}>
             <circle class="wdot-ring" r="17"/><circle r="13"/><circle class="wdot-fill" r="${picked ? 13 : 0}"/><text y="4.5" text-anchor="middle">${esc(WALLET_LETTER[w.key] || "")}</text><circle class="map-focus" r="18" fill="none"/></g>`;
         }).join("")}</g>
       </svg>
@@ -133,7 +141,7 @@ function placePick(addr) {
   const ring = document.getElementById("cov-core-pick");
   if (ring) { if (d === 0) ring.dataset.state = "live"; else ring.removeAttribute("data-state"); }
   const [x, y] = walletXY(w.key);
-  const cls = "cov-pick" + (d === 0 || isCovered(d) ? "" : " not") + (d === 0 ? " on-core" : "");
+  const cls = "cov-pick" + (coversWallet(w.key, d) ? "" : " not") + (d === 0 ? " on-core" : "");
   g.setAttribute("class", cls);
   g.style.opacity = "1";
   tweenPos(g, x, y);
@@ -165,22 +173,23 @@ function paintReach(n, ready, opts = {}) {
     });
     svg.querySelectorAll(".wdot").forEach((el) => {
       const raw = el.dataset.dist, dd = raw === "" ? null : Number(raw);
-      const inside = dd === 0 || (dd !== null && dd <= n);
+      const inside = coversWallet(el.dataset.key, dd, n);
       el.setAttribute("data-reach", inside ? "in" : "out");
     });
   }
-  const covered = ready.filter((w) => { const dd = DIST[w.key]; return dd !== null && dd !== undefined && dd <= n; }).length;
   const sum = document.getElementById("cov-sum");
-  if (sum && !opts.mapOnly) sum.innerHTML = `Screening <b>${hopWord(n)}</b> out · ${covered} of ${ready.length} example wallets covered`;
+  if (sum && !opts.mapOnly) sum.innerHTML = coverText(n, ready);
   document.querySelectorAll(".cov .reach-line").forEach((line) => { line.textContent = hopWord(n); });
   if (opts.mapOnly) return;
-  stage.querySelectorAll(".m-row").forEach((row) => {
+  stage.querySelectorAll(".m-row:not(.rule-row)").forEach((row) => {
     const raw = row.dataset.dist, dd = raw === "" ? null : Number(raw);
-    const inside = dd !== null && dd !== undefined && dd <= n;
+    const key = row.dataset.key;
+    const inside = coversWallet(key, dd, n);
     row.setAttribute("data-reach", inside ? "in" : "out");
     const sub = row.querySelector(".m-sub");
-    if (sub && row.dataset.key) {
-      const st = dd === null || dd === undefined ? "" : inside ? "covered" : "not covered";
+    if (sub && key) {
+      const st = dd === null || dd === undefined ? "" : dd > n ? "not covered"
+        : meetsFloor(key, floorAt(n)) ? "covered" : "below floor";
       sub.innerHTML = `<span class="sub-note">${esc(WALLET_NOTE[row.dataset.key] || "")}</span>`
         + `<span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
       row.classList.toggle("nostatus", !st);

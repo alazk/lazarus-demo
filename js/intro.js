@@ -39,7 +39,7 @@ function paintAct(n, animate = true) {
 
   const svg = document.getElementById("intro-map");
   if (svg) {
-    const hops = a.cover === "all" ? 3 : a.cover === "none" ? 0 : Number(a.cover) || 0;
+    const hops = Number(a.cover) || 0;
     const r = hops === 0 ? 0 : COV_R[hops];
     const introDur = animate ? MOTION.emphasis + Math.round(MOTION.interaction / 3) : 0;
     tweenAttr(document.getElementById("intro-disc"), "r", r, introDur);
@@ -55,7 +55,7 @@ function paintAct(n, animate = true) {
       g.setAttribute("data-reach", n <= hops ? "in" : "out");
       g.setAttribute("aria-pressed", String(n === hops));
     });
-    if (a.cover === "all") svg.dataset.verdict = "block";
+    if (a.verdict) svg.dataset.verdict = "block";
     else delete svg.dataset.verdict;
     const pick = svg.querySelector(".intro-pick");
     if (pick) {
@@ -73,6 +73,7 @@ function paintAct(n, animate = true) {
 }
 
 function renderIntro() {
+  paintFlow(null);
   stage.className = "stage";
   stage.innerHTML = `
     <div class="intro">
@@ -90,7 +91,7 @@ function renderIntro() {
             </div>`).join("")}
           </div>
           <div class="intro-foot">
-            ${button.render({ label: "Screen a wallet", id: "go-console", variant: "primary", size: "lg" })}
+            ${button.render({ label: "Start with a policy", id: "go-console", variant: "primary", size: "lg" })}
             ${button.render({ label: "Next", id: "next-act", variant: "tertiary", size: "md" })}
           </div>
         </div>
@@ -103,12 +104,12 @@ function renderIntro() {
     </div>`;
 
   document.getElementById("go-console").onclick = () => {
-    stopAuto(); view = "console"; renderConsole(); syncUrl(true);
+    stopAuto(); renderPolicy(); syncUrl(true);
   };
   const next = document.getElementById("next-act");
   if (next) next.onclick = () => {
     stopAuto();
-    if (act >= ACTS.length - 1) { view = "console"; renderConsole(); return; }
+    if (act >= ACTS.length - 1) { renderPolicy(); syncUrl(true); return; }
     paintAct(act + 1);
   };
   stage.querySelectorAll(".act-dot").forEach((b) => {

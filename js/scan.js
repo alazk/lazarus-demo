@@ -85,33 +85,34 @@ function stepColumns(count) {
 
 function renderChecking(address) {
   document.title = "Checking… · Lazarus Scan";
+  paintFlow("scan");
   stage.className = "stage";
   const ready = presets.filter((p) => p.address);
   stage.innerHTML = `
     <div class="console still scan-shell">
       <div class="col">
         <div class="step-head">
-          <div class="text-eyebrow muted">Step 1</div>
-          <div class="text-heading">Radius</div>
+          <div class="text-eyebrow muted">Your policy</div>
+          <div class="text-heading">${esc(ruleNow().name)}</div>
         </div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "scan")}</div>
         </div>
       </div>
       <div class="col">
-        <div class="step-head">
-          <div class="text-eyebrow muted">Step 2</div>
-          <div class="text-heading">Result</div>
+        <div class="step-head" id="result-head">
+          <div class="text-eyebrow muted">How Newton enforces it</div>
+          <div class="text-heading">Evaluating</div>
         </div>
         <div class="card card-result" id="panel">
           <div class="result-body">
             <div class="right" id="right-slot">
               <div class="text-title">Checking</div>
-              <p class="reason text-lead">Scanning outward, then waiting on an operator quorum.</p>
+              <p class="reason text-lead">Newton's operator set is evaluating this wallet against your policy. This can take up to a minute.</p>
               <div class="text-data result-addr">${esc(address)}</div>
             </div>
             <div class="trail">
-              <span class="trail-label text-eyebrow">Scan</span>
+              <span class="trail-label text-eyebrow">What the policy found</span>
               <div class="steps" style="--step-cols:${stepColumns(STEP_LABELS.length)}">
                 ${STEP_LABELS.map((label, n) => `
                   <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
@@ -177,6 +178,22 @@ function renderChecking(address) {
           row.dataset.state = kind;
           row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
+          inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
+          await wait(MOTION.interaction);
+          if (!row.isConnected) return;
+          row.classList.add("waiting");
+          paintAttestation("signing");
+          return;
+        }
+        // A link inside the reach that is worth less than the policy's floor:
+        // the scanner found it, and the walk stops there as it does for a hit.
+        if (kind === "floor" && n === hit) {
+          map.settle(n, "outside");
+          map.found(n, true);
+          map.done(`Found ${hopWord(n)} out · below the policy's floor`);
+          row.dataset.state = "outside";
+          row.classList.add("resolved");
+          row.querySelector(".step-note").innerHTML = '<span class="lbl-long">below floor</span><span class="lbl-short">below</span>';
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
           await wait(MOTION.interaction);
           if (!row.isConnected) return;

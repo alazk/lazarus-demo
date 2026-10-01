@@ -28,7 +28,7 @@ function renderWalletList(ready, prefill, extra = "") {
     <div class="m-ladder ${extra}" role="list">
       ${rows.map((r) => {
         const d = DIST[r.key];
-        const inside = d !== null && d !== undefined && d <= hops;
+        const inside = coversWallet(r.key, d);
         const sub = walletSub(r.key, d);
         const chosen = r.address.toLowerCase() === chosenAddr;
         return `<button class="m-row wrow ${walletStatus(d) ? "" : "nostatus"}"

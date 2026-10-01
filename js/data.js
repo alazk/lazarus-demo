@@ -15,12 +15,29 @@ function money(n) {
 /* The deployed contracts, so the policy can be read rather than trusted. */
 const POLICY_ADDRESS = "0xCC3957c06472f9E599ED2eebA754D5854F23321b";
 
-/* Every combination below is a policy client already bound to the policy
-   with those parameters. Selecting one selects which contract the check is
-   submitted to, so the rule is fixed onchain before the wallet is screened. */
+/* Every rule below is a policy client already bound to the policy with
+   those parameters (policy/out/clients.sepolia.json). Choosing one chooses
+   which contract the check is submitted to, so the rule is fixed onchain
+   before the wallet is screened. The owner is the wallet that deployed the
+   clients; update it here if ownership moves. */
+const POLICY_OWNER = "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48";
 const RULES = [
-  { hops: 1, usd: 0 }, { hops: 2, usd: 0 }, { hops: 3, usd: 0 },
+  { hops: 1, usd: 0, client: "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
+    name: "1 hop" },
+  { hops: 2, usd: 0, client: "0x426B922f21bdb1201Cac1470d224B6F9b92630fe",
+    name: "2 hops" },
+  { hops: 3, usd: 0, client: "0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8",
+    name: "3 hops" },
 ];
+const ruleNow = () => RULES.find((r) => r.hops === hops && r.usd === usd) || RULES[2];
+/** The rule in words, exactly as the policy evaluates it. */
+function ruleText(r) {
+  const reach = r.hops === 1 ? "one hop" : `${r.hops} hops`;
+  return `Block the wallet if it is a Lazarus address or within ${reach} of one`
+    + (r.usd ? `, and every transfer on that path is at least ${money(r.usd)}.` : ".");
+}
+const POLICY_DOCS = "https://docs.newton.xyz/developers/guides/writing-policies";
+const SEPOLIA_ADDR = (a) => "https://sepolia.etherscan.io/address/" + a;
 const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
 const USD_CHOICES = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
 
@@ -66,16 +83,35 @@ function walletXY(key) {
   const a = (WALLET_ANGLE[key] ?? 45) * Math.PI / 180;
   return [COV_C + r * Math.cos(a), COV_C + r * Math.sin(a)];
 }
-function walletStatus(d) {
-  return d === null || d === undefined || d === "" ? "" : Number(d) <= hops ? "covered" : "not covered";
+/* The smallest transfer on each example's path, from the chain check on
+   30 Sep 2026. Only used to show which examples a value floor lets through. */
+const WALLET_USD = { one: 90473, two: 55270, three: 5857588 };
+function meetsFloor(key, floor = usd) {
+  return !floor || key === "direct" || (WALLET_USD[key] ?? 0) >= floor;
+}
+/** Whether the rule at radius n (and the current floor) would block a wallet. */
+function coversWallet(key, d, n = hops, floor = floorAt(n)) {
+  if (d === 0) return true;
+  if (d === null || d === undefined || d === "") return false;
+  return Number(d) <= n && meetsFloor(key, floor);
+}
+/** The floor a radius would carry: the current one if a client exists for
+ *  it, otherwise none (setRule falls back the same way). */
+function floorAt(n) {
+  return RULES.some((r) => r.hops === n && r.usd === usd) ? usd : 0;
+}
+function walletStatus(d, key) {
+  if (d === null || d === undefined || d === "") return "";
+  if (Number(d) > hops) return "not covered";
+  return meetsFloor(key) ? "covered" : "below floor";
 }
 function walletSub(key, d) {
-  const st = walletStatus(d);
+  const st = walletStatus(d, key);
   return (WALLET_NOTE[key] || "") + (st ? " · " + st : "");
 }
 /** The descriptor as parts, so narrow phones can show just the status. */
 function walletSubHtml(key, d) {
-  const st = walletStatus(d);
+  const st = walletStatus(d, key);
   return `<span class="sub-note">${esc(WALLET_NOTE[key] || "")}</span><span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
 }
 /* One name for each outcome. Tone is the colour; kit is the story label. */
@@ -122,33 +158,30 @@ let inFlight = false;
 let presets = [];
 
 
-/* The chain reads differently in each act: first only the listed address is
-   known, then a list check clears everything downstream of it, then the scan
-   covers the whole path. Same four nodes throughout, so the argument is made
-   by what lights up rather than by three separate diagrams. */
-const CHAIN = ["Lazarus wallet", "Direct counterparty", "Second degree", "Wallet you pay"];
-
+/* The intro sets up why, then the two parts of the demo on the same rings.
+   The policy is the scanner plus the rule; enforcement is Newton applying
+   the policy and returning a signed evaluation. */
 const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
-    body: "A North Korean state hacking operation. They have taken billions from "
-        + "exchanges and bridges, and is under US sanctions. Arkham attributes thousands of addresses to it.",
-    cover: "none",
+    body: "North Korea's state hackers. They have stolen billions in crypto, "
+        + "and Arkham attributes thousands of addresses to them. Paying one of "
+        + "those wallets, or one close to it, is the risk.",
+    cover: 0, verdict: false,
     note: "Lazarus at the centre. Each ring is one transfer out." },
 
-  { kicker: "The gap", title: "A list checks one address.",
-    body: "It compares the wallet you are paying against a set of designated "
-        + "addresses. But the money moved along a path. The wallet is not on "
-        + "the list, it is one transfer from a wallet that is, and a list check "
-        + "cannot tell you that.",
-    cover: 1,
-    note: "A list covers one hop. The wallet you pay clears." },
+  { kicker: "Part 1 · The policy", title: "The policy is the check.",
+    body: "It sets a rule and the data behind it. Here the data is a scanner "
+        + "that finds how many hops a wallet sits from a Lazarus address, and "
+        + "the rule says how many count. Anyone can write a policy with their own data.",
+    cover: 2, verdict: false,
+    note: "This policy covers 2 hops. The wallet at 3 is outside it." },
 
-  { kicker: "The policy", title: "Screen the path, not the address.",
-    body: "Newton Lazarus Scan walks the transfer graph outward from the wallet you are "
-        + "paying and reports how far a known address sits, and how much moved "
-        + "along the way.",
-    cover: "all",
-    note: "The policy covers every ring inside your reach." },
+  { kicker: "Part 2 · Policy enforcement", title: "Newton enforces it.",
+    body: "Newton's operator set evaluates the wallet you are about to pay "
+        + "against the policy, and a quorum signs the result. Newton enforces "
+        + "what the policy says, so the result is as good as the policy and its data.",
+    cover: 3, verdict: true,
+    note: "Inside a 3-hop policy, so the operators block it." },
 ];
 
 /* Must match the motion tokens in design/tokens.css.

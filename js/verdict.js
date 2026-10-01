@@ -40,10 +40,12 @@ async function submit(address) {
     // Unattested results were still screened: the trail shows what the
     // screening found, not a blanket "clear".
     let trailKind = key, trailHit = finding ? result.hop_count : null;
+    if (key === "outside" && belowFloor(result)) trailKind = "floor";
     if (key === "unattested") {
       if (result.direct_match) { trailKind = "listed"; trailHit = 0; }
       else if (result.exposure && typeof result.hop_count === "number") {
-        trailKind = result.hop_count <= hops ? "exposed" : "outside"; trailHit = result.hop_count;
+        trailKind = result.hop_count > hops ? "outside" : belowFloor(result, true) ? "floor" : "exposed";
+        trailHit = result.hop_count;
       } else trailKind = "clear";
     }
     await search.settle(trailHit, trailKind);
@@ -57,6 +59,21 @@ async function submit(address) {
 }
 
 /* ── Verdict ─────────────────────────────────────────────────── */
+/** A link inside the radius whose smallest transfer is under the policy's
+ *  value floor: the policy allows it, and the page should say why. With
+ *  any=true it ignores the decision (for results that were not attested). */
+function belowFloor(r, any = false) {
+  const floor = r.dataset?.min_exposure_usd ?? usd;
+  return Boolean(floor && r.exposure && !r.direct_match
+    && (any || r.decision === "ALLOW")
+    && typeof r.hop_count === "number" && r.hop_count <= (r.dataset?.max_hops ?? hops)
+    && typeof r.exposure_usd === "number" && r.exposure_usd < floor);
+}
+/** The deployed rule a result was decided under. */
+function ruleOf(r) {
+  const h = r.dataset?.max_hops ?? hops, u = r.dataset?.min_exposure_usd ?? usd;
+  return RULES.find((x) => x.hops === h && x.usd === u) || ruleNow();
+}
 const STATUS_LABEL = {
   clear: { tone: "pass", icon: "Check", label: "Clear" },
   listed: { tone: "block", icon: "Warning", label: "Listed" },
@@ -72,6 +89,9 @@ function bandsForOutcome(r, key) {
   const hit = typeof r.hop_count === "number" ? r.hop_count : null;
   if (key === "listed") return { core: true };
   if (key === "exposed" && hit != null) return { clear: Math.max(0, hit - 1), exposed: hit };
+  // Below the floor: the link is inside the reach, so only the rings before
+  // it are known to be clear.
+  if (key === "outside" && hit != null && hit <= max) return { clear: Math.max(0, hit - 1), outside: hit };
   if (key === "outside" && hit != null) return { clear: max, outside: hit };
   if (key === "clear") return { clear: max };
   return null;
@@ -94,16 +114,18 @@ async function fillVerdict(r, outsideReach) {
   let reason;
 
   if (key === "failed") {
-    reason = "The transaction graph could not be read, so the wallet was not "
-           + "screened. The policy denies by default, which is not a finding of exposure.";
+    reason = "The wallet's transfers could not be read, so nothing was sent to "
+           + "Newton. The page treats it as blocked, which is not a finding of exposure.";
   } else if (key === "unattested") {
     reason = r.attestation?.status === "NOT_CONFIGURED"
-      ? "This decision is local screening only. It has not been attested."
-      : "The wallet was screened, but the decision could not be attested, "
-        + "so the policy denies by default.";
+      ? "This is a local result only. It was not sent to Newton."
+      : "The wallet was read, but Newton's evaluation did not come back, "
+        + "so the page treats it as blocked.";
+  } else if (key === "outside" && belowFloor(r)) {
+    reason = `Allowed. The smallest transfer on the link is ${money(r.exposure_usd)}, `
+           + `under this policy's ${money(ruleOf(r).usd)} floor.`;
   } else if (key === "outside") {
-    reason = `Allowed under your reach of ${hopWord(max)}. The policy only blocks `
-           + "exposure inside the reach you set.";
+    reason = `Allowed. This policy only blocks links within ${hopWord(max)}.`;
   } else if (key === "listed") {
     reason = "This wallet is a known Lazarus Group address.";
   } else if (key === "exposed") {
@@ -138,10 +160,23 @@ async function fillVerdict(r, outsideReach) {
     : "";
   const outsideLine = outsideReach
     ? `<div class="warnline" role="note">${WARN_ICON}
-      <span>Exposure found ${esc(hopWord(r.hop_count))} out, outside your reach
-      of ${esc(hopWord(max))}.</span></div>`
+      <span>Found ${esc(hopWord(r.hop_count))} out, past this policy's
+      ${esc(hopWord(max))}.</span></div>`
     : "";
-  const status = STATUS_LABEL[key];
+  // Who decided: Newton's operators, under the policy client the check was
+  // sent to. Only an attested result has a verdict to attribute.
+  const attested = r.attestation?.status === "ATTESTED" && key !== "failed" && key !== "unattested";
+  const rule = ruleOf(r);
+  const decided = attested
+    ? `<p class="decided">${iconSvg("Check", "decided-icon")}<span>Newton's operator quorum evaluated
+        this wallet against the ${esc(rule.name)} policy (<a href="${SEPOLIA_ADDR(rule.client)}" target="_blank"
+        rel="noopener" class="text-data" title="${esc(rule.client)}">${esc(short(rule.client))}</a>) and signed the result.</span></p>`
+    : "";
+  const head = document.getElementById("result-head");
+  if (head) head.innerHTML = `<div class="text-eyebrow muted">How Newton enforces it</div>
+    <div class="text-heading">${attested ? "Operator quorum result" : "No result from Newton"}</div>`;
+  const status = key === "outside" && belowFloor(r)
+    ? { ...STATUS_LABEL.outside, label: "Below floor" } : STATUS_LABEL[key];
   const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
       <div class="result-status tone-${status.tone}">
         <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>
@@ -154,6 +189,7 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
+      ${decided}
     </div>
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
@@ -163,7 +199,7 @@ async function fillVerdict(r, outsideReach) {
   actions.innerHTML = `
     <span class="line"></span>
     ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-       target="_blank" rel="noopener"><span>View attestation<span class="btn-long"> on the Newton explorer</span></span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
+       target="_blank" rel="noopener"><span>View signed result</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
     <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
   actions.dataset.state = "ready";
   // Back to the console without an entrance, so the map does not jump.
