@@ -83,8 +83,9 @@ function renderPolicy(opts = {}) {
                   </span>
                 </button>`).join("")}
             </div>
-            <p class="part-note">A wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
-            <p class="policy-facts" id="policy-facts"></p>
+            <div class="policy-meta">
+              <p class="part-note">A wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
+            </div>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="use-policy">Use this policy</button>
         </div>

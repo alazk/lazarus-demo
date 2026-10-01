@@ -229,3 +229,22 @@ p.policy-facts a{ font-size:var(--type-caption-size); color:var(--color-text-sec
 /* New check as a quiet text button under the card. */
 .card-result .actions > #again{ align-self:center; width:auto; min-height:var(--size-control-sm); border-color:transparent; background:none; text-decoration:underline; text-underline-offset:3px; color:var(--color-text-secondary); }
 @media (hover:hover){ .card-result .actions > #again:hover{ color:var(--color-text); background:none; } }
+
+/* Policy step breathing room: the options, then the data note and the
+   contracts as one quiet group, then the button, each well apart. */
+.card-rules > .card-body{ gap:var(--space-block); }
+.card-rules > .btn-block{ margin-top:var(--space-block); }
+.policy-meta{ display:flex; flex-direction:column; gap:var(--space-snug); }
+.card-rules .part-note{ max-width:none; }
+.policy-options{ gap:var(--space-snug); }
+@media (min-width: 1024px) and (max-height: 860px){
+  .card-rules > .card-body{ gap:var(--space-card); }
+  .card-rules > .btn-block{ margin-top:var(--space-card); }
+  .policy-options{ gap:var(--space-inline); }
+}
+@media (min-width: 1024px) and (max-height: 700px){
+  .card-rules > .card-body{ gap:var(--space-group); }
+  .card-rules > .btn-block{ margin-top:var(--space-group); }
+  .policy-meta{ gap:var(--space-inline); }
+  .policy-options{ gap:var(--space-tight); }
+}
