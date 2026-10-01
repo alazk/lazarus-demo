@@ -30,7 +30,7 @@ function renderStats(r) {
     <div class="stat"><div class="stat-k text-eyebrow">Distance</div>
       <div class="stat-v text-title">${esc(distance)}</div></div>
     <div class="stat"><div class="stat-k text-eyebrow">Smallest transfer</div>${valueCell}</div>
-    <div class="stat"><div class="stat-k text-eyebrow">Counterparties read</div>
+    <div class="stat"><div class="stat-k text-eyebrow">Linked wallets read</div>
       <div class="stat-v text-title">${esc(read)}</div></div>
   </div>`;
 }

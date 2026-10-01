@@ -174,7 +174,7 @@ function renderChecking(address) {
           map.settle(n, kind);
           map.found(n, false);
           map.done(n === 0 ? "This wallet is on the list itself"
-                           : `Found ${hopWord(n)} out · inside your coverage`);
+                           : `Found ${hopWord(n)} out · inside ${ruleNow().label}`);
           row.dataset.state = kind;
           row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
@@ -216,7 +216,7 @@ function renderChecking(address) {
         const row = list[hit];
         map.settle(hit, "outside");
         map.found(hit, true);
-        map.done(`Found ${hopWord(hit)} out · outside your coverage`);
+        map.done(`Found ${hopWord(hit)} out · outside ${ruleNow().label}`);
         row.dataset.state = "outside";
         row.classList.add("resolved");
         row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
@@ -229,7 +229,7 @@ function renderChecking(address) {
       // Nothing inside the coverage. A wallet with no example distance is
       // placed outside every ring so the map still says where it stands.
       if (document.getElementById("cov-pick")?.style.opacity !== "1") map.clean();
-      map.done("No link found inside your coverage");
+      map.done(`No link found inside ${ruleNow().label}`);
       await wait(MOTION.interaction);
       const last = inside[inside.length - 1];
       if (last) {

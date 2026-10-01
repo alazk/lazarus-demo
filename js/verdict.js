@@ -160,7 +160,8 @@ async function fillVerdict(r, outsideReach) {
     }
   });
 
-  const detail = r.detail || r.attestation?.detail;
+  // A failed check's detail repeats its reason, so only other states show it.
+  const detail = key === "failed" ? "" : (r.detail || r.attestation?.detail);
   const disagree = r.warning
     ? `<div class="warnline" role="note">${WARN_ICON}<span>${esc(r.warning)}${r.local_decision ? ` Local screening was ${esc(r.local_decision)}.` : ""}</span></div>`
     : "";
