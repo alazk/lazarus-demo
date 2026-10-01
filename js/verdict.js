@@ -110,7 +110,12 @@ async function fillVerdict(r, outsideReach) {
   const bands = bandsForOutcome(r, key);
   if (bands) paintBands(bands);
   paintMapVerdict(key);
-  const headline = OUTCOME[key].headline;
+  // The headline is the policy's answer. The card under it says Newton's
+  // operators signed that answer, so a reader can disagree with the rule or
+  // its data without reading it as the protocol missing something.
+  const rule = ruleOf(r);
+  const answer = { listed: "Blocked", exposed: "Blocked", clear: "Allowed", outside: "Allowed" }[key];
+  const headline = answer || OUTCOME[key].headline;
   let reason;
 
   if (key === "failed") {
@@ -125,14 +130,16 @@ async function fillVerdict(r, outsideReach) {
     reason = `Allowed. The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;
   } else if (key === "outside") {
-    reason = `Allowed. This policy only blocks links within ${hopWord(max)}.`;
+    reason = `The policy's data puts this wallet ${hopWord(r.hop_count)} from a known Lazarus `
+           + `address. ${rule.label} only blocks within ${hopWord(max)}, so it allows it.`;
   } else if (key === "listed") {
-    reason = "This wallet is a known Lazarus Group address.";
+    reason = `This wallet is on the policy's list of known Lazarus addresses, so ${rule.label} blocks it.`;
   } else if (key === "exposed") {
-    reason = `This wallet reaches a known Lazarus Group address in ${hopWord(r.hop_count)}.`;
+    reason = `The policy's data puts this wallet ${hopWord(r.hop_count)} from a known Lazarus `
+           + `address. ${rule.label} blocks anything within ${hopWord(max)}.`;
   } else {
-    reason = `No path to a known Lazarus Group address was found within `
-           + `${hopWord(max)}.`;
+    reason = `The policy's data found no known Lazarus address within ${hopWord(max)}, `
+           + `so ${rule.label} allows it.`;
   }
 
   right.classList.add("swapping");
@@ -158,25 +165,23 @@ async function fillVerdict(r, outsideReach) {
   const disagree = r.warning
     ? `<div class="warnline" role="note">${WARN_ICON}<span>${esc(r.warning)}${r.local_decision ? ` Local screening was ${esc(r.local_decision)}.` : ""}</span></div>`
     : "";
-  const outsideLine = outsideReach
-    ? `<div class="warnline" role="note">${WARN_ICON}
-      <span>Found ${esc(hopWord(r.hop_count))} out, past this policy's
-      ${esc(hopWord(max))}.</span></div>`
-    : "";
+  const outsideLine = "";
   // Who decided: Newton's operators, under the policy client the check was
   // sent to. Only an attested result has a verdict to attribute.
   const attested = r.attestation?.status === "ATTESTED" && key !== "failed" && key !== "unattested";
-  const rule = ruleOf(r);
   const decided = attested
-    ? `<p class="decided">${iconSvg("Check", "decided-icon")}<span>Newton's operator quorum evaluated
-        this wallet against the ${esc(rule.name)} policy (<a href="${SEPOLIA_ADDR(rule.client)}" target="_blank"
-        rel="noopener" class="text-data" title="${esc(rule.client)}">${esc(short(rule.client))}</a>) and signed the result.</span></p>`
+    ? `<div class="decided">
+        <div class="decided-head">${iconSvg("Check", "decided-icon")}<span class="text-ui">Signed by Newton's operators</span>
+          <a class="decided-link text-data" href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener"
+            title="Policy client ${esc(rule.client)}">${esc(short(rule.client))}${iconSvg("ArrowUpRight", "icon")}</a></div>
+        <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this answer.</p>
+      </div>`
     : "";
   const head = document.getElementById("result-head");
-  if (head) head.innerHTML = `<div class="text-eyebrow muted">How Newton enforces it</div>
-    <div class="text-heading">${attested ? "Operator quorum result" : "No result from Newton"}</div>`;
-  const status = key === "outside" && belowFloor(r)
-    ? { ...STATUS_LABEL.outside, label: "Below floor" } : STATUS_LABEL[key];
+  if (head) head.innerHTML = `<div class="text-eyebrow muted">Policy enforcement</div>
+    <div class="text-heading">${attested ? "Result" : "No result from Newton"}</div>`;
+  const status = answer
+    ? { ...STATUS_LABEL[key], label: `${rule.label}'s answer` } : STATUS_LABEL[key];
   const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
       <div class="result-status tone-${status.tone}">
         <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>

@@ -16,7 +16,7 @@ function renderConsole(prefill = "", error = "", still = false) {
         <div class="step-head">
           <div class="text-eyebrow muted">Your policy</div>
           <div class="step-title">
-            <div class="text-heading">${esc(rule.name)}</div>
+            <div class="text-heading">${esc(ruleTitle(rule))}</div>
             <button class="link-btn" type="button" id="change-policy">Change</button>
           </div>
         </div>
@@ -32,7 +32,7 @@ function renderConsole(prefill = "", error = "", still = false) {
         </div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">
-            <p class="part-note">Newton's operator set enforces your policy on this wallet and a quorum signs the result. It is as good as the policy and its data.</p>
+            <p class="part-note">Newton's operator set runs your policy on this wallet, and a quorum signs the result.</p>
             ${renderLadder(ready, prefill)}
             <div class="d-only try-wallet">
               <span class="label">Example wallets</span>

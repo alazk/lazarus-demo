@@ -23,19 +23,18 @@ const POLICY_ADDRESS = "0xCC3957c06472f9E599ED2eebA754D5854F23321b";
 const POLICY_OWNER = "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48";
 const RULES = [
   { hops: 1, usd: 0, client: "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
-    name: "1 hop" },
+    label: "Policy 1", name: "1 hop",
+    rule: "Blocks Lazarus addresses and wallets one transfer away." },
   { hops: 2, usd: 0, client: "0x426B922f21bdb1201Cac1470d224B6F9b92630fe",
-    name: "2 hops" },
+    label: "Policy 2", name: "2 hops",
+    rule: "Blocks Lazarus addresses and wallets up to two transfers away." },
   { hops: 3, usd: 0, client: "0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8",
-    name: "3 hops" },
+    label: "Policy 3", name: "3 hops",
+    rule: "Blocks Lazarus addresses and wallets up to three transfers away." },
 ];
 const ruleNow = () => RULES.find((r) => r.hops === hops && r.usd === usd) || RULES[2];
-/** The rule in words, exactly as the policy evaluates it. */
-function ruleText(r) {
-  const reach = r.hops === 1 ? "one hop" : `${r.hops} hops`;
-  return `Block the wallet if it is a Lazarus address or within ${reach} of one`
-    + (r.usd ? `, and every transfer on that path is at least ${money(r.usd)}.` : ".");
-}
+/** How a policy is named in headings: "Policy 3 · 3 hops". */
+const ruleTitle = (r) => `${r.label} · ${r.name}`;
 const POLICY_DOCS = "https://docs.newton.xyz/developers/guides/writing-policies";
 const SEPOLIA_ADDR = (a) => "https://sepolia.etherscan.io/address/" + a;
 const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
@@ -158,9 +157,10 @@ let inFlight = false;
 let presets = [];
 
 
-/* The intro sets up why, then the two parts of the demo on the same rings.
-   The policy is the scanner plus the rule; enforcement is Newton applying
-   the policy and returning a signed evaluation. */
+/* The intro sets up why, then the two parts on the same rings: the check
+   (a policy: its data, the wallet scanner, plus its rule) and enforcement
+   (Newton's operators run the policy and sign the result). The last act
+   says where the limits sit: in the data, not in the protocol. */
 const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
     body: "North Korea's state hackers. They have stolen billions in crypto, "
@@ -169,19 +169,26 @@ const ACTS = [
     cover: 0, verdict: false,
     note: "Lazarus at the centre. Each ring is one transfer out." },
 
-  { kicker: "Part 1 · The policy", title: "The policy is the check.",
-    body: "It sets a rule and the data behind it. Here the data is a scanner "
-        + "that finds how many hops a wallet sits from a Lazarus address, and "
-        + "the rule says how many count. Anyone can write a policy with their own data.",
+  { kicker: "Part 1 · The check", title: "A policy decides what to check.",
+    body: "A policy is a rule plus the data it reads. Here the data is a wallet "
+        + "scanner built on a list of known Lazarus addresses, and the rule is how many hops "
+        + "count. Anyone can write a policy, with any data source.",
     cover: 2, verdict: false,
     note: "This policy covers 2 hops. The wallet at 3 is outside it." },
 
-  { kicker: "Part 2 · Policy enforcement", title: "Newton enforces it.",
-    body: "Newton's operator set evaluates the wallet you are about to pay "
-        + "against the policy, and a quorum signs the result. Newton enforces "
-        + "what the policy says, so the result is as good as the policy and its data.",
+  { kicker: "Part 2 · Enforcement", title: "Newton enforces it.",
+    body: "Newton's operator set runs the policy on the wallet you are about to "
+        + "pay, and a quorum signs the result. The signed result can't be "
+        + "altered, and anyone can check it on the explorer.",
     cover: 3, verdict: true,
     note: "Inside a 3-hop policy, so the operators block it." },
+
+  { kicker: "Good to know", title: "As good as the policy.",
+    body: "Onchain tracing, by any tool, loses the trail at exchanges and "
+        + "struggles with mixers. That is a limit of the data, not of Newton. "
+        + "Give a policy better data and Newton enforces it the same way.",
+    cover: 3, verdict: false,
+    note: "Newton enforces the policy. The policy's data sets what it can see." },
 ];
 
 /* Must match the motion tokens in design/tokens.css.

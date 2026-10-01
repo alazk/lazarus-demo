@@ -65,12 +65,38 @@
 @media (hover:hover){ .part-note a:hover, .policy-facts a:hover, .decided a:hover{ color:var(--color-text); } }
 
 /* ── Policy step ──────────────────────────────────────────────── */
-.rule-row .m-text{ padding-block:var(--space-snug); }
-.rule-row .m-sub{ white-space:normal; overflow:visible; text-overflow:clip; }
-.rule-row{ padding-left:0; }
-.rule-row[aria-checked="true"]{ background:transparent; box-shadow:var(--state-selected-mark); }
-.rule-row[aria-checked="true"] .m-bar{ background:var(--color-text); }
-@media (hover:hover){ .rule-row[aria-checked="true"]:hover{ background:transparent; } }
+/* A policy is two parts, data and rule, each with its own label. */
+.policy-part{ display:flex; flex-direction:column; gap:var(--space-inline); }
+.part-value{ margin:0; max-width:60ch; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text); text-wrap:pretty; }
+/* The three policies: each an option with its rule, the chosen one marked
+   by a filled radio and a dark edge. */
+.policy-options{ display:flex; flex-direction:column; gap:var(--space-inline); }
+.policy-opt{
+  display:flex; align-items:flex-start; gap:var(--space-snug); width:100%;
+  padding:var(--space-snug) var(--space-group); text-align:left; cursor:pointer;
+  border:1px solid var(--color-border); border-radius:var(--radius-control);
+  background:var(--color-surface-raised); font-family:var(--font-sans); color:var(--color-text);
+  transition:border-color var(--duration-interaction), box-shadow var(--duration-interaction), background var(--duration-interaction);
+}
+@media (hover:hover){ .policy-opt:not([aria-checked="true"]):hover{ background:var(--state-hover-fill); border-color:var(--color-border-strong); } }
+.policy-opt[aria-checked="true"]{ border-color:var(--color-text); box-shadow:inset 0 0 0 1px var(--color-text); }
+.policy-opt:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
+.opt-radio{
+  flex:none; width:18px; height:18px; margin-top:2px; border-radius:50%;
+  border:1.5px solid var(--color-border-strong); background:var(--color-surface-raised);
+}
+.policy-opt[aria-checked="true"] .opt-radio{
+  border-color:var(--color-text); background:var(--color-text);
+  box-shadow:inset 0 0 0 3.5px var(--color-surface-raised);
+}
+.opt-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.opt-name{ display:flex; align-items:center; gap:var(--space-inline); font-weight:500; }
+.opt-tag{
+  padding:0 var(--space-inline); border-radius:var(--radius-full);
+  background:var(--color-surface-sunken); color:var(--color-text-secondary);
+  font-size:var(--type-caption-size); line-height:1.6; font-weight:500;
+}
+.opt-rule{ font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary); }
 body.is-states .flow{ display:none; }
 
 .policy-facts{
@@ -89,15 +115,6 @@ body.is-states .flow{ display:none; }
 }
 .policy-facts .icon{ width:12px; height:12px; flex:none; fill:currentColor; }
 
-/* The rule as the policy will evaluate it. */
-.rule-box{
-  display:flex; flex-direction:column; gap:var(--space-tight);
-  padding:var(--space-snug) var(--space-group);
-  border-radius:var(--radius-control); background:var(--color-surface-sunken);
-}
-.rule-text{ margin:0; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text); text-wrap:pretty; }
-.rule-params{ margin:0; font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text-secondary); }
-
 /* The rules card reads as one group, like the scan card. */
 .card-rules{ justify-content:center; }
 .card-rules > .card-body{ flex:0 1 auto; gap:var(--space-card); }
@@ -108,29 +125,40 @@ body.is-states .flow{ display:none; }
 
 /* ── Verdict ──────────────────────────────────────────────────── */
 .decided{
-  display:flex; align-items:flex-start; gap:var(--space-inline);
-  margin:var(--space-snug) 0 0; max-width:60ch;
+  margin:var(--space-snug) 0 0; padding:var(--space-snug) var(--space-group);
+  border:1px solid var(--color-border); border-radius:var(--radius-control);
+  background:var(--color-surface-raised);
+}
+.decided-head{ display:flex; align-items:center; gap:var(--space-inline); color:var(--color-text); }
+.decided-head .text-ui{ font-weight:500; }
+.decided-icon{ flex:none; width:16px; height:16px; fill:currentColor; }
+.decided-link{
+  margin-left:auto; display:inline-flex; align-items:center; gap:var(--space-tight);
+  font-family:var(--font-code); font-size:var(--type-caption-size); white-space:nowrap;
+}
+.decided-link .icon{ width:12px; height:12px; fill:currentColor; }
+.decided-body{
+  margin:var(--space-tight) 0 0; padding-left:calc(16px + var(--space-inline));
   font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary);
 }
-.decided-icon{ flex:none; width:16px; height:16px; margin-top:2px; fill:currentColor; }
 
 /* Short laptop screens trade air for the map, as fit.css does. */
 @media (min-width: 1024px) and (max-height: 860px){
-  /* The three rules sit in one row, so the rule and its contracts still fit. */
-  .rule-list{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); }
-  .rule-list .rule-row{ border-top:none; }
-  .rule-list .rule-row + .rule-row{ border-left:1px solid var(--color-surface-sunken); }
   .card-rules > .card-body{ gap:var(--space-group); }
   .card-rules > .btn-block{ margin-top:var(--space-group); }
-  .rule-row .m-text{ padding-block:var(--space-inline); }
 }
 @media (min-width: 1024px) and (max-height: 700px){
   .card-rules > .card-body{ gap:var(--space-inline); }
   .card-rules > .btn-block{ margin-top:var(--space-snug); }
-  .rule-row .m-text{ padding-block:var(--space-tight); }
-  .decided{ margin-top:var(--space-tight); font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
-  .decided-icon{ width:14px; height:14px; margin-top:1px; }
-  .rule-box{ padding:var(--space-inline) var(--space-snug); gap:0; }
+  .decided{ margin-top:var(--space-inline); padding:var(--space-inline) var(--space-snug); }
+  .decided-body{ font-size:var(--type-caption-size); line-height:var(--type-caption-leading); margin-top:0; }
+  .policy-opt{ padding:6px var(--space-snug); }
+  .opt-rule{ font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
+  .policy-options{ gap:var(--space-tight); }
+  .opt-radio{ margin-top:0; }
+  .policy-part .part-value, .card-rules .part-note{ font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
+  .policy-part{ gap:var(--space-tight); }
+  .result-lead .reason{ margin-bottom:0; }
   .policy-facts{ row-gap:0; }
   .policy-facts dd{ margin-top:0; }
   .part-note{ font-size:var(--type-caption-size); line-height:var(--type-caption-leading); }
@@ -150,4 +178,13 @@ body.is-states .flow{ display:none; }
   .trail .step{ flex:1 1 0; min-width:0; padding-inline:var(--space-inline); }
   .trail .lbl-long{ display:none; }
   .trail .lbl-short{ display:inline; }
+}
+
+/* Short, narrow laptops: the quorum card keeps to two lines. The signed
+   task is still one click away on the button below. */
+@media (min-width: 1024px) and (max-width: 1279px) and (max-height: 700px){
+  .decided-link{ display:none; }
+  /* The headline already gives the decision and the reason the distance. */
+  .card-result .stats{ display:none; }
+  .decided-head .text-ui{ font-size:var(--type-caption-size); }
 }

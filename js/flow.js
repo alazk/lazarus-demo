@@ -41,8 +41,9 @@ function paintFlow(step) {
 }
 
 /* ── Step 1: the policy ──────────────────────────────────────────
-   Choose one of the deployed rules. The map shows what it covers, and the
-   card names the contract the check will be sent to and who owns it. */
+   A policy is data plus a rule. The card offers three deployed policies,
+   each with its rule, then the data source they share (the wallet scanner). The map shows what the rule covers, and the card names the
+   contract the check will be sent to and who owns it. */
 function renderPolicy() {
   document.title = "Choose a policy · Lazarus Scan";
   view = "policy";
@@ -54,7 +55,7 @@ function renderPolicy() {
       <div class="col">
         <div class="step-head">
           <div class="text-eyebrow muted">What it covers</div>
-          <div class="text-heading" id="policy-cover-title">${esc(ruleNow().name)}</div>
+          <div class="text-heading" id="policy-cover-title">${esc(ruleTitle(ruleNow()))}</div>
         </div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "policy")}</div>
@@ -68,57 +69,48 @@ function renderPolicy() {
         </div>
         <div class="card card-check card-rules">
           <div class="card-body">
-            <p class="part-note">A policy is the check: a rule, and the data it reads. The data here is a scanner that finds how far a wallet sits from Arkham's Lazarus list.</p>
-            <div class="m-ladder rule-list" role="radiogroup" aria-label="Policies">
-              ${RULES.map((r, i) => `
-                <button class="m-row wrow rule-row" type="button" role="radio" data-i="${i}"
-                    aria-checked="false" tabindex="-1">
-                  <span class="m-bar" aria-hidden="true"></span>
-                  <span class="m-text">
-                    <span class="m-name text-ui text-ui--phone-subheading">${esc(r.name)}</span>
+            <div class="policy-options" role="radiogroup" aria-label="Policies">
+              ${RULES.map((r) => `
+                <button class="policy-opt" type="button" role="radio" data-hops="${r.hops}"
+                    aria-checked="${r.hops === hops}" tabindex="${r.hops === hops ? 0 : -1}">
+                  <span class="opt-radio" aria-hidden="true"></span>
+                  <span class="opt-text">
+                    <span class="opt-name text-ui">${esc(r.label)} <span class="opt-tag">${esc(r.name)}</span></span>
+                    <span class="opt-rule">${esc(r.rule)}</span>
                   </span>
                 </button>`).join("")}
             </div>
-            <div class="rule-box" aria-live="polite">
-              <div class="text-eyebrow muted">The rule that will be evaluated</div>
-              <p class="rule-text" id="rule-text"></p>
-              <p class="rule-params text-data" id="rule-params"></p>
+            <div class="policy-part">
+              <div class="text-eyebrow muted">Data, for all three</div>
+              <p class="part-value">A wallet scanner that checks a wallet's Ethereum transfers against a list of known Lazarus addresses.</p>
             </div>
             <dl class="policy-facts" id="policy-facts"></dl>
-            <p class="part-note">The scanner has the limits all onchain tracing has, such as losing the trail at an exchange. Anyone can create a policy with other data. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
+            <p class="part-note">Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="use-policy">Use this policy</button>
         </div>
       </div>
     </div>`;
 
-  stage.querySelectorAll(".rule-row").forEach((b) => {
-    b.onclick = () => {
-      const r = RULES[Number(b.dataset.i)];
-      stopRadiusDemo(false);
-      setRule(r.hops, r.usd);
-      paintPolicyCard();
-    };
+  const choose = (n) => { stopRadiusDemo(false); setRule(n, 0); paintPolicyCard(); };
+  stage.querySelectorAll(".policy-opt").forEach((b) => {
+    b.onclick = () => choose(Number(b.dataset.hops));
     b.addEventListener("pointerenter", () => {
       if (!matchMedia("(hover:hover)").matches || stage.clientWidth <= 639) return;
-      const r = RULES[Number(b.dataset.i)];
       stopRadiusDemo();
-      if (r.usd === usd) previewReach(r.hops);
+      previewReach(Number(b.dataset.hops));
     });
     b.addEventListener("pointerleave", endPreview);
   });
   // A radio group: the arrow keys move the choice, Tab leaves the group.
-  stage.querySelector(".rule-list")?.addEventListener("keydown", (e) => {
+  stage.querySelector(".policy-options")?.addEventListener("keydown", (e) => {
     const step = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1
       : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0;
     if (!step) return;
     e.preventDefault();
     const at = RULES.indexOf(ruleNow());
-    const next = RULES[(at + step + RULES.length) % RULES.length];
-    stopRadiusDemo(false);
-    setRule(next.hops, next.usd);
-    paintPolicyCard();
-    stage.querySelector('.rule-row[aria-checked="true"]')?.focus();
+    choose(RULES[(at + step + RULES.length) % RULES.length].hops);
+    stage.querySelector('.policy-opt[aria-checked="true"]')?.focus();
   });
   document.getElementById("use-policy").onclick = () => {
     stopRadiusDemo(false);
@@ -137,19 +129,13 @@ function renderPolicy() {
 /** Mark the chosen rule and show its contracts. */
 function paintPolicyCard() {
   const rule = ruleNow();
-  stage.querySelectorAll(".rule-row").forEach((b) => {
-    const on = RULES[Number(b.dataset.i)] === rule;
+  stage.querySelectorAll(".policy-opt").forEach((b) => {
+    const on = Number(b.dataset.hops) === rule.hops;
     b.setAttribute("aria-checked", String(on));
     b.tabIndex = on ? 0 : -1;
-    b.setAttribute("data-reach", on ? "in" : "out");
   });
   const title = document.getElementById("policy-cover-title");
-  if (title) title.textContent = rule.name;
-  const text = document.getElementById("rule-text");
-  if (text) text.textContent = ruleText(rule);
-  // The parameters this client was deployed with, as the policy reads them.
-  const params = document.getElementById("rule-params");
-  if (params) params.textContent = `max_hops = ${rule.hops} · min_exposure_usd = ${rule.usd.toLocaleString("en-US")}`;
+  if (title) title.textContent = ruleTitle(rule);
   const facts = document.getElementById("policy-facts");
   if (!facts) return;
   const link = (a) => `<a class="text-data" href="${SEPOLIA_ADDR(a)}" target="_blank" rel="noopener"

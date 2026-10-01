@@ -93,7 +93,7 @@ function renderChecking(address) {
       <div class="col">
         <div class="step-head">
           <div class="text-eyebrow muted">Your policy</div>
-          <div class="text-heading">${esc(ruleNow().name)}</div>
+          <div class="text-heading">${esc(ruleTitle(ruleNow()))}</div>
         </div>
         <div class="card card-policy card-cov">
           <div class="card-body">${renderCoverage(ready, "scan")}</div>
