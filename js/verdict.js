@@ -130,15 +130,15 @@ async function fillVerdict(r, outsideReach) {
     reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;
   } else if (key === "outside") {
-    reason = `The data in the policy you have chosen puts this wallet ${hopWord(r.hop_count)} `
-           + `from a known Lazarus address.`;
+    reason = `Newton Protocol operators have evaluated the policy, and its data puts this wallet `
+           + `${hopWord(r.hop_count)} from a known Lazarus address.`;
   } else if (key === "listed") {
-    reason = `The data in the policy you have chosen lists this wallet as a known Lazarus address.`;
+    reason = `Newton Protocol operators have evaluated the policy, and its data lists this wallet as a known Lazarus address.`;
   } else if (key === "exposed") {
-    reason = `The data in the policy you have chosen puts this wallet ${hopWord(r.hop_count)} `
-           + `from a known Lazarus address.`;
+    reason = `Newton Protocol operators have evaluated the policy, and its data puts this wallet `
+           + `${hopWord(r.hop_count)} from a known Lazarus address.`;
   } else {
-    reason = `The data in the policy you have chosen found no known Lazarus address within ${hopWord(max)}.`;
+    reason = `Newton Protocol operators have evaluated the policy, and its data found no known Lazarus address within ${hopWord(max)}.`;
   }
 
   right.classList.add("swapping");
@@ -175,7 +175,7 @@ async function fillVerdict(r, outsideReach) {
     ? `<div class="decided">
         <div class="decided-text">
           <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span></div>
-          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this answer.</p>
+          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation.</p>
         </div>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"
           target="_blank" rel="noopener"><span>View the attestation on Newton Explorer</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
@@ -183,9 +183,9 @@ async function fillVerdict(r, outsideReach) {
     : "";
   const head = document.getElementById("result-head");
   if (head) head.innerHTML = `<div class="text-eyebrow muted">Policy enforcement</div>
-    <div class="text-heading">${attested ? "Result" : "No result from Newton"}</div>`;
+    <div class="text-heading text-data-head" title="${esc(r.wallet || currentAddress)}">${esc(short(r.wallet || currentAddress))}</div>`;
   const status = answer
-    ? { ...STATUS_LABEL[key], label: `${rule.label}'s answer` } : STATUS_LABEL[key];
+    ? { ...STATUS_LABEL[key], label: `${rule.label} evaluation result` } : STATUS_LABEL[key];
   const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
       <div class="result-status tone-${status.tone}">
         <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>
@@ -199,7 +199,6 @@ async function fillVerdict(r, outsideReach) {
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
     </div>
-    ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");
   requestAnimationFrame(() => right.classList.remove("swapping"));

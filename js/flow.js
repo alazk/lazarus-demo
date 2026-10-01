@@ -83,12 +83,8 @@ function renderPolicy(opts = {}) {
                   </span>
                 </button>`).join("")}
             </div>
-            <div class="policy-part">
-              <div class="text-eyebrow muted">Data, for all three</div>
-              <p class="part-value">A wallet scanner that checks a wallet's Ethereum transfers against a list of known Lazarus addresses.</p>
-            </div>
-            <dl class="policy-facts" id="policy-facts"></dl>
-            <p class="part-note">Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
+            <p class="part-note">All three read the same data: a wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
+            <p class="policy-facts" id="policy-facts"></p>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="use-policy">Use this policy</button>
         </div>
@@ -143,10 +139,9 @@ function paintPolicyCard() {
   if (!facts) return;
   const link = (a) => `<a class="text-data" href="${SEPOLIA_ADDR(a)}" target="_blank" rel="noopener"
       title="${esc(a)}">${esc(short(a))}${iconSvg("ArrowUpRight", "icon")}</a>`;
-  facts.innerHTML = `
-    <div><dt>Policy client</dt><dd>${link(rule.client)}</dd></div>
-    <div><dt>Policy</dt><dd>${link(POLICY_ADDRESS)}</dd></div>
-    <div><dt>Owner</dt><dd>${link(POLICY_OWNER)}</dd></div>`;
+  facts.innerHTML = `<span>Client ${link(rule.client)}</span>
+    <span>Policy ${link(POLICY_ADDRESS)}</span>
+    <span>Owner ${link(POLICY_OWNER)}</span>`;
 }
 
 /* The map on the policy step sets the radius: hover previews it, a tap on a

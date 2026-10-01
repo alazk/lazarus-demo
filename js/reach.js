@@ -113,7 +113,7 @@ function renderCoverage(ready, mode = "console") {
       <div class="cov-foot">
         ${mode === "scan" ? `
         <p class="cov-status" id="cov-status">Scanning outward from the centre…</p>
-        <p class="cov-sum">Radius <b>${hopWord(hops)}</b></p>` : `
+        ` : `
         <p class="cov-sum" id="cov-sum">${coverageSummary(ready)}</p>`}
       </div>
     </div>`;

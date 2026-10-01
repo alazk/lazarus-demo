@@ -211,3 +211,21 @@ body.is-states .flow{ display:none; }
 /* Between the two steps only the right column moves; the map stays put. */
 .console.swap-right .col:nth-child(2) > .card{ animation:rise var(--duration-emphasis) var(--ease-newton) backwards; }
 @media (prefers-reduced-motion: reduce){ .console.swap-right .col:nth-child(2) > .card{ animation:none; } }
+
+/* ── Sleeker pass ─────────────────────────────────────────────── */
+/* Contracts sit on one quiet line under the policy, not a three-column table. */
+p.policy-facts{
+  display:flex; flex-wrap:wrap; gap:var(--space-tight) var(--space-group); margin:0;
+  font-size:var(--type-caption-size); line-height:var(--type-caption-leading); color:var(--color-text-tertiary);
+}
+p.policy-facts a{ font-size:var(--type-caption-size); color:var(--color-text-secondary); }
+/* The wallet checked, as the result column's title. */
+.text-data-head{ font-family:var(--font-code); letter-spacing:0; }
+/* Two numbers under the answer, without dividers between them. */
+.card-result .stats{ grid-template-columns:repeat(2, minmax(0, max-content)); column-gap:var(--space-region); }
+.card-result .stat + .stat{ border-left:none; padding-left:0; }
+/* The Newton card: no border, a hairline on top separates it from the answer. */
+.decided{ border:none; border-top:1px solid var(--color-border); border-radius:0; padding:var(--space-group) 0 0; }
+/* New check as a quiet text button under the card. */
+.card-result .actions > #again{ align-self:center; width:auto; min-height:var(--size-control-sm); border-color:transparent; background:none; text-decoration:underline; text-underline-offset:3px; color:var(--color-text-secondary); }
+@media (hover:hover){ .card-result .actions > #again:hover{ color:var(--color-text); background:none; } }
