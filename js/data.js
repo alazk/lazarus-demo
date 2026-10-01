@@ -171,7 +171,7 @@ const ACTS = [
   { kicker: "What this demo does", title: "Check a wallet before you pay it.",
     body: "Choose a policy, pick a wallet and run the check. The policy looks for "
         + "a path from the wallet to a known Lazarus address, and Newton Protocol "
-        + "operators sign its answer onchain.",
+        + "operators sign the result as an onchain attestation.",
     cover: 3, verdict: false,
     note: "The wallet you pay sits somewhere on these rings." },
 
