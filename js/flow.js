@@ -34,8 +34,8 @@ function paintFlow(step) {
   nav.querySelectorAll(".flow-step:not([disabled])").forEach((b) => {
     b.onclick = () => {
       if (inFlight) return;
-      if (b.dataset.step === "policy") { renderPolicy(); syncUrl(true); }
-      if (b.dataset.step === "scan") renderConsole(currentAddress || "", "", true);
+      if (b.dataset.step === "policy") { renderPolicy({ swap: true }); syncUrl(true); }
+      if (b.dataset.step === "scan") renderConsole(currentAddress || "", "", true, { swap: true });
     };
   });
 }
@@ -44,14 +44,17 @@ function paintFlow(step) {
    A policy is data plus a rule. The card offers three deployed policies,
    each with its rule, then the data source they share (the wallet scanner). The map shows what the rule covers, and the card names the
    contract the check will be sent to and who owns it. */
-function renderPolicy() {
+/* Moving between the two steps keeps the map where it is: the page is
+   redrawn without an entrance, and only the right column (the policy picker
+   or the wallet picker) slides in. */
+function renderPolicy(opts = {}) {
   document.title = "Choose a policy · Lazarus Scan";
   view = "policy";
   paintFlow("policy");
   const ready = presets.filter((p) => p.address);
   stage.className = "stage";
   stage.innerHTML = `
-    <div class="console is-policy">
+    <div class="console is-policy ${opts.swap ? "still swap-right" : ""}">
       <div class="col">
         <div class="step-head">
           <div class="text-eyebrow muted">What it covers</div>
@@ -114,7 +117,7 @@ function renderPolicy() {
   });
   document.getElementById("use-policy").onclick = () => {
     stopRadiusDemo(false);
-    renderConsole(currentAddress || "", "");
+    renderConsole(currentAddress || "", "", true, { swap: true });
     syncUrl(true);
   };
 

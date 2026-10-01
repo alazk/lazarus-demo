@@ -23,17 +23,17 @@ const POLICY_ADDRESS = "0xCC3957c06472f9E599ED2eebA754D5854F23321b";
 const POLICY_OWNER = "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48";
 const RULES = [
   { hops: 1, usd: 0, client: "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
-    label: "Policy 1", name: "1 hop",
-    rule: "Blocks Lazarus addresses and wallets one transfer away." },
+    label: "Policy A", name: "1 hop",
+    rule: "Flags Lazarus addresses and wallets one transfer away." },
   { hops: 2, usd: 0, client: "0x426B922f21bdb1201Cac1470d224B6F9b92630fe",
-    label: "Policy 2", name: "2 hops",
-    rule: "Blocks Lazarus addresses and wallets up to two transfers away." },
+    label: "Policy B", name: "2 hops",
+    rule: "Flags Lazarus addresses and wallets up to two transfers away." },
   { hops: 3, usd: 0, client: "0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8",
-    label: "Policy 3", name: "3 hops",
-    rule: "Blocks Lazarus addresses and wallets up to three transfers away." },
+    label: "Policy C", name: "3 hops",
+    rule: "Flags Lazarus addresses and wallets up to three transfers away." },
 ];
 const ruleNow = () => RULES.find((r) => r.hops === hops && r.usd === usd) || RULES[2];
-/** How a policy is named in headings: "Policy 3 · 3 hops". */
+/** How a policy is named in headings: "Policy C · 3 hops". */
 const ruleTitle = (r) => `${r.label} · ${r.name}`;
 const POLICY_DOCS = "https://docs.newton.xyz/developers/guides/writing-policies";
 const SEPOLIA_ADDR = (a) => "https://sepolia.etherscan.io/address/" + a;
@@ -159,13 +159,12 @@ let presets = [];
 
 /* The intro sets up why, then the two parts on the same rings: the check
    (a policy: its data, the wallet scanner, plus its rule) and enforcement
-   (Newton's operators run the policy and sign the result). The last act
-   says where the limits sit: in the data, not in the protocol. */
+   (Newton's operators run the policy and sign the result). */
 const ACTS = [
   { kicker: "Why this exists", title: "The Lazarus Group",
-    body: "North Korea's state hackers. They have stolen billions in crypto, "
-        + "and Arkham attributes thousands of addresses to them. Paying one of "
-        + "those wallets, or one close to it, is the risk.",
+    body: "North Korea's state hackers. They have stolen billions in crypto "
+        + "and moved it through thousands of addresses. Paying one of those "
+        + "wallets, or one close to it, is the risk.",
     cover: 0, verdict: false,
     note: "Lazarus at the centre. Each ring is one transfer out." },
 
@@ -181,14 +180,8 @@ const ACTS = [
         + "pay, and a quorum signs the result. The signed result can't be "
         + "altered, and anyone can check it on the explorer.",
     cover: 3, verdict: true,
-    note: "Inside a 3-hop policy, so the operators block it." },
+    note: "Inside a 3-hop policy, so it is non-compliant." },
 
-  { kicker: "Good to know", title: "As good as the policy.",
-    body: "Onchain tracing, by any tool, loses the trail at exchanges and "
-        + "struggles with mixers. That is a limit of the data, not of Newton. "
-        + "Give a policy better data and Newton enforces it the same way.",
-    cover: 3, verdict: false,
-    note: "Newton enforces the policy. The policy's data sets what it can see." },
 ];
 
 /* Must match the motion tokens in design/tokens.css.

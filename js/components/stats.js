@@ -9,7 +9,10 @@ function renderStats(r) {
     : "None";
   const value = r.direct_match ? "—"
     : typeof r.exposure_usd === "number" ? money(r.exposure_usd) : "—";
-  const decision = r.decision === "ALLOW" ? "Allowed" : "Blocked";
+  // How much of the wallet's history the policy's data looked at. The
+  // decision itself is the headline, so it is not repeated here.
+  const read = typeof r.counterparties_examined === "number"
+    ? r.counterparties_examined.toLocaleString("en-US") : "—";
 
   // The figure links to its transfer only when that transfer is the one the
   // screening reported. When the smallest sits deeper in the path there is
@@ -27,8 +30,8 @@ function renderStats(r) {
     <div class="stat"><div class="stat-k text-eyebrow">Distance</div>
       <div class="stat-v text-title">${esc(distance)}</div></div>
     <div class="stat"><div class="stat-k text-eyebrow">Smallest transfer</div>${valueCell}</div>
-    <div class="stat"><div class="stat-k text-eyebrow">Decision</div>
-      <div class="stat-v text-title">${esc(decision)}</div></div>
+    <div class="stat"><div class="stat-k text-eyebrow">Counterparties read</div>
+      <div class="stat-v text-title">${esc(read)}</div></div>
   </div>`;
 }
 

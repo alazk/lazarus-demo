@@ -2,7 +2,7 @@
    The policy is already chosen, so the map here only shows what it covers;
    the reader picks a wallet and asks Newton to run the policy on it. The
    radius is changed on the policy step. */
-function renderConsole(prefill = "", error = "", still = false) {
+function renderConsole(prefill = "", error = "", still = false, opts = {}) {
   document.title = "Lazarus Scan · Newton";
   view = "console";
   paintFlow("scan");
@@ -11,7 +11,7 @@ function renderConsole(prefill = "", error = "", still = false) {
   const rule = ruleNow();
   stage.className = "stage";
   stage.innerHTML = `
-    <div class="console ${still ? "still" : ""}">
+    <div class="console ${still ? "still" : ""} ${opts.swap ? "swap-right" : ""}">
       <div class="col">
         <div class="step-head">
           <div class="text-eyebrow muted">Your policy</div>
@@ -53,7 +53,7 @@ function renderConsole(prefill = "", error = "", still = false) {
 
   const input = document.getElementById("addr");
   const run = document.getElementById("run");
-  document.getElementById("change-policy").onclick = () => { if (!inFlight) { renderPolicy(); syncUrl(true); } };
+  document.getElementById("change-policy").onclick = () => { if (!inFlight) { renderPolicy({ swap: true }); syncUrl(true); } };
 
   const selectAddress = (addr, opts = {}) => {
     const a = String(addr || "").toLowerCase();

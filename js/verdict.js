@@ -114,32 +114,31 @@ async function fillVerdict(r, outsideReach) {
   // operators signed that answer, so a reader can disagree with the rule or
   // its data without reading it as the protocol missing something.
   const rule = ruleOf(r);
-  const answer = { listed: "Blocked", exposed: "Blocked", clear: "Allowed", outside: "Allowed" }[key];
+  const answer = { listed: "Non-compliant", exposed: "Non-compliant", clear: "Compliant", outside: "Compliant" }[key];
   const headline = answer || OUTCOME[key].headline;
   let reason;
 
   if (key === "failed") {
     reason = "The wallet's transfers could not be read, so nothing was sent to "
-           + "Newton. The page treats it as blocked, which is not a finding of exposure.";
+           + "Newton. The page treats it as non-compliant, which is not a finding of exposure.";
   } else if (key === "unattested") {
     reason = r.attestation?.status === "NOT_CONFIGURED"
       ? "This is a local result only. It was not sent to Newton."
       : "The wallet was read, but Newton's evaluation did not come back, "
-        + "so the page treats it as blocked.";
+        + "so the page treats it as non-compliant.";
   } else if (key === "outside" && belowFloor(r)) {
-    reason = `Allowed. The smallest transfer on the link is ${money(r.exposure_usd)}, `
+    reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;
   } else if (key === "outside") {
-    reason = `The policy's data puts this wallet ${hopWord(r.hop_count)} from a known Lazarus `
-           + `address. ${rule.label} only blocks within ${hopWord(max)}, so it allows it.`;
+    reason = `The data in the policy you have chosen puts this wallet ${hopWord(r.hop_count)} `
+           + `from a known Lazarus address.`;
   } else if (key === "listed") {
-    reason = `This wallet is on the policy's list of known Lazarus addresses, so ${rule.label} blocks it.`;
+    reason = `The data in the policy you have chosen lists this wallet as a known Lazarus address.`;
   } else if (key === "exposed") {
-    reason = `The policy's data puts this wallet ${hopWord(r.hop_count)} from a known Lazarus `
-           + `address. ${rule.label} blocks anything within ${hopWord(max)}.`;
+    reason = `The data in the policy you have chosen puts this wallet ${hopWord(r.hop_count)} `
+           + `from a known Lazarus address.`;
   } else {
-    reason = `The policy's data found no known Lazarus address within ${hopWord(max)}, `
-           + `so ${rule.label} allows it.`;
+    reason = `The data in the policy you have chosen found no known Lazarus address within ${hopWord(max)}.`;
   }
 
   right.classList.add("swapping");
@@ -169,12 +168,16 @@ async function fillVerdict(r, outsideReach) {
   // Who decided: Newton's operators, under the policy client the check was
   // sent to. Only an attested result has a verdict to attribute.
   const attested = r.attestation?.status === "ATTESTED" && key !== "failed" && key !== "unattested";
+  // The enforcement card closes the result: the answer above is the
+  // policy's, and this says Newton's operators signed that answer.
   const decided = attested
     ? `<div class="decided">
-        <div class="decided-head">${iconSvg("Check", "decided-icon")}<span class="text-ui">Signed by Newton's operators</span>
-          <a class="decided-link text-data" href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener"
-            title="Policy client ${esc(rule.client)}">${esc(short(rule.client))}${iconSvg("ArrowUpRight", "icon")}</a></div>
-        <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this answer.</p>
+        <div class="decided-text">
+          <div class="decided-head"><span class="text-ui">Signed by Newton's operators</span></div>
+          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this answer.</p>
+        </div>
+        ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"
+          target="_blank" rel="noopener"><span>View signed result</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
       </div>`
     : "";
   const head = document.getElementById("result-head");
@@ -194,7 +197,6 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
-      ${decided}
     </div>
     ${r.status === "SCREENING_FAILED" ? "" : renderStats(r)}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
@@ -202,9 +204,7 @@ async function fillVerdict(r, outsideReach) {
   requestAnimationFrame(() => right.classList.remove("swapping"));
 
   actions.innerHTML = `
-    <span class="line"></span>
-    ${r.explorer_url ? `<a class="btn btn-primary btn-md" href="${esc(r.explorer_url)}"
-       target="_blank" rel="noopener"><span>View signed result</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
+    ${decided}
     <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
   actions.dataset.state = "ready";
   // Back to the console without an entrance, so the map does not jump.
