@@ -409,3 +409,11 @@ a.decided-task{ color:var(--color-text-tertiary); text-decoration:underline; tex
 @media (hover:hover){ a.decided-task:hover{ color:var(--color-text); text-decoration-color:currentColor; } }
 /* Failure states: Try again reruns the same wallet under the same policy. */
 .card-result .actions > #retry{ width:100%; }
+
+/* Policy D: the scanner reads all three hops but the rule blocks nothing, so
+   until a result is in, the reach is yellow with dashed rings. */
+.cov-svg[data-allow-all]:not(:has(.cband[data-state])) .cov-disc{ fill:var(--tone-caution-wash); }
+.cov-svg[data-allow-all]:not(:has(.cband[data-state])) .cov-ring[data-reach]{
+  stroke:var(--tone-caution-edge); stroke-dasharray:4 4; opacity:1;
+}
+.cov-svg[data-allow-all]:not(:has(.cband[data-state])) .cov-core{ stroke:var(--tone-caution-edge); stroke-dasharray:4 4; }

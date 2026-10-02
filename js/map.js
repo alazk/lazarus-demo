@@ -12,8 +12,9 @@ let pickAddr = "";
 
 const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
 const isCovered = (d) => hops > 0 && d !== null && d !== undefined && d !== "" && Number(d) <= hops;
-/** Radius 0 is the allow-all policy: no disc at all. */
-const discR = (n) => (n === 0 ? 0 : COV_R[n]);
+/** Radius 0 is the allow-all policy. The scanner still reads three hops, so
+ *  the disc covers all three, drawn in caution colours by the stylesheet. */
+const discR = (n) => (n === 0 ? COV_R[3] : COV_R[n]);
 /** The reach in words, for captions and the slider's value text. */
 const reachWord = (n) => (n === 0 ? "every wallet allowed" : hopWord(n));
 /** The line under the map: the reach, any value floor, and how many of the
