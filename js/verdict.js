@@ -204,10 +204,7 @@ async function fillVerdict(r, outsideReach) {
   const decided = attested
     ? `<div class="decided">
         <div class="decided-text">
-          <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span>
-            ${r.attestation?.task_id ? (r.explorer_url
-              ? `<a class="decided-task text-data" href="${esc(r.explorer_url)}" target="_blank" rel="noopener" aria-label="Task ${esc(r.attestation.task_id)} on Newton Explorer">Task ${esc(short(r.attestation.task_id))}</a>`
-              : `<span class="decided-task text-data">Task ${esc(short(r.attestation.task_id))}</span>`) : ""}</div>
+          <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span></div>
           <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation.</p>
         </div>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"

@@ -23,7 +23,9 @@ function scanMapController() {
       const disc = document.getElementById("cov-disc");
       if (disc) {
         if (motionReduced()) disc.setAttribute("r", r);
-        else tweenAttr(disc, "r", r, MOTION.frontStep, easeNewton);
+        // The reach keeps moving through the pause, so the walk reads as one
+        // continuous sweep rather than a stop at every ring.
+        else tweenAttr(disc, "r", r, MOTION.frontStep + MOTION.stepGap, easeInOutSine);
       }
       if (pulse) pulse.setAttribute("display", "none");
       const st = status(); if (st) st.textContent = words[n] || "";

@@ -84,7 +84,6 @@ The audit found three groups of problems: on phones the result sat below the fol
 | F5 | Try again on the failure states | [16](assets/16-result-failed.png); clicking it reran the check |
 | F8 | Phones scroll the result into view | [10-m](assets/10-result-3hop-m.png); result heading lands 121px from the top |
 | F9 | Phone policy button no longer covers the list | [05-m](assets/05-policy-default-m.png) re-captured |
-| QW5 | Task ID on the signed card links to the explorer | [10](assets/10-result-3hop.png) |
 | Follow-up | The path in its own panel; Arkham as a source line under it; hovering the Lazarus stop lights the map's centre; the signed card is one sentence | [10](assets/10-result-3hop.png), [11](assets/11-result-hover.png), [12](assets/12-result-listed.png) |
 
 After the fixes: every result state still fits 1024×600 and 1440×900 without scrolling, and the UI kit reports no missing fixtures or stories.

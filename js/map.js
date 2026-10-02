@@ -52,6 +52,8 @@ function motionReduced() {
 /* cubic-bezier(0.22, 1, 0.36, 1). Must match --ease-newton. */
 /* Small overshoot, so a change of reach springs out or pulls in. */
 const easeBack = (t) => { const c1 = 1, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+/* Gentle at both ends, for motion that hands over to the next step. */
+const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
 function easeNewton(t) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;

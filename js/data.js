@@ -212,8 +212,8 @@ const ACTS = [
    --duration-interaction 300, emphasis ×2, beat ×4, cycle ×12.
    Map timings must match the Map block: pulseCycle = cycle,
    pulseGap = beat (cycle / 3), flash = emphasis,
-   burst = interaction × 2, pickPulse = beat. frontStep and stepGap pace the
-   walk after the answer arrives and are kept short on purpose. */
+   burst = interaction × 2, pickPulse = beat. frontStep = emphasis and
+   stepGap = interaction pace the walk after the answer arrives. */
 const MOTION = Object.freeze({
   interaction: 300,
   emphasis: 600,
@@ -221,8 +221,8 @@ const MOTION = Object.freeze({
   cycle: 3600,
   pulseCycle: 3600,
   pulseGap: 1200,
-  frontStep: 300,     // one ring of the walk after the answer arrives
-  stepGap: 120,       // the pause between rings
+  frontStep: 600,     // one ring of the walk after the answer arrives
+  stepGap: 300,       // the pause between rings
   flash: 600,
   burst: 600,
   pickPulse: 1200,
