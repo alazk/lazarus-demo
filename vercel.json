@@ -69,6 +69,11 @@
       "source": "/.arkham_cache/:path*",
       "destination": "/not-found",
       "permanent": false
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "/not-found",
+      "permanent": false
     }
   ]
 }

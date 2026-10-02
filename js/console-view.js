@@ -165,7 +165,18 @@ function renderConsole(prefill = "", error = "", still = false, opts = {}) {
     });
     sync();
   };
-  input.onkeydown = (e) => { if (e.key === "Enter" && !run.disabled) run.click(); };
+  // A typed address that cannot be one says so, instead of only greying the button.
+  const explain = () => {
+    const v = String(input.value ?? "").trim();
+    if (!v || valid(v)) return;
+    input.classList.add("invalid");
+    document.getElementById("err").textContent = "That is not a 42-character Ethereum address. It starts with 0x.";
+  };
+  input.onblur = explain;
+  input.onkeydown = (e) => {
+    if (e.key !== "Enter") return;
+    if (run.disabled) explain(); else run.click();
+  };
   run.onclick = () => submit(String(input.value ?? "").trim());
   placePick(prefill);
   sync();

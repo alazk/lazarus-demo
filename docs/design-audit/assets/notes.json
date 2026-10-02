@@ -1,0 +1,480 @@
+{
+ "01-intro-why": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "The Lazarus Group",
+   "Check a wallet before you pay it.",
+   "A policy decides what to check.",
+   "Newton enforces it."
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Start with a policy",
+   "Next"
+  ],
+  "copy": "WHY THIS EXISTS\nThe Lazarus Group\nNorth Korea's state hackers. They have stolen billions in crypto and moved it through thousands of addresses. Paying one of those wallets, or one close to it, is the risk.\nStart with a policy\nNext\nLazarus\n1 hop\n2 hops\n3 hops\nW\nWallet you pay\nLazarus at the centre. Each ring is one transfer out.",
+  "overflow": 0
+ },
+ "02-intro-demo": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "The Lazarus Group",
+   "Check a wallet before you pay it.",
+   "A policy decides what to check.",
+   "Newton enforces it."
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Start with a policy",
+   "Next"
+  ],
+  "copy": "WHAT THIS DEMO DOES\nCheck a wallet before you pay it.\nChoose a policy, pick a wallet and run the check. The policy looks for a path from the wallet to a known Lazarus address, and Newton Protocol operators sign the result as an attestation anyone can check.\nStart with a policy\nNext\nLazarus\n1 hop\n2 hops\n3 hops\nW\nWallet you pay\nThe wallet you pay sits somewhere on these rings.",
+  "overflow": 0
+ },
+ "03-intro-policy": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "The Lazarus Group",
+   "Check a wallet before you pay it.",
+   "A policy decides what to check.",
+   "Newton enforces it."
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Start with a policy",
+   "Next"
+  ],
+  "copy": "PART 1 · THE CHECK\nA policy decides what to check.\nA policy is a rule plus the data it reads. Here the data is a wallet scanner built on a list of known Lazarus addresses, and the rule is how many hops count. Anyone can write a policy, with any data source.\nStart with a policy\nNext\nLazarus\n1 hop\n2 hops\n3 hops\nW\nWallet you pay\nThis policy covers 2 hops. The wallet at 3 is outside it.",
+  "overflow": 0
+ },
+ "04-intro-enforcement": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "The Lazarus Group",
+   "Check a wallet before you pay it.",
+   "A policy decides what to check.",
+   "Newton enforces it."
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Start with a policy",
+   "Next"
+  ],
+  "copy": "PART 2 · ENFORCEMENT\nNewton enforces it.\nNewton Protocol operators run the policy on the wallet you are about to pay, and a quorum signs the result. The signed result can't be altered, and anyone can check it on the explorer.\nStart with a policy\nNext\nLazarus\n1 hop\n2 hops\n3 hops\nW\nWallet you pay\nInside a 3-hop policy, so it is non-compliant.",
+  "overflow": 0
+ },
+ "05-policy-default": {
+  "title": "Choose a policy · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "Choose the policy"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "1 Choose the policy",
+   "2 Policy enforcement",
+   "Policy A 1 hop Flags Lazarus addresses and wallets one transfer away.",
+   "Policy B 2 hops Flags Lazarus addresses and wallets up to two transfers away.",
+   "Policy C 3 hops Flags Lazarus addresses and wallets up to three transfers away.",
+   "Policy D Allow all Allows every wallet, including known Lazarus addresses.",
+   "Use this policy"
+  ],
+  "copy": "WHAT IT COVERS\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 3 hops out · 4 of 5 example wallets covered\nTHE CHECK\nChoose the policy\nPolicy A\n1 hop\nFlags Lazarus addresses and wallets one transfer away.\nPolicy B\n2 hops\nFlags Lazarus addresses and wallets up to two transfers away.\nPolicy C\n3 hops\nFlags Lazarus addresses and wallets up to three transfers away.\nPolicy D\nAllow all\nAllows every wallet, including known Lazarus addresses.\nA wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. How to write one\nEvery policy is a contract on Sepolia, so anyone can see which rule it runs. View Policy C on Etherscan\nUse this policy",
+  "overflow": 0
+ },
+ "06-policy-d": {
+  "title": "Choose a policy · Lazarus Scan",
+  "headings": [
+   "Policy D · Allow all",
+   "Choose the policy"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "1 Choose the policy",
+   "2 Policy enforcement",
+   "Policy A 1 hop Flags Lazarus addresses and wallets one transfer away.",
+   "Policy B 2 hops Flags Lazarus addresses and wallets up to two transfers away.",
+   "Policy C 3 hops Flags Lazarus addresses and wallets up to three transfers away.",
+   "Policy D Allow all Allows every wallet, including known Lazarus addresses.",
+   "Use this policy"
+  ],
+  "copy": "WHAT IT COVERS\nPolicy D · Allow all\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nAllows every wallet · 0 of 5 example wallets covered\nTHE CHECK\nChoose the policy\nPolicy A\n1 hop\nFlags Lazarus addresses and wallets one transfer away.\nPolicy B\n2 hops\nFlags Lazarus addresses and wallets up to two transfers away.\nPolicy C\n3 hops\nFlags Lazarus addresses and wallets up to three transfers away.\nPolicy D\nAllow all\nAllows every wallet, including known Lazarus addresses.\nA wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. How to write one\nEvery policy is a contract on Sepolia, so anyone can see which rule it runs. View Policy D on Etherscan\nUse this policy",
+  "overflow": 0
+ },
+ "07-wallet": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "Policy C · 3 hops",
+   "Pick the wallet you are about to pay"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "Change",
+   "A Lazarus Group address North Korea · on the list · covered 0x0004…a0be",
+   "B Direct counterparty 1 hop from Lazarus · covered 0x0a3b…8995",
+   "C Second-degree contact 2 hops from Lazarus · covered 0x0011…3c9d",
+   "D Third-degree contact 3 hops from Lazarus · covered 0x1fc2…8bdf",
+   "E Clean wallet No known link to the list 0x0000…05fa",
+   "Paste any address",
+   "Run the check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nChange\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 3 hops out · 4 of 5 example wallets covered\nHOW NEWTON ENFORCES IT\nPick the wallet you are about to pay\nNewton Protocol operators run your policy on this wallet, and a quorum signs the result.\nExample wallets\nA\nLazarus Group address\nNorth Korea · on the list · covered\n0x0004…a0be\nB\nDirect counterparty\n1 hop from Lazarus · covered\n0x0a3b…8995\nC\nSecond-degree contact\n2 hops from Lazarus · covered\n0x0011…3c9d\nD\nThird-degree contact\n3 hops from Lazarus · covered\n0x1fc2…8bdf\nE\nClean wallet\nNo known link to the list\n0x0000…05fa\nPaste any address\nRun the check",
+  "overflow": 0
+ },
+ "08-invalid-address": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "Policy C · 3 hops",
+   "Pick the wallet you are about to pay"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "Change",
+   "A Lazarus Group address North Korea · on the list · covered 0x0004…a0be",
+   "B Direct counterparty 1 hop from Lazarus · covered 0x0a3b…8995",
+   "C Second-degree contact 2 hops from Lazarus · covered 0x0011…3c9d",
+   "D Third-degree contact 3 hops from Lazarus · covered 0x1fc2…8bdf",
+   "E Clean wallet No known link to the list 0x0000…05fa",
+   "Run the check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nChange\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 3 hops out · 4 of 5 example wallets covered\nHOW NEWTON ENFORCES IT\nPick the wallet you are about to pay\nNewton Protocol operators run your policy on this wallet, and a quorum signs the result.\nExample wallets\nA\nLazarus Group address\nNorth Korea · on the list · covered\n0x0004…a0be\nB\nDirect counterparty\n1 hop from Lazarus · covered\n0x0a3b…8995\nC\nSecond-degree contact\n2 hops from Lazarus · covered\n0x0011…3c9d\nD\nThird-degree contact\n3 hops from Lazarus · covered\n0x1fc2…8bdf\nE\nClean wallet\nNo known link to the list\n0x0000…05fa\nPaste any Ethereum address\nThat is not a 42-character Ethereum address. It starts with 0x.\nRun the check",
+  "overflow": 0
+ },
+ "09-checking": {
+  "title": "Checking… · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "Evaluating",
+   "Checking"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nReading this wallet's linked wallets…\nHOW NEWTON ENFORCES IT\nEvaluating\nChecking\nNewton Protocol operators are evaluating this wallet against your policy.\n0x1fc2e37e99ae7ac11353f183d7bfbb8105148bdf\nWHAT THE POLICY FOUND\nWallet\n1 hop\n2 hops\n3 hops",
+  "overflow": 0
+ },
+ "10-result-3hop": {
+  "title": "Non-compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x1fc2…8bdf",
+   "Non-compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nFound 3 hops out · inside Policy C\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x1fc2…8bdf\nPOLICY C EVALUATION RESULT\nNon-compliant\nNewton Protocol operators have evaluated the policy, and its data puts this wallet 3 hops from a known Lazarus address.\nTHE PATH ON ETHERSCAN\n$5.9m\n0x1fc2…8bdf\nThis wallet\n$1.2m\n0x7a2f…091c\n2 hops\n$1.2m\n0x5be1…4d07\n1 hop\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "11-result-hover": {
+  "title": "Non-compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x1fc2…8bdf",
+   "Non-compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\n0x5be1…4d07\n1 hop\nFound 3 hops out · inside Policy C\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x1fc2…8bdf\nPOLICY C EVALUATION RESULT\nNon-compliant\nNewton Protocol operators have evaluated the policy, and its data puts this wallet 3 hops from a known Lazarus address.\nTHE PATH ON ETHERSCAN\n$5.9m\n0x1fc2…8bdf\nThis wallet\n$1.2m\n0x7a2f…091c\n2 hops\n$1.2m\n0x5be1…4d07\n1 hop\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nWHAT THE POLICY FOUND\nWallet\nclear\n1 hop\nclear\n2 hops\nclear\n3 hops\nexposed\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "12-result-listed": {
+  "title": "Non-compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0004…a0be",
+   "Non-compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nThis wallet is on the list itself\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0004…a0be\nPOLICY C EVALUATION RESULT\nNon-compliant\nNewton Protocol operators have evaluated the policy, and its data lists this wallet as a known Lazarus address.\nCHECK IT ON ETHERSCAN\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "13-result-clean": {
+  "title": "Compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0000…05fa",
+   "Compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nNo link found inside Policy C\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0000…05fa\nPOLICY C EVALUATION RESULT\nCompliant\nNewton Protocol operators have evaluated the policy, and its data found no known Lazarus address within 3 hops.\nWHAT THE POLICY FOUND\nWallet\nclear\n1 hop\nclear\n2 hops\nclear\n3 hops\nclear\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "14-result-outside": {
+  "title": "Compliant · Lazarus Scan",
+  "headings": [
+   "Policy A · 1 hop",
+   "0x1fc2…8bdf",
+   "Compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy A · 1 hop\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nFound 3 hops out · outside Policy A\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x1fc2…8bdf\nPOLICY A EVALUATION RESULT\nCompliant\nNewton Protocol operators have evaluated the policy, and its data puts this wallet 3 hops from a known Lazarus address.\nTHE PATH ON ETHERSCAN\n$5.9m\n0x1fc2…8bdf\nThis wallet\n$1.2m\n0x7a2f…091c\n2 hops\n$1.2m\n0x5be1…4d07\n1 hop\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nWHAT THE POLICY FOUND\nWallet\nclear\n1 hop\nclear\n2 hops\noutside\n3 hops\noutside\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy A on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "15-result-allowed": {
+  "title": "Compliant · Lazarus Scan",
+  "headings": [
+   "Policy D · Allow all",
+   "0x0004…a0be",
+   "Compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy D · Allow all\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nThis wallet is on the list itself · Policy D allows it\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0004…a0be\nPOLICY D EVALUATION RESULT\nCompliant\nPolicy D allows every wallet, so Newton Protocol operators signed it as compliant. The scanner still lists this wallet as a known Lazarus address.\nCHECK IT ON ETHERSCAN\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy D on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 0
+ },
+ "16-result-failed": {
+  "title": "Screening failed · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0a3b…8995",
+   "Screening failed"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nNot screened\nPOLICY ENFORCEMENT\n0x0a3b…8995\nScreening failed\nThe wallet's transfers could not be read, so nothing was sent to Newton. The page treats it as non-compliant, which is not a finding of exposure.\nWHAT THE POLICY FOUND\nWallet\nnot checked\n1 hop\nnot checked\n2 hops\nnot checked\n3 hops\nnot checked\nNew check",
+  "overflow": 0
+ },
+ "17-result-unattested": {
+  "title": "Not attested · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0a3b…8995",
+   "Not attested"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nFound 1 hop out · inside Policy C\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0a3b…8995\nNot attested\nThe wallet was read, but no evaluation came back from the Newton Protocol operators, so the page treats it as non-compliant.\nTHE PATH ON ETHERSCAN\n$90k\n0x0a3b…8995\nThis wallet\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nNew check",
+  "overflow": 0
+ },
+ "18-result-504": {
+  "title": "Screening failed · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0a3b…8995",
+   "Screening failed"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nNot screened\nPOLICY ENFORCEMENT\n0x0a3b…8995\nScreening failed\nThe wallet's transfers could not be read, so nothing was sent to Newton. The page treats it as non-compliant, which is not a finding of exposure.\nWHAT THE POLICY FOUND\nWallet\nnot checked\n1 hop\nnot checked\n2 hops\nnot checked\n3 hops\nnot checked\nNew check",
+  "overflow": 0,
+  "errors": [
+   "console: Failed to load resource: the server responded with a status of 504 (Gateway Timeout)"
+  ]
+ },
+ "19-not-deployed": {
+  "title": "Not deployed yet · Lazarus Scan",
+  "headings": [
+   "Policy D · Allow all",
+   "0x0004…a0be",
+   "Not deployed yet"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy D · Allow all\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nNot screened\nPOLICY ENFORCEMENT\n0x0004…a0be\nNot deployed yet\nPolicy D has no contract on Sepolia yet, so there was nothing to send to Newton. Nothing was checked.\nWHAT THE SCANNER FOUND\nWallet\nnot checked\n1 hop\nnot checked\n2 hops\nnot checked\n3 hops\nnot checked\nNew check",
+  "overflow": 0,
+  "errors": [
+   "console: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+  ]
+ },
+ "20-deep-link": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "Policy B · 2 hops",
+   "Pick the wallet you are about to pay"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "Change",
+   "A Lazarus Group address North Korea · on the list · covered 0x0004…a0be",
+   "B Direct counterparty 1 hop from Lazarus · covered 0x0a3b…8995",
+   "C Second-degree contact 2 hops from Lazarus · covered 0x0011…3c9d",
+   "D Third-degree contact 3 hops from Lazarus · not covered 0x1fc2…8bdf",
+   "E Clean wallet No known link to the list 0x0000…05fa",
+   "Paste any address",
+   "Run the check"
+  ],
+  "copy": "YOUR POLICY\nPolicy B · 2 hops\nChange\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 2 hops out · 3 of 5 example wallets covered\nHOW NEWTON ENFORCES IT\nPick the wallet you are about to pay\nNewton Protocol operators run your policy on this wallet, and a quorum signs the result.\nExample wallets\nA\nLazarus Group address\nNorth Korea · on the list · covered\n0x0004…a0be\nB\nDirect counterparty\n1 hop from Lazarus · covered\n0x0a3b…8995\nC\nSecond-degree contact\n2 hops from Lazarus · covered\n0x0011…3c9d\nD\nThird-degree contact\n3 hops from Lazarus · not covered\n0x1fc2…8bdf\nE\nClean wallet\nNo known link to the list\n0x0000…05fa\nPaste any address\nRun the check",
+  "overflow": 0
+ },
+ "01-intro-why-m": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "The Lazarus Group",
+   "Check a wallet before you pay it.",
+   "A policy decides what to check.",
+   "Newton enforces it."
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Start with a policy",
+   "Next"
+  ],
+  "copy": "WHY THIS EXISTS\nThe Lazarus Group\nNorth Korea's state hackers. They have stolen billions in crypto and moved it through thousands of addresses. Paying one of those wallets, or one close to it, is the risk.\nStart with a policy\nNext\nLazarus\n1 hop\n2 hops\n3 hops\nW\nWallet you pay\nLazarus at the centre. Each ring is one transfer out.",
+  "overflow": 94
+ },
+ "05-policy-default-m": {
+  "title": "Choose a policy · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "Choose the policy"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "1 Choose the policy",
+   "2 Policy enforcement",
+   "Policy A 1 hop Flags Lazarus addresses and wallets one transfer away.",
+   "Policy B 2 hops Flags Lazarus addresses and wallets up to two transfers away.",
+   "Policy C 3 hops Flags Lazarus addresses and wallets up to three transfers away.",
+   "Policy D Allow all Allows every wallet, including known Lazarus addresses.",
+   "Use this policy"
+  ],
+  "copy": "WHAT IT COVERS\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 3 hops out · 4 of 5 example wallets covered\nTHE CHECK\nChoose the policy\nPolicy A\n1 hop\nFlags Lazarus addresses and wallets one transfer away.\nPolicy B\n2 hops\nFlags Lazarus addresses and wallets up to two transfers away.\nPolicy C\n3 hops\nFlags Lazarus addresses and wallets up to three transfers away.\nPolicy D\nAllow all\nAllows every wallet, including known Lazarus addresses.\nA wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. How to write one\nEvery policy is a contract on Sepolia, so anyone can see which rule it runs. View Policy C on Etherscan\nUse this policy",
+  "overflow": 514
+ },
+ "07-wallet-m": {
+  "title": "Lazarus Scan · Newton",
+  "headings": [
+   "Policy C · 3 hops",
+   "Pick the wallet you are about to pay"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "Change",
+   "Paste address",
+   "A Lazarus Group address North Korea · on the list · covered 0x0004…a0be",
+   "B Direct counterparty 1 hop from Lazarus · covered 0x0a3b…8995",
+   "C Second-degree contact 2 hops from Lazarus · covered 0x0011…3c9d",
+   "D Third-degree contact 3 hops from Lazarus · covered 0x1fc2…8bdf",
+   "E Clean wallet No known link to the list 0x0000…05fa",
+   "Run the check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nChange\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nScreening 3 hops out · 4 of 5 example wallets covered\nHOW NEWTON ENFORCES IT\nPick the wallet you are about to pay\nNewton Protocol operators run your policy on this wallet, and a quorum signs the result.\nTry a wallet Paste address\nA\nLazarus Group address\nNorth Korea · on the list · covered\n0x0004…a0be\nB\nDirect counterparty\n1 hop from Lazarus · covered\n0x0a3b…8995\nC\nSecond-degree contact\n2 hops from Lazarus · covered\n0x0011…3c9d\nD\nThird-degree contact\n3 hops from Lazarus · covered\n0x1fc2…8bdf\nE\nClean wallet\nNo known link to the list\n0x0000…05fa\nRun the check",
+  "overflow": 481
+ },
+ "10-result-3hop-m": {
+  "title": "Non-compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x1fc2…8bdf",
+   "Non-compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nFound 3 hops out · inside Policy C\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x1fc2…8bdf\nPOLICY C EVALUATION RESULT\nNon-compliant\nNewton Protocol operators have evaluated the policy, and its data puts this wallet 3 hops from a known Lazarus address.\nTHE PATH ON ETHERSCAN\n$5.9m\n0x1fc2…8bdf\nThis wallet\n$1.2m\n0x7a2f…091c\n2 hops\n$1.2m\n0x5be1…4d07\n1 hop\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 444
+ },
+ "12-result-listed-m": {
+  "title": "Non-compliant · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0004…a0be",
+   "Non-compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nThis wallet is on the list itself\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0004…a0be\nPOLICY C EVALUATION RESULT\nNon-compliant\nNewton Protocol operators have evaluated the policy, and its data lists this wallet as a known Lazarus address.\nCHECK IT ON ETHERSCAN\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy C on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 375
+ },
+ "15-result-allowed-m": {
+  "title": "Compliant · Lazarus Scan",
+  "headings": [
+   "Policy D · Allow all",
+   "0x0004…a0be",
+   "Compliant"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "View the attestation on Newton Explorer",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy D · Allow all\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nThis wallet is on the list itself · Policy D allows it\n87 linked wallets read\nPOLICY ENFORCEMENT\n0x0004…a0be\nPOLICY D EVALUATION RESULT\nCompliant\nPolicy D allows every wallet, so Newton Protocol operators signed it as compliant. The scanner still lists this wallet as a known Lazarus address.\nCHECK IT ON ETHERSCAN\n0x0004…a0be\nLazarus\nLabeled by Arkham ↗\nWHAT THE SCANNER FOUND\nWallet\nlisted\n1 hop\n2 hops\n3 hops\nSigned by Newton Protocol operators\nTask 0xabfd…928a\nThe operator quorum ran Policy D on this wallet and signed this attestation. It is public, so anyone can check it.\nView the attestation on Newton Explorer\nNew check",
+  "overflow": 647
+ },
+ "16-result-failed-m": {
+  "title": "Screening failed · Lazarus Scan",
+  "headings": [
+   "Policy C · 3 hops",
+   "0x0a3b…8995",
+   "Screening failed"
+  ],
+  "buttons": [
+   "Lazarus Scan",
+   "Choose the policy",
+   "2 Policy enforcement",
+   "New check"
+  ],
+  "copy": "YOUR POLICY\nPolicy C · 3 hops\nLazarus\n1 hop\n2 hops\n3 hops\nA\nB\nC\nD\nE\nNot screened\nPOLICY ENFORCEMENT\n0x0a3b…8995\nScreening failed\nThe wallet's transfers could not be read, so nothing was sent to Newton. The page treats it as non-compliant, which is not a finding of exposure.\nWHAT THE POLICY FOUND\nWallet\nnot checked\n1 hop\nnot checked\n2 hops\nnot checked\n3 hops\nnot checked\nNew check",
+  "overflow": 304
+ }
+}

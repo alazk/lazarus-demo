@@ -339,9 +339,13 @@ a.rail-edge, .rail-addr, .rail-src{ text-decoration:underline; text-decoration-c
   a.rail-edge:hover, .rail-addr:hover, .rail-src:hover{ color:var(--color-text); text-decoration-color:currentColor; }
 }
 .rail a:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; border-radius:2px; }
-/* Short laptops: the path replaces the scan steps, which say less. */
+/* Once a path is shown it says everything the scan steps said, with the
+   addresses, so the steps step aside at every size. */
+.card-result:has(.path) .trail{ display:none; }
+/* A listed wallet is one stop: dot, address, label and source on one line. */
+.rail.is-single .rail-stop{ flex-direction:row; align-items:center; flex-wrap:wrap; gap:var(--space-tight) var(--space-inline); }
+.rail.is-single .rail-dot{ margin:0; }
 @media (min-width: 1024px) and (max-height: 760px){
-  .card-result:has(.path) .trail{ display:none; }
   .path{ margin-top:var(--space-snug); gap:var(--space-tight); }
   .rail-stop{ padding-top:17px; }
   .rail-stop:not(:last-child)::after{ top:22px; }
