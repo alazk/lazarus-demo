@@ -101,9 +101,11 @@ function drawPath(r, key) {
       x1: fx(points[i][0]), y1: fx(points[i][1]), x2: fx(points[i + 1][0]), y2: fx(points[i + 1][1]) });
     s.style.animationDelay = `${i * 160}ms`;
   }
-  // A halo behind every stop, shown only while that stop is highlighted.
-  points.forEach((p, i) => el("circle", { class: `trace-halo tone-${tone}`, "data-node": i,
-    cx: fx(p[0]), cy: fx(p[1]), r: "12" }));
+  // A halo behind every stop but the last, shown while that stop is
+  // highlighted. The last stop is the Lazarus address: the core lights up.
+  const last = points.length - 1;
+  points.forEach((p, i) => { if (i !== last) el("circle", { class: `trace-halo tone-${tone}`, "data-node": i,
+    cx: fx(p[0]), cy: fx(p[1]), r: "12" }); });
   // The wallets between this one and Lazarus.
   points.slice(1, -1).forEach((p, k) => {
     const c = el("circle", { class: `trace-node tone-${tone}`, "data-node": k + 1, cx: fx(p[0]), cy: fx(p[1]), r: "5" });
@@ -116,9 +118,11 @@ function drawPath(r, key) {
     el("line", { class: "trace-hit-seg", "data-seg": i,
       x1: fx(points[i][0]), y1: fx(points[i][1]), x2: fx(points[i + 1][0]), y2: fx(points[i + 1][1]) }, hits);
   }
-  points.forEach((p, i) => el("circle", { class: "trace-hit", "data-node": i, cx: fx(p[0]), cy: fx(p[1]), r: "13" }, hits));
+  points.forEach((p, i) => { if (i !== last) el("circle", { class: "trace-hit", "data-node": i, cx: fx(p[0]), cy: fx(p[1]), r: "13" }, hits); });
+  // The whole core is the Lazarus stop's target, so it sits under the others.
+  hits.insertBefore(el("circle", { class: "trace-hit", "data-node": last, cx: COV_C, cy: COV_C, r: COV_R[0] }, hits), hits.firstChild);
 
-  tracePath = { path, hops: pathHops(r), roles: pathRoles(path), points };
+  tracePath = { path, hops: pathHops(r), roles: pathRoles(path), points, tone };
 }
 
 /** The rail under the result: every wallet and transfer, linked to Etherscan. */
@@ -138,24 +142,23 @@ function renderPath(r, key) {
     const amount = h && typeof h.usd === "number" ? money(h.usd) : i < last ? "transfer" : "";
     const edge = i >= last ? ""
       : h?.tx ? `<a class="rail-edge" data-seg="${i}" href="${tx(h.tx)}" target="_blank" rel="noopener"
-          title="This transfer on Etherscan">${esc(amount)}</a>`
+          aria-label="${esc(amount)} transfer on Etherscan">${esc(amount)}</a>`
       : `<span class="rail-edge" data-seg="${i}">${esc(amount)}</span>`;
-    const src = i === last
-      ? `<a class="rail-src" href="https://intel.arkm.com/explorer/address/${esc(a)}" target="_blank" rel="noopener"
-          title="This address labeled Lazarus Group on Arkham">Labeled by Arkham ↗</a>` : "";
     return `<li class="rail-stop${i === last ? " is-lazarus" : ""}" data-node="${i}">
       ${edge}
       <span class="rail-dot" aria-hidden="true"></span>
-      <a class="rail-addr" href="${addr(a)}" target="_blank" rel="noopener" title="${esc(a)} on Etherscan">${esc(short(a))}</a>
+      <a class="rail-addr" href="${addr(a)}" target="_blank" rel="noopener" aria-label="${esc(a)} on Etherscan">${esc(short(a))}</a>
       <span class="rail-role">${esc(roles[i])}</span>
-      ${src}
     </li>`;
   }).join("");
 
-  return `<div class="path">
-    <div class="text-eyebrow muted">${listed ? "Check it on Etherscan" : "The path on Etherscan"}</div>
-    <ol class="rail tone-${tone}${listed ? " is-single" : ""}" style="--n:${path.length}" aria-label="Path from this wallet to the Lazarus address">${stops}</ol>
-  </div>`;
+  const lazarus = path[last];
+  return `<section class="path" aria-label="${listed ? "This wallet" : "The path"}">
+    <div class="text-eyebrow muted">${listed ? "This wallet" : "The path"}</div>
+    <ol class="rail tone-${tone}${listed ? " is-single" : ""}" style="--n:${path.length}">${stops}</ol>
+    <p class="path-src">${listed ? "Opens on Etherscan" : "Each step opens on Etherscan"} · Lazarus label from
+      <a href="https://intel.arkm.com/explorer/address/${esc(lazarus)}" target="_blank" rel="noopener">Arkham ↗</a></p>
+  </section>`;
 }
 
 /* ── Linking the map and the rail ─────────────────────────────── */
@@ -191,6 +194,7 @@ function placeTip(x, y, html) {
 function clearHot() {
   document.querySelectorAll(".rail .is-hot, #cov-trace .is-hot").forEach((e) => e.classList.remove("is-hot"));
   document.querySelectorAll(".rail .is-hot-edge").forEach((e) => e.classList.remove("is-hot-edge"));
+  document.querySelector("#cov-svg .cov-core")?.classList.remove("is-hot", "hot-block", "hot-caution");
   document.querySelector(".cov .trace-tip")?.classList.remove("is-on");
 }
 
@@ -202,8 +206,12 @@ function setHot(kind, i) {
   if (kind === "node") {
     document.querySelectorAll(`#cov-trace [data-node="${i}"], .rail-stop[data-node="${i}"]`)
       .forEach((e) => e.classList.add("is-hot"));
-    const p = points[i];
-    if (p) placeTip(p[0], p[1], `<span class="tip-addr">${esc(short(path[i]))}</span><span class="tip-role">${esc(roles[i])}</span>`);
+    const tip = `<span class="tip-addr">${esc(short(path[i]))}</span><span class="tip-role">${esc(roles[i])}</span>`;
+    if (i === points.length - 1) {
+      const core = document.querySelector("#cov-svg .cov-core");
+      if (core) core.classList.add("is-hot", `hot-${tracePath.tone}`);
+      placeTip(COV_C, COV_C - COV_R[0], tip);
+    } else if (points[i]) placeTip(points[i][0], points[i][1], tip);
   } else {
     document.querySelectorAll(`#cov-trace .trace-seg[data-seg="${i}"], .rail-edge[data-seg="${i}"]`)
       .forEach((e) => e.classList.add("is-hot"));
@@ -218,7 +226,7 @@ function setHot(kind, i) {
 
 /** Wire hover, focus and tap once the rail is on the page. */
 function bindPath() {
-  const rail = document.querySelector(".card-result .rail");
+  const rail = document.querySelector(".card-result .path");
   const hits = document.getElementById("cov-trace-hits");
   if (!tracePath) return;
   let pinned = null;

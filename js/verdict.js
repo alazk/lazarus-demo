@@ -205,8 +205,10 @@ async function fillVerdict(r, outsideReach) {
     ? `<div class="decided">
         <div class="decided-text">
           <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span>
-            ${r.attestation?.task_id ? `<span class="decided-task text-data" title="${esc(r.attestation.task_id)}">Task ${esc(short(r.attestation.task_id))}</span>` : ""}</div>
-          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation. It is public, so anyone can check it.</p>
+            ${r.attestation?.task_id ? (r.explorer_url
+              ? `<a class="decided-task text-data" href="${esc(r.explorer_url)}" target="_blank" rel="noopener" aria-label="Task ${esc(r.attestation.task_id)} on Newton Explorer">Task ${esc(short(r.attestation.task_id))}</a>`
+              : `<span class="decided-task text-data">Task ${esc(short(r.attestation.task_id))}</span>`) : ""}</div>
+          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation.</p>
         </div>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"
           target="_blank" rel="noopener"><span>View the attestation on Newton Explorer</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
@@ -230,17 +232,28 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
-      ${key !== "failed" && typeof renderPath === "function" ? renderPath(r, key) : ""}
     </div>
+    ${key !== "failed" && typeof renderPath === "function" ? renderPath(r, key) : ""}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");
   if (typeof bindPath === "function") bindPath();
   requestAnimationFrame(() => right.classList.remove("swapping"));
 
+  // A check that did not complete can be run again as it was: same wallet,
+  // same policy. A policy with no contract would only fail again.
+  const retryable = (key === "failed" || key === "unattested") && !r.undeployed && (r.wallet || currentAddress);
   actions.innerHTML = `
     ${decided}
+    ${retryable ? `<button class="btn btn-primary btn-md" id="retry">Try again</button>` : ""}
     <button class="btn btn-tertiary btn-md" id="again">New check</button>`;
   actions.dataset.state = "ready";
+  const retry = document.getElementById("retry");
+  if (retry) retry.onclick = () => submit(r.wallet || currentAddress);
+  // On a phone the result sits under the map. Bring it up once it is in.
+  if (window.matchMedia(`(max-width: ${BP.lg - 1}px)`).matches && view !== "review" && view !== "states") {
+    const head = document.getElementById("result-head");
+    if (head) head.scrollIntoView({ behavior: motionReduced() ? "auto" : "smooth", block: "start" });
+  }
   // Back to the console without an entrance, so the map does not jump.
   document.getElementById("again").onclick = () => renderConsole(currentAddress || r.wallet || "", "", true);
 }

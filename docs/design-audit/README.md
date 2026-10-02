@@ -37,7 +37,7 @@ Every desktop state fits a 1440×900 screen without scrolling, and the result st
 
 The page now does its main job. Policy and enforcement read as two separate things, and every claim on a result can be checked: the path on Etherscan, the label on Arkham, the signature on the Newton Explorer. Policy D makes the split concrete: the same operators sign a bad rule's result just as faithfully as a good one's.
 
-What's left falls into three groups. On phones the result sits below the fold. The failure states end without a way forward. And a couple of sentences claimed more than the page can show; those are fixed below. Nothing here blocks sharing the demo.
+The audit found three groups of problems: on phones the result sat below the fold, the failure states ended without a way forward, and a couple of sentences claimed more than the page can show. All are fixed below. Nothing here blocks sharing the demo.
 
 ## Findings by dimension
 
@@ -56,20 +56,20 @@ What's left falls into three groups. On phones the result sits below the fold. T
 
 - **F3 · P2 · Understanding · S · fixed.** A malformed address only greyed out the run button; nothing said why. A visitor pasting a truncated address had no clue what was wrong ([08](assets/08-invalid-address.png)). The field now explains when you leave it or press Enter. `js/console-view.js:169`.
 - **F4 · P3 · Understanding · S · fixed.** "Not attested" printed its reason twice, once as the sentence and once as a monospace detail line ([17](assets/17-result-unattested.png)). `js/verdict.js:194`.
-- **F5 · P2 · Conversion · M · recommendation.** The three failure states (screening failed, not attested, timeout) end with only "New check", which sends you back to pick a wallet again. A "Try again" that reruns the same wallet under the same policy would recover most of them in one click ([16](assets/16-result-failed.png), [18](assets/18-result-504.png)). Not done here because it submits a new task to Newton.
+- **F5 · P2 · Conversion · S · fixed (on request).** The three failure states (screening failed, not attested, timeout) ended with only "New check", which sends you back to pick a wallet again. They now offer "Try again", which reruns the same wallet under the same policy ([16](assets/16-result-failed.png), [18](assets/18-result-504.png)). A policy with no contract gets no retry, since it would only fail again. Held back at first because it submits a new task to Newton; added once asked for. `js/verdict.js`.
 
 **6. Trust signals**
 
 - **F6 · P1 · Trust · S · fixed.** The intro said operators "sign the result as an onchain attestation". Nothing on the page can show that: the endpoint never receives a transaction hash (`api/evaluate.js:175` is always `null`), and the explorer link goes to a task, not a transaction. A visitor who checks would find no transaction. It now says "sign the result as an attestation anyone can check", which the explorer link proves. `js/data.js:191`.
 - **Strength.** Every step of a path links to Etherscan, the Lazarus end links to its Arkham label, and the signature links to the Newton Explorer. Hovering the map and the path highlights the same step in both ([11](assets/11-result-hover.png)). Don't trade any of this away for brevity.
-- **F7 · P3 · Trust · S · recommendation.** The page never says how old the data is. The list was pulled on 7 September and the map was built on 10 September. One line on the policy step would turn that from a hidden weakness into a stated fact.
+- **F7 · P3 · Trust · S · fixed.** The page never said how old the data is. The policy step now reads "List pulled 7 Sep 2026, map of linked wallets built 10 Sep 2026" ([05](assets/05-policy-default.png)). The dates live in `DATA_DATES` in `js/data.js`; update them when the list or map is rebuilt.
 
 **7. Conversion paths: healthy.** Four clicks to a signed result, and a shared link skips straight to the wallet. The example wallets mean nobody needs an address of their own to try it.
 
 **8. Mobile**
 
-- **F8 · P1 · Conversion · M · recommendation.** On a 390px phone the map comes first and the result starts about 450px down. After pressing "Run the check" the visitor sees the map animate, but the answer, which is the point, needs a scroll ([10-m](assets/10-result-3hop-m.png)). Put the result column first on phones once a result is in, or scroll it into view when it lands.
-- **F9 · P3 · Understanding · S · recommendation.** On the phone policy step, the sticky "Use this policy" button covers part of Policy B in the first screen ([05-m](assets/05-policy-default-m.png)). It moves out of the way as you scroll, but on first view the list looks cut short. Bottom padding equal to the button's height would fix it.
+- **F8 · P1 · Conversion · S · fixed.** On a 390px phone the map comes first and the result starts about 450px down, so the answer needed a scroll. The page now scrolls the result into view when it lands, with the map's caption just above it for context ([10-m](assets/10-result-3hop-m.png)). Reordering the columns would go further, but the scroll covers the problem without a layout change.
+- **F9 · P3 · Understanding · S · fixed.** On the phone policy step, the sticky "Use this policy" button covered part of Policy B on the first screen. It now follows the options instead of floating over them ([05-m](assets/05-policy-default-m.png)).
 - **Healthy.** The path fits four addresses at 390px, and the tap targets on the map and the policy cards are at least 36px.
 
 ## Fixed during the audit
@@ -81,24 +81,18 @@ What's left falls into three groups. On phones the result sits below the fold. T
 | F3 | Malformed address explains itself on blur and on Enter | [08](assets/08-invalid-address.png) re-captured |
 | F4 | "Not attested" no longer repeats its reason | [17](assets/17-result-unattested.png) re-captured |
 | F6 | Intro no longer claims an onchain attestation | [02](assets/02-intro-demo.png) re-captured |
+| F5 | Try again on the failure states | [16](assets/16-result-failed.png); clicking it reran the check |
+| F7 | Data dates on the policy step | [05](assets/05-policy-default.png) re-captured |
+| F8 | Phones scroll the result into view | [10-m](assets/10-result-3hop-m.png); result heading lands 121px from the top |
+| F9 | Phone policy button no longer covers the list | [05-m](assets/05-policy-default-m.png) re-captured |
+| QW5 | Task ID on the signed card links to the explorer | [10](assets/10-result-3hop.png) |
+| Follow-up | The path in its own panel; Arkham as a source line under it; hovering the Lazarus stop lights the map's centre; the signed card is one sentence | [10](assets/10-result-3hop.png), [11](assets/11-result-hover.png), [12](assets/12-result-listed.png) |
 
 After the fixes: every result state still fits 1024×600 and 1440×900 without scrolling, and the UI kit reports no missing fixtures or stories.
 
-## Top 5 hurting the core action
+## Status after follow-up
 
-1. F8: on phones the result is below the fold.
-2. F5: failure states have no retry.
-3. F6: "onchain attestation" was a claim the page could not back. Fixed.
-4. F3: a bad address failed silently. Fixed.
-5. F7: the data's age isn't stated.
-
-## Quick wins
-
-1. Scroll the result into view on phones when it lands (part of F8).
-2. "Try again" on the three failure states (F5).
-3. "List pulled 7 Sep 2026, map built 10 Sep 2026" under the data note on the policy step (F7).
-4. Bottom padding under the phone policy list (F9).
-5. Link the task ID on the signed card to the explorer too, so it's clickable where people look for it.
+Every finding above is fixed. The one structural option left is putting the result column first on phones; the scroll-into-view covers it for now.
 
 ## Re-running
 
