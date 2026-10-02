@@ -62,7 +62,7 @@ The audit found three groups of problems: on phones the result sat below the fol
 
 - **F6 · P1 · Trust · S · fixed.** The intro said operators "sign the result as an onchain attestation". Nothing on the page can show that: the endpoint never receives a transaction hash (`api/evaluate.js:175` is always `null`), and the explorer link goes to a task, not a transaction. A visitor who checks would find no transaction. It now says "sign the result as an attestation anyone can check", which the explorer link proves. `js/data.js:191`.
 - **Strength.** Every step of a path links to Etherscan, the Lazarus end links to its Arkham label, and the signature links to the Newton Explorer. Hovering the map and the path highlights the same step in both ([11](assets/11-result-hover.png)). Don't trade any of this away for brevity.
-- **F7 · P3 · Trust · S · fixed.** The page never said how old the data is. The policy step now reads "List pulled 7 Sep 2026, map of linked wallets built 10 Sep 2026" ([05](assets/05-policy-default.png)). The dates live in `DATA_DATES` in `js/data.js`; update them when the list or map is rebuilt.
+- **F7 · P3 · Trust · S · declined.** The page doesn't say how old the data is (list pulled 7 Sep 2026, map built 10 Sep 2026). A line was added to the policy step, then removed at the owner's request.
 
 **7. Conversion paths: healthy.** Four clicks to a signed result, and a shared link skips straight to the wallet. The example wallets mean nobody needs an address of their own to try it.
 
@@ -82,7 +82,6 @@ The audit found three groups of problems: on phones the result sat below the fol
 | F4 | "Not attested" no longer repeats its reason | [17](assets/17-result-unattested.png) re-captured |
 | F6 | Intro no longer claims an onchain attestation | [02](assets/02-intro-demo.png) re-captured |
 | F5 | Try again on the failure states | [16](assets/16-result-failed.png); clicking it reran the check |
-| F7 | Data dates on the policy step | [05](assets/05-policy-default.png) re-captured |
 | F8 | Phones scroll the result into view | [10-m](assets/10-result-3hop-m.png); result heading lands 121px from the top |
 | F9 | Phone policy button no longer covers the list | [05-m](assets/05-policy-default-m.png) re-captured |
 | QW5 | Task ID on the signed card links to the explorer | [10](assets/10-result-3hop.png) |
@@ -92,7 +91,7 @@ After the fixes: every result state still fits 1024×600 and 1440×900 without s
 
 ## Status after follow-up
 
-Every finding above is fixed. The one structural option left is putting the result column first on phones; the scroll-into-view covers it for now.
+Every finding above is fixed except F7, declined. The one structural option left is putting the result column first on phones; the scroll-into-view covers it for now.
 
 ## Re-running
 

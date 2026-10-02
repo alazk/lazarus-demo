@@ -84,8 +84,7 @@ function renderPolicy(opts = {}) {
                 </button>`).join("")}
             </div>
             <div class="policy-meta">
-              <p class="part-note">A wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. List pulled ${DATA_DATES.list}, map of linked wallets built ${DATA_DATES.map}. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
-              <p class="part-note verify-line" id="verify-line"></p>
+              <p class="part-note">A wallet scanner that checks Ethereum transfers against a list of known Lazarus addresses. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
             </div>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="use-policy">Use this policy</button>
@@ -137,11 +136,6 @@ function paintPolicyCard() {
   });
   const title = document.getElementById("policy-cover-title");
   if (title) title.textContent = ruleTitle(rule);
-  // One verifiable fact instead of a table of addresses: each policy is a
-  // contract on Sepolia with its rule set onchain, and anyone can open it.
-  const verify = document.getElementById("verify-line");
-  if (verify) verify.innerHTML = `Every policy is a contract on Sepolia, so anyone can see which rule it runs.`
-    + (rule.client ? ` <a href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener">View ${esc(rule.label)} on Etherscan</a>` : "");
   const facts = document.getElementById("policy-facts");
   if (!facts) return;
   const link = (a) => `<a class="text-data" href="${SEPOLIA_ADDR(a)}" target="_blank" rel="noopener"

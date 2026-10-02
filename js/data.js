@@ -46,9 +46,6 @@ const allowsAll = () => Boolean(ruleNow().all);
 /** How a policy is named in headings: "Policy C · 3 hops". */
 const ruleTitle = (r) => `${r.label} · ${r.name}`;
 const POLICY_DOCS = "https://docs.newton.xyz/developers/guides/writing-policies";
-/* When the scanner's data was made. Update both when the list is pulled
-   again (scripts/pull_arkham.py) or the map is rebuilt (scripts/build_halo.py). */
-const DATA_DATES = { list: "7 Sep 2026", map: "10 Sep 2026" };
 const SEPOLIA_ADDR = (a) => "https://sepolia.etherscan.io/address/" + a;
 const HOP_CHOICES = [...new Set(RULES.map((r) => r.hops))].sort();
 const USD_CHOICES = [...new Set(RULES.map((r) => r.usd))].sort((a, b) => a - b);
