@@ -28,7 +28,7 @@ function renderConsole(prefill = "", error = "", still = false, opts = {}) {
       <div class="col">
         <div class="step-head">
           <div class="text-eyebrow muted">How Newton enforces it</div>
-          <div class="text-heading">Pick a wallet to check</div>
+          <div class="text-heading">Pick the wallet you are about to pay</div>
         </div>
         <div class="card card-check ${pasted ? "show-paste" : ""}">
           <div class="card-body">

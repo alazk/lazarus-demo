@@ -110,6 +110,7 @@ async function fillVerdict(r, outsideReach) {
   const bands = bandsForOutcome(r, key);
   if (bands) paintBands(bands);
   paintMapVerdict(key);
+  if (typeof drawPath === "function" && key !== "failed") drawPath(r, key);
   // The headline is the policy's answer. The card under it says Newton's
   // operators signed that answer, so a reader can disagree with the rule or
   // its data without reading it as the protocol missing something.
@@ -174,8 +175,9 @@ async function fillVerdict(r, outsideReach) {
   const decided = attested
     ? `<div class="decided">
         <div class="decided-text">
-          <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span></div>
-          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation.</p>
+          <div class="decided-head"><span class="text-ui">Signed by Newton Protocol operators</span>
+            ${r.attestation?.task_id ? `<span class="decided-task text-data" title="${esc(r.attestation.task_id)}">Task ${esc(short(r.attestation.task_id))}</span>` : ""}</div>
+          <p class="decided-body">The operator quorum ran ${esc(rule.label)} on this wallet and signed this attestation. It is public, so anyone can check it.</p>
         </div>
         ${r.explorer_url ? `<a class="btn btn-primary btn-md decided-btn" href="${esc(r.explorer_url)}"
           target="_blank" rel="noopener"><span>View the attestation on Newton Explorer</span>${iconSvg("ArrowUpRight", "icon")}</a>` : ""}
@@ -198,6 +200,7 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
+      ${key !== "failed" && typeof renderPath === "function" ? renderPath(r) : ""}
     </div>
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");

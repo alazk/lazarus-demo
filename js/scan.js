@@ -132,6 +132,7 @@ function renderChecking(address) {
   // The tint starts at the centre immediately. The wait for the operators
   // is the longest part of a check, and it should not look idle.
   scanMapController().idle();
+  if (typeof startReading === "function") startReading();
 
   const rows = () => [...stage.querySelectorAll(".step")];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));

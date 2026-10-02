@@ -248,3 +248,55 @@ p.policy-facts a{ font-size:var(--type-caption-size); color:var(--color-text-sec
   .policy-meta{ gap:var(--space-inline); }
   .policy-options{ gap:var(--space-tight); }
 }
+
+/* Verifiable details stay quiet: one link on the policy step, the task id on the result. */
+.verify-line{ color:var(--color-text-tertiary); }
+.decided-task{ margin-left:auto; font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text-tertiary); white-space:nowrap; }
+
+/* ── Trace and path ───────────────────────────────────────────── */
+.trace-dot{ fill:var(--color-text-tertiary); opacity:0; }
+.trace.reading .trace-dot{ animation:traceRead 1800ms var(--ease-newton) infinite; }
+.trace.done .trace-dot{ opacity:.25; transition:opacity var(--duration-emphasis); }
+@keyframes traceRead{ 0%{ opacity:0; } 40%{ opacity:.8; } 100%{ opacity:.12; } }
+.trace-line{ fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:400; stroke-dashoffset:400; animation:traceDraw 900ms var(--ease-newton) forwards; }
+.trace-line.tone-block{ stroke:var(--tone-block-edge); }
+.trace-line.tone-caution{ stroke:var(--tone-caution-edge); stroke-dasharray:4 4; stroke-dashoffset:0; animation:none; }
+.trace-node{ stroke:var(--color-surface-raised); stroke-width:2; opacity:0; animation:traceNode 300ms var(--ease-newton) forwards; }
+.trace-node.tone-block{ fill:var(--tone-block-edge); }
+.trace-node.tone-caution{ fill:var(--tone-caution-edge); }
+@keyframes traceDraw{ to{ stroke-dashoffset:0; } }
+@keyframes traceNode{ to{ opacity:1; } }
+@media (prefers-reduced-motion: reduce){
+  .trace.reading .trace-dot{ animation:none; opacity:.3; }
+  .trace-line{ animation:none; stroke-dashoffset:0; }
+  .trace-node{ animation:none; opacity:1; }
+}
+.cov-read{ color:var(--color-text-secondary); }
+
+.path{ display:flex; flex-direction:column; gap:var(--space-inline); margin-top:var(--space-group); }
+.path-row{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-tight) var(--space-inline); }
+.path-node{
+  display:inline-flex; align-items:center; gap:var(--space-inline);
+  padding:2px var(--space-inline); border:1px solid var(--color-border); border-radius:var(--radius-full);
+  font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text); text-decoration:none; white-space:nowrap;
+}
+.path-node.is-lazarus{ border-color:var(--tone-block-edge); }
+.path-tag{ font-family:var(--font-sans); font-weight:500; color:var(--tone-block-text); }
+.path-edge{
+  position:relative; padding-left:18px; font-size:var(--type-caption-size); color:var(--color-text-secondary); white-space:nowrap;
+}
+.path-edge::before{ content:"→"; position:absolute; left:2px; color:var(--color-text-tertiary); }
+a.path-edge{ text-decoration:underline; text-underline-offset:3px; }
+@media (hover:hover){ .path-node:hover{ border-color:var(--color-text); } a.path-edge:hover{ color:var(--color-text); } }
+.path-node:focus-visible, .path-edge:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; }
+/* Short laptops: the path replaces the scan steps, which say less. */
+@media (min-width: 1024px) and (max-height: 760px){
+  .card-result:has(.path) .trail{ display:none; }
+}
+
+/* Phones: the result's closing block (Newton's card and New check) is now
+   tall, so it follows the result instead of sticking over it. */
+@media (max-width: 639px){
+  .card-result .actions{ position:static; padding-top:0; }
+}

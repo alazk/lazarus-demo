@@ -21,7 +21,31 @@
 // result, marked as unattested. The demo stays usable before the policy exists.
 
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import screen from "./screen.js";
+
+// The precomputed map keeps, for each wallet, the transfer that links it one
+// hop closer to Lazarus. The page shows every step of a reported path with its
+// transaction so anyone can check it on Etherscan. Only this endpoint adds
+// them; /api/screen, which the Newton oracle reads, is unchanged.
+const HALO = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "halo.json"), "utf8")).halo;
+
+/** The transfers along a reported path, one per hop: the first from the live
+ *  read, the rest from the precomputed map when it links the same wallets. */
+function withHops(screening) {
+  const p = screening?.path;
+  if (!Array.isArray(p) || p.length < 2) return screening;
+  const hops = [{ from: p[0], to: p[1], tx: screening.edges?.[0]?.tx || null,
+                  usd: typeof screening.first_edge_usd === "number" ? screening.first_edge_usd : null }];
+  for (let i = 1; i < p.length - 1; i++) {
+    const h = HALO[p[i]];
+    const linked = h && Array.isArray(h.via) && h.via[1] === p[i + 1];
+    hops.push({ from: p[i], to: p[i + 1], tx: linked ? h.tx || null : null,
+                usd: linked && typeof h.usd === "number" ? Math.round(h.usd) : null });
+  }
+  return { ...screening, hops };
+}
 
 // Confirmed against a real task: the network is a path segment, and
 // /task/<id> without it returns 404.
@@ -234,7 +258,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const screening = await runScreening(address);
+  const screening = withHops(await runScreening(address));
 
   if (screening.status === "INVALID_ADDRESS") {
     return res.status(400).json(screening);
