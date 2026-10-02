@@ -25,7 +25,11 @@ async function submit(address) {
     let result = null;
     try { result = await resp.json(); } catch (e) { result = null; }
     if (result?.status === "INVALID_ADDRESS") return renderConsole(address, result.reason);
-    if (!resp.ok || !result) {
+    // The chosen policy has no deployed client, so nothing was evaluated.
+    if (result?.status === "UNSUPPORTED_RULE") {
+      result = { wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY", undeployed: true };
+    }
+    if (!result?.undeployed && (!resp.ok || !result)) {
       result = { wallet: address.toLowerCase(), status: "SCREENING_FAILED", decision: "DENY",
         detail: result?.reason || `The check did not complete (HTTP ${resp.status}).` };
     }
@@ -128,10 +132,13 @@ async function fillVerdict(r, outsideReach) {
   // its data without reading it as the protocol missing something.
   const rule = ruleOf(r);
   const answer = { listed: "Non-compliant", exposed: "Non-compliant", clear: "Compliant", outside: "Compliant", allowed: "Compliant" }[key];
-  const headline = answer || OUTCOME[key].headline;
+  const headline = answer || (r.undeployed ? "Not deployed yet" : OUTCOME[key].headline);
   let reason;
 
-  if (key === "failed") {
+  if (key === "failed" && r.undeployed) {
+    reason = `${rule.label} has no contract on Sepolia yet, so there was nothing to send to Newton. `
+           + "Nothing was checked.";
+  } else if (key === "failed") {
     reason = "The wallet's transfers could not be read, so nothing was sent to "
            + "Newton. The page treats it as non-compliant, which is not a finding of exposure.";
   } else if (key === "unattested") {
@@ -206,7 +213,8 @@ async function fillVerdict(r, outsideReach) {
   if (head) head.innerHTML = `<div class="text-eyebrow muted">Policy enforcement</div>
     <div class="text-heading text-data-head" title="${esc(r.wallet || currentAddress)}">${esc(short(r.wallet || currentAddress))}</div>`;
   const status = answer
-    ? { ...STATUS_LABEL[key], label: `${rule.label} evaluation result` } : STATUS_LABEL[key];
+    ? { ...STATUS_LABEL[key], label: `${rule.label} evaluation result` }
+    : r.undeployed ? { ...STATUS_LABEL.failed, label: headline } : STATUS_LABEL[key];
   const statusLine = status.label.toLowerCase() === headline.toLowerCase() ? "" : `
       <div class="result-status tone-${status.tone}">
         <span class="result-status-icon" aria-hidden="true">${iconSvg(status.icon)}</span>

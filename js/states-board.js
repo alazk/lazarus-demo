@@ -474,11 +474,14 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
   stopAuto();
   // The intro acts: why, then the policy and enforcement.
   const introStory = ["Why", "Demo", "Policy", "Enforcement"];
+  const introPills = { out: false, in: false };
   ACTS.forEach((item, i) => {
     paintAct(i, false);
     take("intro-map", "Intro map", introStory[i] || "Act" + (i + 1), ".intro-map");
-    if (i === 1) takeGlyph("label", "Label", "Outside", stage.querySelector('.intro-map .cov-pill[data-reach="out"]'));
-    if (i === 2) takeGlyph("label", "Label", "Covered", stage.querySelector('.intro-map .cov-pill[data-reach="in"]'));
+    const outPill = stage.querySelector('.intro-map .cov-pill[data-reach="out"]');
+    const inPill = stage.querySelector('.intro-map .cov-pill[data-reach="in"]');
+    if (outPill && !introPills.out) { introPills.out = true; takeGlyph("label", "Label", "Outside", outPill); }
+    if (inPill && !introPills.in) { introPills.in = true; takeGlyph("label", "Label", "Covered", inPill); }
     if (i === 0) {
       take("button", "Button", "Primary", "#go-console");
       const primary = stage.querySelector("#go-console")?.cloneNode(true);
@@ -497,7 +500,7 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
       take("act", "Act", "Dots", ".acts");
       focusOf("act", "Act", "Focus", stage.querySelector(".act-dot"));
       take("intro", "Intro", "Panel", '.act-panel[aria-hidden="false"]');
-      focusOf("nav", "Nav", "Focus", document.querySelector(".states-link"));
+      if (document.querySelector(".states-link")) focusOf("nav", "Nav", "Focus", document.querySelector(".states-link"));
     }
   });
 
@@ -732,8 +735,6 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     }
     if (spec.step) take("step", "Step", spec.step, ".trail");
     if (stage.querySelector(".warnline")) take("warnline", "Warnline", spec.story, ".warnline");
-    if (spec.story === "Clear") take("stats", "Stats", "Clear", ".stats");
-    if (spec.story === "Failed") take("detail", "Detail", "Failed", ".detail");
     take("result", "Result", spec.story, "#panel");
     if (spec.story === "Clear") {
       take("button", "Button", "WithIcon", ".card-result a.btn");
@@ -970,10 +971,10 @@ async function renderStatesBoard({ wallet, catalog, add, take, takeGlyph, addSca
     { id: "foundations", title: "Foundations", sections: ["icons", "typography", "spacing", "color", "radii", "motion", "responsive"] },
     { id: "primitives", title: "Primitives", sections: ["button", "badge", "field", "segment", "wallet-row", "ladder"] },
     { id: "coverage", title: "Coverage map", sections: ["coverage-map", "map-anatomy", "anatomy", "intro-map", "console-map"] },
-    { id: "composites", title: "Composites", sections: ["compare", "result", "warnline", "stats", "detail", "error", "card"] },
+    { id: "composites", title: "Composites", sections: ["compare", "result", "warnline", "error", "card"] },
     { id: "flows", title: "Flows", sections: ["intro", "step", "act", "mast", "nav"] },
   ];
-  const componentList = [button, field, segment, walletRow, coverageMap, stepTrail, resultCard, stats, warnline, mast, actPanel];
+  const componentList = [button, field, segment, walletRow, coverageMap, stepTrail, resultCard, warnline, mast, actPanel];
   const storyNames = new Set();
   catalog.forEach((sec) => (sec.stories || []).forEach((item) => storyNames.add(item.story)));
   window.__missingStories = [];
