@@ -30,7 +30,7 @@ window.addEventListener("popstate", (e) => {
   const v = e.state?.view;
   if (!v || v === "intro") { view = "intro"; act = 0; renderIntro(); return; }
   const s = stateFromUrl();
-  if (s?.hops) { hops = s.hops; usd = s.usd; }
+  if (s && s.hops !== null) { hops = s.hops; usd = s.usd; }
   if (v === "policy") { renderPolicy(); return; }
   renderConsole(s?.address || "", "", true);
 });
@@ -74,7 +74,7 @@ window.addEventListener("popstate", (e) => {
   // A shared link names the radius and the wallet: open the console on it.
   const shared = stateFromUrl();
   if (shared && view === "intro" && !inFlight) {
-    if (shared.hops) { hops = shared.hops; usd = shared.usd; }
+    if (shared.hops !== null) { hops = shared.hops; usd = shared.usd; }
     stopAuto();
     radiusDemoShown = true;            // the link already says what to look at
     if (shared.step === "policy") { renderPolicy(); return; }

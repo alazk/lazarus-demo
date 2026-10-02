@@ -188,6 +188,11 @@ const CLIENTS = [
   { hops: 2, usd: 0,       env: "NEWTON_POLICY_CLIENT_H2V0" },
   { hops: 3, usd: 0,       env: "NEWTON_POLICY_CLIENT" },
   { hops: 3, usd: 1000000, env: "NEWTON_POLICY_CLIENT_H3V1M" },
+  // A different policy, not a parameter set: its rule allows every wallet.
+  // It exists to show that the operators enforce whatever the policy says.
+  // The screening still runs in full, so the page can show what the data
+  // found next to what the rule decided.
+  { hops: 0, usd: 0, all: true, env: "NEWTON_POLICY_CLIENT_ALLOW" },
 ];
 
 function configured() {
@@ -216,6 +221,7 @@ function clientFor(rawHops, rawUsd) {
 function decisionUnder(screening, rule) {
   // An unscreened wallet is denied, exactly as the policy denies it.
   if (screening.status === "SCREENING_FAILED" || screening.exposure === undefined) return "DENY";
+  if (rule.all) return "ALLOW";
   if (screening.direct_match) return "DENY";
   if (screening.exposure
       && typeof screening.hop_count === "number" && screening.hop_count <= rule.hops
@@ -225,12 +231,13 @@ function decisionUnder(screening, rule) {
 
 /** The rules actually deployed, so the page offers only what exists. */
 export function availableRules() {
-  return configured().map(({ hops, usd }) => ({ hops, usd }));
+  return configured().map(({ hops, usd, all }) => ({ hops, usd, ...(all && { all: true }) }));
 }
 
 /** The reason line under the rule that was actually applied. */
 function reasonUnder(screening, rule, allowed) {
   const hops = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
+  if (rule.all && allowed) return "This policy allows every wallet";
   if (screening.direct_match) return "Direct Lazarus match";
   if (!screening.exposure) {
     return screening.counterparties_examined === 0
@@ -296,7 +303,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ...screening,
       dataset: { ...screening.dataset, max_hops: policy.hops,
-                 min_exposure_usd: policy.usd },
+                 min_exposure_usd: policy.usd, ...(policy.all && { allow_all: true }) },
       rules: availableRules(),
       status: "ATTESTATION_FAILED",
       decision: "DENY",
@@ -320,7 +327,7 @@ export default async function handler(req, res) {
   res.status(200).json({
     ...screening,
     dataset: { ...screening.dataset, max_hops: policy.hops,
-               min_exposure_usd: policy.usd },
+               min_exposure_usd: policy.usd, ...(policy.all && { allow_all: true }) },
     rules: availableRules(),
     decision: attestation.allowed ? "ALLOW" : "DENY",
     status: attestation.allowed ? "COMPLIANT" : "NON_COMPLIANT",

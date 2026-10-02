@@ -41,6 +41,12 @@ async function submit(address) {
     // screening found, not a blanket "clear".
     let trailKind = key, trailHit = finding ? result.hop_count : null;
     if (key === "outside" && belowFloor(result)) trailKind = "floor";
+    // Under the allow-all policy the trail shows what the data found; the
+    // headline says the policy let it through.
+    if (key === "allowed") {
+      trailKind = result.direct_match ? "listed" : result.exposure ? "outside" : "clear";
+      trailHit = result.direct_match ? 0 : result.exposure ? result.hop_count : null;
+    }
     if (key === "unattested") {
       if (result.direct_match) { trailKind = "listed"; trailHit = 0; }
       else if (result.exposure && typeof result.hop_count === "number") {
@@ -79,6 +85,7 @@ const STATUS_LABEL = {
   listed: { tone: "block", icon: "Warning", label: "Listed" },
   exposed: { tone: "block", icon: "Warning", label: "Exposed" },
   outside: { tone: "caution", icon: "Warning", label: "Outside policy" },
+  allowed: { tone: "caution", icon: "Warning", label: "Allowed by policy" },
   failed: { tone: "neutral", icon: "Minus", label: "Screening failed" },
   unattested: { tone: "neutral", icon: "Minus", label: "Not attested" },
 };
@@ -107,15 +114,20 @@ async function fillVerdict(r, outsideReach) {
   const max = r.dataset?.max_hops ?? hops;
   const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
   const key = outcomeOf(r, outsideReach);
-  const bands = bandsForOutcome(r, key);
+  // The map paints what the data found. For the allow-all policy that is the
+  // data's state, not the pass the rule gave it.
+  const mapKey = key !== "allowed" ? key
+    : r.direct_match ? "listed" : r.exposure ? "outside" : "clear";
+  const mapR = key === "allowed" ? { ...r, dataset: { ...r.dataset, max_hops: 3 } } : r;
+  const bands = bandsForOutcome(mapR, mapKey);
   if (bands) paintBands(bands);
-  paintMapVerdict(key);
-  if (typeof drawPath === "function" && key !== "failed") drawPath(r, key);
+  paintMapVerdict(mapKey);
+  if (typeof drawPath === "function" && key !== "failed") drawPath(r, mapKey);
   // The headline is the policy's answer. The card under it says Newton's
   // operators signed that answer, so a reader can disagree with the rule or
   // its data without reading it as the protocol missing something.
   const rule = ruleOf(r);
-  const answer = { listed: "Non-compliant", exposed: "Non-compliant", clear: "Compliant", outside: "Compliant" }[key];
+  const answer = { listed: "Non-compliant", exposed: "Non-compliant", clear: "Compliant", outside: "Compliant", allowed: "Compliant" }[key];
   const headline = answer || OUTCOME[key].headline;
   let reason;
 
@@ -127,6 +139,13 @@ async function fillVerdict(r, outsideReach) {
       ? "This is a local result only. It was not sent to Newton."
       : "The wallet was read, but no evaluation came back from the Newton Protocol operators, "
         + "so the page treats it as non-compliant.";
+  } else if (key === "allowed") {
+    const lead = `${rule.label} allows every wallet, so Newton Protocol operators signed it as compliant. `;
+    reason = lead + (r.direct_match
+      ? "Its data still lists this wallet as a known Lazarus address."
+      : r.exposure && typeof r.hop_count === "number"
+        ? `Its data still puts this wallet ${hopWord(r.hop_count)} from a known Lazarus address.`
+        : "Its data found no known Lazarus address within 3 hops either.");
   } else if (key === "outside" && belowFloor(r)) {
     reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;

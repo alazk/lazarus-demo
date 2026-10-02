@@ -26,10 +26,11 @@ function syncUrl(push = false) {
 function stateFromUrl() {
   let params;
   try { params = new URLSearchParams(location.search); } catch (e) { return null; }
-  const h = Number(params.get("hops"));
+  const hasHops = params.get("hops") !== null && params.get("hops") !== "";
+  const h = hasHops ? Number(params.get("hops")) : NaN;
   const f = Number(params.get("floor")) || 0;
   const w = (params.get("wallet") || "").trim();
-  if (!h && !w) return null;
+  if (!hasHops && !w) return null;
   const letter = w.length === 1 ? w.toUpperCase() : "";
   const byLetter = Object.keys(WALLET_LETTER).find((k) => WALLET_LETTER[k] === letter);
   const preset = byLetter ? presets.find((p) => p.key === byLetter) : null;
@@ -47,7 +48,9 @@ function renderCoverage(ready, mode = "console") {
   mapMode = mode;
   // Only the policy step (and the kit's console) changes the radius here.
   const slider = mode === "console" || mode === "policy";
-  const c = COV_C, k = COV_R[hops] / COV_R[3];
+  const c = COV_C, k = discR(hops) / COV_R[3];
+  // The allow-all policy covers nothing, but the scan still reads three hops.
+  const scanR = COV_R[hops || 3];
   const pills = [1, 2, 3].map((n) => {
     const y = c - (COV_R[n - 1] + COV_R[n]) / 2;
     return `<g class="cov-pill" data-reach="${n <= hops ? "in" : "out"}" aria-pressed="${n === hops}" data-ring="${n}" transform="translate(${c} ${y})">
@@ -64,19 +67,19 @@ function renderCoverage(ready, mode = "console") {
       </div>`}
       <div class="cov-map">
       <svg class="cov-svg ${mode === "scan" ? "scanning" : ""}" id="cov-svg" viewBox="0 0 400 400" tabindex="${slider ? "0" : "-1"}" role="${slider ? "slider" : "img"}"
-           aria-label="Coverage in hops" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${hops}"
-           aria-valuetext="${hopWord(hops)}">
-        <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
+           aria-label="Coverage in hops" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${hops}"
+           aria-valuetext="${reachWord(hops)}" ${hops === 0 ? 'data-allow-all=""' : ""}>
+        <circle class="cov-disc" id="cov-disc" cx="${c}" cy="${c}" r="${discR(hops)}"/>
         <circle class="swave" id="cov-wave" cx="${c}" cy="${c}" r="${COV_R[0]}"/>
         ${[3, 2, 1].map((n) => `<circle class="cband" data-band="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
         ${[1, 2, 3].map((n) => `<circle class="cov-ring" data-reach="${n <= hops ? "in" : "out"}" aria-pressed="${n === hops}" data-ring="${n}" cx="${c}" cy="${c}" r="${COV_R[n]}"/>`).join("")}
-        <circle class="map-focus map-focus-slider" cx="${c}" cy="${c}" r="${COV_R[hops]}" fill="none"/>
-        ${mode === "scan" ? pulseRings("cov-spulse", COV_R[hops]) : ""}
+        <circle class="map-focus map-focus-slider" cx="${c}" cy="${c}" r="${discR(hops)}" fill="none"/>
+        ${mode === "scan" ? pulseRings("cov-spulse", scanR) : ""}
         <circle class="sflash" id="cov-flash" cx="${c}" cy="${c}" r="${COV_R[1]}" fill="none" stroke-opacity="0">
           <animate attributeName="stroke-opacity" values="${mapToken("--map-alpha-live")};0" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>
           ${motionReduced() ? "" : `<animate attributeName="stroke-width" values="${mapStroke("--map-stroke-strong")};${mapStroke("--map-stroke-ring")}" dur="${MOTION.flash}ms" begin="indefinite" fill="freeze"/>`}
         </circle>
-        <circle class="cov-ghost" id="cov-ghost" cx="${c}" cy="${c}" r="${COV_R[hops]}"/>
+        <circle class="cov-ghost" id="cov-ghost" cx="${c}" cy="${c}" r="${discR(hops)}"/>
         <circle class="cov-core-pick" id="cov-core-pick" cx="${c}" cy="${c}" r="${COV_R[0]}" fill="none" stroke-opacity="0">
           <animate attributeName="r" values="${motionReduced() ? `${COV_R[0]};${COV_R[0]}` : `${COV_R[0]};${COV_R[0] + 10}`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
           <animate attributeName="stroke-opacity" values="${motionReduced() ? `${mapToken("--map-alpha-ghost")};${mapToken("--map-alpha-muted")};${mapToken("--map-alpha-ghost")}` : `${mapToken("--map-alpha-live")};0`}" dur="${MOTION.pulseCycle}ms" begin="indefinite" repeatCount="indefinite"/>
@@ -163,7 +166,8 @@ function paintReach(n, ready, opts = {}) {
       r.removeAttribute("data-preview");
     });
     const focus = svg.querySelector(".map-focus-slider");
-    if (focus) focus.setAttribute("r", COV_R[n]);
+    if (focus) focus.setAttribute("r", discR(n));
+    svg.toggleAttribute("data-allow-all", n === 0);
     svg.querySelectorAll(".cov-pill").forEach((g) => {
       const ring = Number(g.dataset.ring);
       g.setAttribute("data-reach", ring <= n ? "in" : "out");
@@ -188,7 +192,7 @@ function paintReach(n, ready, opts = {}) {
     row.setAttribute("data-reach", inside ? "in" : "out");
     const sub = row.querySelector(".m-sub");
     if (sub && key) {
-      const st = dd === null || dd === undefined ? "" : dd > n ? "not covered"
+      const st = dd === null || dd === undefined ? "" : n === 0 ? "allowed" : dd > n ? "not covered"
         : meetsFloor(key, floorAt(n)) ? "covered" : "below floor";
       sub.innerHTML = `<span class="sub-note">${esc(WALLET_NOTE[row.dataset.key] || "")}</span>`
         + `<span class="sub-sep">${st ? " · " : ""}</span><span class="sub-status">${esc(st)}</span>`;
@@ -204,7 +208,7 @@ function paintReach(n, ready, opts = {}) {
 /** Move the coverage to radius n on the map. */
 function drawRadius(n, dur = MOTION.emphasis, opts = {}) {
   const ease = opts.ease || easeBack;
-  tweenAttr(document.getElementById("cov-disc"), "r", COV_R[n], dur, ease);
+  tweenAttr(document.getElementById("cov-disc"), "r", discR(n), dur, ease);
   paintReach(n, null, opts);
 }
 
@@ -215,7 +219,7 @@ function applyReach() {
   drawRadius(hops);
   if (svg) {
     svg.setAttribute("aria-valuenow", hops);
-    svg.setAttribute("aria-valuetext", hopWord(hops));
+    svg.setAttribute("aria-valuetext", reachWord(hops));
     placePick(pickAddr);
   }
 }

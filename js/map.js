@@ -11,10 +11,15 @@ const RAY_DEG = 45;
 let pickAddr = "";
 
 const hopWord = (n) => `${n} ${n === 1 ? "hop" : "hops"}`;
-const isCovered = (d) => d !== null && d !== undefined && d !== "" && Number(d) <= hops;
+const isCovered = (d) => hops > 0 && d !== null && d !== undefined && d !== "" && Number(d) <= hops;
+/** Radius 0 is the allow-all policy: no disc at all. */
+const discR = (n) => (n === 0 ? 0 : COV_R[n]);
+/** The reach in words, for captions and the slider's value text. */
+const reachWord = (n) => (n === 0 ? "every wallet allowed" : hopWord(n));
 /** The line under the map: the reach, any value floor, and how many of the
  *  example wallets the rule would block. */
 function coverText(n, ready) {
+  if (n === 0) return `<b>Allows every wallet</b> · 0 of ${ready.length} example wallets covered`;
   const covered = ready.filter((w) => coversWallet(w.key, DIST[w.key], n)).length;
   const f = floorAt(n);
   const floor = f ? `, <b>${money(f)} floor</b>` : "";
@@ -163,7 +168,8 @@ function previewReach(n) {
   const ready = presets.filter((p) => p.address);
   const covered = ready.filter((w) => coversWallet(w.key, DIST[w.key], n)).length;
   const sum = document.getElementById("cov-sum");
-  if (sum) sum.innerHTML = `Would cover <b>${covered} of ${ready.length}</b> example wallets at ${hopWord(n)}`;
+  if (sum) sum.innerHTML = n === 0 ? `Would <b>allow every wallet</b>, covering none of the ${ready.length}`
+    : `Would cover <b>${covered} of ${ready.length}</b> example wallets at ${hopWord(n)}`;
 }
 function endPreview() {
   if (!previewing) return;
@@ -231,7 +237,7 @@ function syncMapScale(svg) {
   if (!line) return;
   line.textContent = svg.classList.contains("intro-map")
     ? [1, 2, 3].map(hopWord).join(" · ")
-    : hopWord(hops);
+    : reachWord(hops);
 }
 const mapScaleObserver = new ResizeObserver((entries) => {
   entries.forEach((entry) => syncMapScale(entry.target));

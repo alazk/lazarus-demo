@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "description": "Allow-all policy. It takes no parameters.",
+  "properties": {},
+  "additionalProperties": false
+}

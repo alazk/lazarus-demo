@@ -74,7 +74,7 @@ function renderPolicy(opts = {}) {
           <div class="card-body">
             <div class="policy-options" role="radiogroup" aria-label="Policies">
               ${RULES.map((r) => `
-                <button class="policy-opt" type="button" role="radio" data-hops="${r.hops}"
+                <button class="policy-opt" type="button" role="radio" data-hops="${r.hops}" ${r.tone ? `data-tone="${r.tone}"` : ""}
                     aria-checked="${r.hops === hops}" tabindex="${r.hops === hops ? 0 : -1}">
                   <span class="opt-radio" aria-hidden="true"></span>
                   <span class="opt-text">
@@ -140,8 +140,8 @@ function paintPolicyCard() {
   // One verifiable fact instead of a table of addresses: each policy is a
   // contract on Sepolia with its rule set onchain, and anyone can open it.
   const verify = document.getElementById("verify-line");
-  if (verify) verify.innerHTML = `Every policy lives onchain, rule included.
-    <a href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener">View ${esc(rule.label)} on Etherscan</a>`;
+  if (verify) verify.innerHTML = `Every policy lives onchain, rule included.`
+    + (rule.client ? ` <a href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener">View ${esc(rule.label)} on Etherscan</a>` : "");
   const facts = document.getElementById("policy-facts");
   if (!facts) return;
   const link = (a) => `<a class="text-data" href="${SEPOLIA_ADDR(a)}" target="_blank" rel="noopener"

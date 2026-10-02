@@ -68,7 +68,7 @@ function drawPath(r, key) {
   for (let j = r.hop_count - 1; j >= 1; j--) points.push(at((COV_R[j - 1] + COV_R[j]) / 2));
   points.push(at(COV_R[0]));
 
-  const tone = key === "outside" ? "caution" : "block";
+  const tone = key === "outside" || key === "allowed" ? "caution" : "block";
   const ns = "http://www.w3.org/2000/svg";
   const line = document.createElementNS(ns, "polyline");
   line.setAttribute("class", `trace-line tone-${tone}`);

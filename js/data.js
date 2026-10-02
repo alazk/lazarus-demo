@@ -21,6 +21,11 @@ const POLICY_ADDRESS = "0xCC3957c06472f9E599ED2eebA754D5854F23321b";
    before the wallet is screened. The owner is the wallet that deployed the
    clients; update it here if ownership moves. */
 const POLICY_OWNER = "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48";
+/* Policy D is a separate policy whose rule allows every wallet. It is offered
+   last and in caution colour: not a control, but proof that the operators
+   enforce whatever the chosen policy says. Fill in its client address once
+   it is deployed (policy-allow/README.md); until then it has no link. */
+const ALLOW_ALL_CLIENT = "";
 const RULES = [
   { hops: 1, usd: 0, client: "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
     label: "Policy A", name: "1 hop",
@@ -31,8 +36,13 @@ const RULES = [
   { hops: 3, usd: 0, client: "0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8",
     label: "Policy C", name: "3 hops",
     rule: "Flags Lazarus addresses and wallets up to three transfers away." },
+  { hops: 0, usd: 0, all: true, tone: "caution", client: ALLOW_ALL_CLIENT,
+    label: "Policy D", name: "Allow all",
+    rule: "Allows every wallet, including known Lazarus addresses." },
 ];
 const ruleNow = () => RULES.find((r) => r.hops === hops && r.usd === usd) || RULES[2];
+/** True when the chosen policy allows every wallet. */
+const allowsAll = () => Boolean(ruleNow().all);
 /** How a policy is named in headings: "Policy C · 3 hops". */
 const ruleTitle = (r) => `${r.label} · ${r.name}`;
 const POLICY_DOCS = "https://docs.newton.xyz/developers/guides/writing-policies";
@@ -90,6 +100,7 @@ function meetsFloor(key, floor = usd) {
 }
 /** Whether the rule at radius n (and the current floor) would block a wallet. */
 function coversWallet(key, d, n = hops, floor = floorAt(n)) {
+  if (n === 0) return false;   // the allow-all policy covers nothing
   if (d === 0) return true;
   if (d === null || d === undefined || d === "") return false;
   return Number(d) <= n && meetsFloor(key, floor);
@@ -101,6 +112,7 @@ function floorAt(n) {
 }
 function walletStatus(d, key) {
   if (d === null || d === undefined || d === "") return "";
+  if (hops === 0) return "allowed";
   if (Number(d) > hops) return "not covered";
   return meetsFloor(key) ? "covered" : "below floor";
 }
@@ -119,6 +131,7 @@ const OUTCOME = Object.freeze({
   listed:     { tone: "block",   headline: "Non-compliant",                     kit: "Listed" },
   exposed:    { tone: "block",   headline: "Non-compliant",                     kit: "Exposed" },
   outside:    { tone: "caution", headline: "Compliant",                        kit: "Outside reach" },
+  allowed:    { tone: "caution", headline: "Compliant",                        kit: "Allowed by policy" },
   failed:     { tone: "neutral", headline: "Screening failed",                  kit: "Failed" },
   unattested: { tone: "neutral", headline: "Not attested",                      kit: "Not attested" },
 });
@@ -129,6 +142,10 @@ function outcomeOf(result, outsideReach) {
   if (!result || result.status === "SCREENING_FAILED") return "failed";
   if (result.status === "ATTESTATION_FAILED" || result.attestation?.status === "NOT_CONFIGURED") return "unattested";
   if (result.decision !== "ALLOW" && result.decision !== "DENY") return "failed";
+  // The allow-all policy: the operators signed a pass whatever the data found.
+  if (result.dataset?.allow_all && result.decision === "ALLOW") {
+    return result.attestation?.status === "ATTESTED" ? "allowed" : "unattested";
+  }
   if (result.direct_match) return "listed";
   if (result.decision === "DENY") return result.exposure ? "exposed" : "failed";
   if (result.attestation?.status !== "ATTESTED") return "unattested";

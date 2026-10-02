@@ -84,6 +84,10 @@ function stepColumns(count) {
 }
 
 function renderChecking(address) {
+  // The allow-all policy reads the full three hops; it just ignores the result.
+  const reach = hops || 3;
+  const label = ruleNow().label;
+  const verdictTail = (n) => (allowsAll() ? `· ${label} allows it` : `· inside ${label}`);
   document.title = "Checking… · Lazarus Scan";
   paintFlow("scan");
   stage.className = "stage";
@@ -115,10 +119,10 @@ function renderChecking(address) {
               <span class="trail-label text-eyebrow">What the policy found</span>
               <div class="steps" style="--step-cols:${stepColumns(STEP_LABELS.length)}">
                 ${STEP_LABELS.map((label, n) => `
-                  <div class="step ${n > hops ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
+                  <div class="step ${n > reach ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">
                     ${stepIcon()}
                     <span class="step-label text-ui">${esc(STEP_TILE[n])}</span>
-                    <span class="step-note text-lead">${n > hops ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
+                    <span class="step-note text-lead">${n > reach ? '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>' : ""}</span>
                   </div>`).join("")}
               </div>
             </div>
@@ -158,7 +162,7 @@ function renderChecking(address) {
         map.done("Not screened");
         return;
       }
-      const inside = list.filter((r) => Number(r.dataset.step) <= hops);
+      const inside = list.filter((r) => Number(r.dataset.step) <= reach);
       const hit = hitAt === null || hitAt === undefined ? null : hitAt;
 
       for (let n = 0; n < inside.length; n++) {
@@ -170,12 +174,14 @@ function renderChecking(address) {
         await wait(MOTION.frontStep);
         if (!row.isConnected) return;
         row.classList.remove("active");
+        // A link the policy let through is marked after the walk, not as clear.
+        if (kind === "outside" && n === hit) break;
 
         if ((kind === "listed" || kind === "exposed") && n === hit) {
           map.settle(n, kind);
           map.found(n, false);
-          map.done(n === 0 ? "This wallet is on the list itself"
-                           : `Found ${hopWord(n)} out · inside ${ruleNow().label}`);
+          map.done(n === 0 ? `This wallet is on the list itself${allowsAll() ? ` ${verdictTail(n)}` : ""}`
+                           : `Found ${hopWord(n)} out ${verdictTail(n)}`);
           row.dataset.state = kind;
           row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
@@ -217,7 +223,7 @@ function renderChecking(address) {
         const row = list[hit];
         map.settle(hit, "outside");
         map.found(hit, true);
-        map.done(`Found ${hopWord(hit)} out · outside ${ruleNow().label}`);
+        map.done(allowsAll() ? `Found ${hopWord(hit)} out ${verdictTail(hit)}` : `Found ${hopWord(hit)} out · outside ${label}`);
         row.dataset.state = "outside";
         row.classList.add("resolved");
         row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
@@ -230,7 +236,7 @@ function renderChecking(address) {
       // Nothing inside the coverage. A wallet with no example distance is
       // placed outside every ring so the map still says where it stands.
       if (document.getElementById("cov-pick")?.style.opacity !== "1") map.clean();
-      map.done(`No link found inside ${ruleNow().label}`);
+      map.done(allowsAll() ? `No link found within ${hopWord(reach)}` : `No link found inside ${label}`);
       await wait(MOTION.interaction);
       const last = inside[inside.length - 1];
       if (last) {

@@ -89,6 +89,15 @@
   border-color:var(--color-text); background:var(--color-text);
   box-shadow:inset 0 0 0 3.5px var(--color-surface-raised);
 }
+/* The allow-all policy: caution colour at rest and when chosen, so it
+   reads as the one you are not meant to pick. */
+.policy-opt[data-tone="caution"]{ border-color:var(--tone-caution-edge); background:var(--tone-caution-wash); }
+@media (hover:hover){ .policy-opt[data-tone="caution"]:not([aria-checked="true"]):hover{ background:var(--tone-caution-wash); border-color:var(--tone-caution-edge); box-shadow:inset 0 0 0 1px var(--tone-caution-edge); } }
+.policy-opt[data-tone="caution"][aria-checked="true"]{ border-color:var(--tone-caution-edge); box-shadow:inset 0 0 0 1px var(--tone-caution-edge); }
+.policy-opt[data-tone="caution"] .opt-radio{ border-color:var(--tone-caution-edge); }
+.policy-opt[data-tone="caution"][aria-checked="true"] .opt-radio{ border-color:var(--tone-caution-edge); background:var(--tone-caution-edge); }
+.policy-opt[data-tone="caution"] .opt-tag{ color:var(--tone-caution-text); background:var(--color-surface-raised); }
+.cov:has(.cov-svg[data-allow-all]) .cov-sum b{ color:var(--tone-caution-text); }
 .opt-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
 .opt-name{ display:flex; align-items:center; gap:var(--space-inline); font-weight:500; }
 .opt-tag{
