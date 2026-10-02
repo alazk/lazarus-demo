@@ -152,10 +152,10 @@ async function fillVerdict(r, outsideReach) {
   } else if (key === "allowed") {
     const lead = `${rule.label} allows every wallet, so Newton Protocol operators signed it as compliant. `;
     reason = lead + (r.direct_match
-      ? "Its data still lists this wallet as a known Lazarus address."
+      ? "The scanner still lists this wallet as a known Lazarus address."
       : r.exposure && typeof r.hop_count === "number"
-        ? `Its data still puts this wallet ${hopWord(r.hop_count)} from a known Lazarus address.`
-        : "Its data found no known Lazarus address within 3 hops either.");
+        ? `The scanner still puts this wallet ${hopWord(r.hop_count)} from a known Lazarus address.`
+        : "The scanner found no known Lazarus address within 3 hops either.");
   } else if (key === "outside" && belowFloor(r)) {
     reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;
@@ -230,10 +230,11 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
-      ${key !== "failed" && typeof renderPath === "function" ? renderPath(r) : ""}
+      ${key !== "failed" && typeof renderPath === "function" ? renderPath(r, key) : ""}
     </div>
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");
+  if (typeof bindPath === "function") bindPath();
   requestAnimationFrame(() => right.classList.remove("swapping"));
 
   actions.innerHTML = `

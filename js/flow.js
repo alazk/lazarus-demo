@@ -140,7 +140,7 @@ function paintPolicyCard() {
   // One verifiable fact instead of a table of addresses: each policy is a
   // contract on Sepolia with its rule set onchain, and anyone can open it.
   const verify = document.getElementById("verify-line");
-  if (verify) verify.innerHTML = `Every policy lives onchain, rule included.`
+  if (verify) verify.innerHTML = `Every policy is a contract on Sepolia, so anyone can see which rule it runs.`
     + (rule.client ? ` <a href="${SEPOLIA_ADDR(rule.client)}" target="_blank" rel="noopener">View ${esc(rule.label)} on Etherscan</a>` : "");
   const facts = document.getElementById("policy-facts");
   if (!facts) return;

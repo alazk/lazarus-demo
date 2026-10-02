@@ -116,7 +116,7 @@ function renderChecking(address) {
               <div class="text-data result-addr">${esc(address)}</div>
             </div>
             <div class="trail">
-              <span class="trail-label text-eyebrow">What the policy found</span>
+              <span class="trail-label text-eyebrow">${allowsAll() ? "What the scanner found" : "What the policy found"}</span>
               <div class="steps" style="--step-cols:${stepColumns(STEP_LABELS.length)}">
                 ${STEP_LABELS.map((label, n) => `
                   <div class="step ${n > reach ? "beyond" : n === 0 ? "active" : "idle"}" data-step="${n}">

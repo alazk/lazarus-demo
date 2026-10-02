@@ -263,49 +263,93 @@ p.policy-facts a{ font-size:var(--type-caption-size); color:var(--color-text-sec
 .decided-task{ margin-left:auto; font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text-tertiary); white-space:nowrap; }
 
 /* ── Trace and path ───────────────────────────────────────────── */
-.trace-dot{ fill:var(--color-text-tertiary); opacity:0; }
-.trace.reading .trace-dot{ animation:traceRead 1800ms var(--ease-newton) infinite; }
-.trace.done .trace-dot{ opacity:.25; transition:opacity var(--duration-emphasis); }
-@keyframes traceRead{ 0%{ opacity:0; } 40%{ opacity:.8; } 100%{ opacity:.12; } }
-.trace-line{ fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
-  stroke-dasharray:400; stroke-dashoffset:400; animation:traceDraw 900ms var(--ease-newton) forwards; }
-.trace-line.tone-block{ stroke:var(--tone-block-edge); }
-.trace-line.tone-caution{ stroke:var(--tone-caution-edge); stroke-dasharray:4 4; stroke-dashoffset:0; animation:none; }
+/* On the map: one segment per transfer, a dot per wallet between, and a
+   halo that marks whichever stop the rail or the pointer is on. */
+.trace-seg{ stroke-width:2; stroke-linecap:round; stroke-dasharray:160; stroke-dashoffset:160;
+  animation:traceDraw 600ms var(--ease-newton) forwards; transition:stroke-width var(--duration-interaction); }
+.trace-seg.tone-block{ stroke:var(--tone-block-edge); }
+.trace-seg.tone-caution{ stroke:var(--tone-caution-edge); }
+.trace-seg.is-hot{ stroke-width:4; }
 .trace-node{ stroke:var(--color-surface-raised); stroke-width:2; opacity:0; animation:traceNode 300ms var(--ease-newton) forwards; }
 .trace-node.tone-block{ fill:var(--tone-block-edge); }
 .trace-node.tone-caution{ fill:var(--tone-caution-edge); }
+.trace-halo{ fill:none; stroke-width:2; opacity:0; transition:opacity var(--duration-interaction); }
+.trace-halo.tone-block{ stroke:var(--tone-block-edge); }
+.trace-halo.tone-caution{ stroke:var(--tone-caution-edge); }
+.trace-halo.is-hot{ opacity:1; }
+.trace-hits{ cursor:pointer; }
+.trace-hit{ fill:transparent; }
+.trace-hit-seg{ stroke:transparent; stroke-width:14; stroke-linecap:round; }
 @keyframes traceDraw{ to{ stroke-dashoffset:0; } }
 @keyframes traceNode{ to{ opacity:1; } }
 @media (prefers-reduced-motion: reduce){
-  .trace.reading .trace-dot{ animation:none; opacity:.3; }
-  .trace-line{ animation:none; stroke-dashoffset:0; }
+  .trace-seg{ animation:none; stroke-dashoffset:0; }
   .trace-node{ animation:none; opacity:1; }
 }
 .cov-read{ color:var(--color-text-secondary); }
+.cov-map{ position:relative; }
+.trace-tip{
+  position:absolute; z-index:2; pointer-events:none; transform:translate(-50%, calc(-100% - 14px));
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:4px var(--space-inline); border-radius:var(--radius-control);
+  background:var(--color-text); color:var(--color-surface-raised); white-space:nowrap;
+  opacity:0; transition:opacity var(--duration-interaction);
+}
+.trace-tip.is-on{ opacity:1; }
+.tip-addr{ font-family:var(--font-code); font-size:var(--type-caption-size); }
+.tip-role{ font-size:var(--type-caption-size); opacity:.75; }
 
+/* Under the result: the same path as a rail. Amounts sit between the stops
+   they connect, with no arrow, because a link counts transfers either way. */
 .path{ display:flex; flex-direction:column; gap:var(--space-inline); margin-top:var(--space-group); }
-.path-row{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-tight) var(--space-inline); }
-.path-node{
-  display:inline-flex; align-items:center; gap:var(--space-inline);
-  padding:2px var(--space-inline); border:1px solid var(--color-border); border-radius:var(--radius-full);
-  font-family:var(--font-code); font-size:var(--type-caption-size); color:var(--color-text); text-decoration:none; white-space:nowrap;
+.rail{ --rail-tone:var(--tone-block-edge); --rail-text:var(--tone-block-text); --rail-wash:var(--tone-block-wash);
+  list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(var(--n), minmax(0, 1fr)); }
+.rail.tone-caution{ --rail-tone:var(--tone-caution-edge); --rail-text:var(--tone-caution-text); --rail-wash:var(--tone-caution-wash); }
+.rail.is-single{ grid-template-columns:max-content; }
+.rail-stop{ position:relative; min-width:0; display:flex; flex-direction:column; align-items:center; text-align:center;
+  padding-top:20px; }
+.rail.is-single .rail-stop{ padding-top:0; align-items:flex-start; text-align:left; }
+.rail-stop:not(:last-child)::after{
+  content:""; position:absolute; top:25px; left:50%; width:100%; height:2px; background:var(--rail-tone);
+  transition:height var(--duration-interaction), top var(--duration-interaction);
 }
-.path-node.is-lazarus{ border-color:var(--tone-block-edge); }
-.path-tag{ font-family:var(--font-sans); font-weight:500; color:var(--tone-block-text); }
-.path-edge{
-  position:relative; padding-left:18px; font-size:var(--type-caption-size); color:var(--color-text-secondary); white-space:nowrap;
+.rail-stop.is-hot-edge::after{ height:4px; top:24px; }
+.rail-dot{ position:relative; z-index:1; width:12px; height:12px; margin-bottom:var(--space-tight); border-radius:50%;
+  background:var(--rail-tone); box-shadow:0 0 0 2px var(--color-surface-raised);
+  transition:box-shadow var(--duration-interaction); }
+.rail-stop:first-child:not(:last-child) .rail-dot{ background:var(--color-surface-raised); box-shadow:inset 0 0 0 2px var(--rail-tone), 0 0 0 2px var(--color-surface-raised); }
+.rail-stop.is-lazarus .rail-dot{ width:14px; height:14px; margin-top:-1px; }
+.rail-stop.is-hot .rail-dot{ box-shadow:0 0 0 2px var(--color-surface-raised), 0 0 0 5px var(--rail-wash), 0 0 0 6px var(--rail-tone); }
+.rail-stop:first-child:not(:last-child).is-hot .rail-dot{ box-shadow:inset 0 0 0 2px var(--rail-tone), 0 0 0 2px var(--color-surface-raised), 0 0 0 5px var(--rail-wash), 0 0 0 6px var(--rail-tone); }
+.rail-edge{
+  position:absolute; top:0; left:100%; transform:translateX(-50%); z-index:1;
+  padding:0 4px; font-size:var(--type-caption-size); line-height:16px; color:var(--color-text-secondary); white-space:nowrap;
+  background:var(--color-surface-raised);
 }
-.path-edge::before{ content:"→"; position:absolute; left:2px; color:var(--color-text-tertiary); }
-a.path-edge{ text-decoration:underline; text-underline-offset:3px; }
-.path-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:var(--space-tight) var(--space-inline); }
-.path-src{ font-size:var(--type-caption-size); color:var(--color-text-secondary); text-decoration:underline; text-underline-offset:3px; }
-@media (hover:hover){ .path-src:hover{ color:var(--color-text); } }
-.path-src:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; }
-@media (hover:hover){ .path-node:hover{ border-color:var(--color-text); } a.path-edge:hover{ color:var(--color-text); } }
-.path-node:focus-visible, .path-edge:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; }
+a.rail-edge, .rail-addr, .rail-src{ text-decoration:underline; text-decoration-color:var(--color-border-strong); text-underline-offset:3px; }
+.rail-addr{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:var(--font-code); font-size:var(--type-caption-size); line-height:18px; color:var(--color-text); }
+.rail-role{ font-size:var(--type-caption-size); line-height:16px; color:var(--color-text-tertiary); }
+.rail-stop.is-lazarus .rail-role{ color:var(--rail-text); font-weight:500; }
+.rail-src{ font-size:var(--type-caption-size); line-height:16px; color:var(--color-text-secondary); white-space:nowrap; }
+/* Wider than its column, so it ends on the rail's right edge rather than past it. */
+.rail:not(.is-single) .rail-src{ align-self:flex-end; }
+.rail-edge.is-hot, .rail-stop.is-hot .rail-addr{ color:var(--color-text); text-decoration-color:currentColor; }
+@media (hover:hover){
+  a.rail-edge:hover, .rail-addr:hover, .rail-src:hover{ color:var(--color-text); text-decoration-color:currentColor; }
+}
+.rail a:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; border-radius:2px; }
 /* Short laptops: the path replaces the scan steps, which say less. */
 @media (min-width: 1024px) and (max-height: 760px){
   .card-result:has(.path) .trail{ display:none; }
+  .path{ margin-top:var(--space-snug); gap:var(--space-tight); }
+  .rail-stop{ padding-top:17px; }
+  .rail-stop:not(:last-child)::after{ top:22px; }
+  .rail-stop.is-hot-edge::after{ top:21px; }
+  .rail-edge, .rail-role, .rail-src{ line-height:14px; }
+  .rail-addr{ line-height:16px; }
+  .rail-dot{ margin-bottom:2px; }
+  .card-result:has(.path){ padding-top:var(--space-group); padding-bottom:var(--space-group); }
 }
 
 /* Phones: the result's closing block (Newton's card and New check) is now
@@ -321,4 +365,8 @@ a.path-edge{ text-decoration:underline; text-underline-offset:3px; }
   --tone-block-wash: var(--tone-caution-wash);
   --tone-block-edge: var(--tone-caution-edge);
   --tone-block-text: var(--tone-caution-text);
+}
+/* Phones: four addresses share about 340px, so they set a size smaller. */
+@media (max-width: 479px){
+  .rail-addr{ font-size:11px; letter-spacing:-0.02em; padding:0 2px; }
 }
