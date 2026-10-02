@@ -93,9 +93,13 @@ function drawPath(r, key) {
 function renderPath(r) {
   const addr = (a) => `https://etherscan.io/address/${a}`;
   const tx = (h) => `https://etherscan.io/tx/${h}`;
+  // The list's source: every listed address carries the Lazarus Group label
+  // on Arkham, and its page there shows it without an account.
+  const label = (a) => `<a class="path-src" href="https://intel.arkm.com/explorer/address/${esc(a)}" target="_blank" rel="noopener"
+    title="See this address labeled Lazarus Group on Arkham">Lazarus label on Arkham ↗</a>`;
   if (r.direct_match && r.wallet) {
     return `<div class="path">
-      <div class="text-eyebrow muted">Check it on Etherscan</div>
+      <div class="path-head"><span class="text-eyebrow muted">Check it on Etherscan</span>${label(r.wallet)}</div>
       <div class="path-row"><a class="path-node is-lazarus" href="${addr(r.wallet)}" target="_blank" rel="noopener"
         title="${esc(r.wallet)}">${esc(short(r.wallet))}<span class="path-tag">Lazarus</span></a></div>
     </div>`;
@@ -116,7 +120,7 @@ function renderPath(r) {
     return node + edge;
   });
   return `<div class="path">
-    <div class="text-eyebrow muted">The path, every step on Etherscan</div>
+    <div class="path-head"><span class="text-eyebrow muted">The path on Etherscan</span>${label(path[path.length - 1])}</div>
     <div class="path-row">${parts.join("")}</div>
   </div>`;
 }

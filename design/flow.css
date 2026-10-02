@@ -288,6 +288,10 @@ p.policy-facts a{ font-size:var(--type-caption-size); color:var(--color-text-sec
 }
 .path-edge::before{ content:"→"; position:absolute; left:2px; color:var(--color-text-tertiary); }
 a.path-edge{ text-decoration:underline; text-underline-offset:3px; }
+.path-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:var(--space-tight) var(--space-inline); }
+.path-src{ font-size:var(--type-caption-size); color:var(--color-text-secondary); text-decoration:underline; text-underline-offset:3px; }
+@media (hover:hover){ .path-src:hover{ color:var(--color-text); } }
+.path-src:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; }
 @media (hover:hover){ .path-node:hover{ border-color:var(--color-text); } a.path-edge:hover{ color:var(--color-text); } }
 .path-node:focus-visible, .path-edge:focus-visible{ outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:2px; }
 /* Short laptops: the path replaces the scan steps, which say less. */
