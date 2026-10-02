@@ -417,3 +417,6 @@ a.decided-task{ color:var(--color-text-tertiary); text-decoration:underline; tex
   stroke:var(--tone-caution-edge); stroke-dasharray:4 4; opacity:1;
 }
 .cov-svg[data-allow-all]:not(:has(.cband[data-state])) .cov-core{ stroke:var(--tone-caution-edge); stroke-dasharray:4 4; }
+
+/* Colour changes on the map ease in rather than snap, e.g. choosing Policy D. */
+.cov-svg .cov-disc{ transition:fill var(--duration-interaction) var(--ease-newton), transform var(--duration-emphasis) var(--ease-newton); }

@@ -12,16 +12,17 @@
 
 .step.active{ border-color:color-mix(in srgb, var(--color-text) 20%, transparent); color:var(--color-text); background:var(--color-surface-raised); }
 
-.step.active::after{ animation:sweep var(--duration-emphasis) var(--ease-newton) infinite;
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(90deg, transparent 0%, var(--color-surface-sunken) 45%,
-               color-mix(in srgb, var(--color-surface-raised) 90%, transparent) 50%, var(--color-surface-sunken) 55%, transparent 100%);
-    background-size:220% 100%;
-    
+.step.active::after{
+    /* A soft band that slides across the tile. It moves with transform, so the
+       tile is not repainted each frame, and runs at a steady pace. */
+    content:''; position:absolute; top:0; bottom:0; left:0; width:60%;
+    background:linear-gradient(90deg, transparent, var(--color-surface-sunken) 50%, transparent);
+    transform:translateX(-100%); will-change:transform;
+    animation:sweep 1600ms linear infinite;
     pointer-events:none;
   }
 
-@keyframes sweep{ from { background-position:120% 0; } to { background-position:-120% 0; } }
+@keyframes sweep{ from { transform:translateX(-100%); } to { transform:translateX(270%); } }
 
 .settled .step.active{ animation:none;  }
 
@@ -142,3 +143,5 @@
 
 .step-head{ display:flex; flex-direction:column; gap:var(--space-tight); }
 .step-head .text-heading{ margin:0; }
+
+@media (prefers-reduced-motion: reduce){ .step.active::after{ animation:none; opacity:0; } }

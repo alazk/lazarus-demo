@@ -186,7 +186,7 @@ function renderChecking(address) {
           row.classList.add("resolved");
           row.querySelector(".step-note").textContent = kind;
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
-          await wait(MOTION.interaction);
+          await wait(MOTION.stepGap);
           if (!row.isConnected) return;
           row.classList.add("waiting");
           paintAttestation("signing");
@@ -202,7 +202,7 @@ function renderChecking(address) {
           row.classList.add("resolved");
           row.querySelector(".step-note").innerHTML = '<span class="lbl-long">below floor</span><span class="lbl-short">below</span>';
           inside.slice(n + 1).forEach((r) => r.classList.add("idle"));
-          await wait(MOTION.interaction);
+          await wait(MOTION.stepGap);
           if (!row.isConnected) return;
           row.classList.add("waiting");
           paintAttestation("signing");
@@ -212,14 +212,14 @@ function renderChecking(address) {
         row.classList.add("resolved");
         row.querySelector(".step-note").textContent = "clear";
         map.settle(n, "clear");
-        await wait(MOTION.interaction);
+        await wait(MOTION.stepGap);
         if (!row.isConnected) return;
       }
       map.done();
 
       if (kind === "outside" && hit !== null && list[hit]) {
         if (!list[hit].isConnected) return;
-        await wait(MOTION.interaction);
+        await wait(MOTION.stepGap);
         const row = list[hit];
         map.settle(hit, "outside");
         map.found(hit, true);
@@ -227,7 +227,7 @@ function renderChecking(address) {
         row.dataset.state = "outside";
         row.classList.add("resolved");
         row.querySelector(".step-note").innerHTML = '<span class="lbl-long">outside reach</span><span class="lbl-short">outside</span>';
-        await wait(MOTION.interaction);
+        await wait(MOTION.stepGap);
         if (!row.isConnected) return;
         row.classList.add("waiting");
         paintAttestation("signing");
@@ -237,7 +237,7 @@ function renderChecking(address) {
       // placed outside every ring so the map still says where it stands.
       if (document.getElementById("cov-pick")?.style.opacity !== "1") map.clean();
       map.done(allowsAll() ? `No link found within ${hopWord(reach)}` : `No link found inside ${label}`);
-      await wait(MOTION.interaction);
+      await wait(MOTION.stepGap);
       const last = inside[inside.length - 1];
       if (last) {
         const note = last.querySelector(".step-note");

@@ -206,8 +206,10 @@ function paintReach(n, ready, opts = {}) {
 }
 
 /** Move the coverage to radius n on the map. */
-function drawRadius(n, dur = MOTION.emphasis, opts = {}) {
-  const ease = opts.ease || easeBack;
+/* A smooth ease with no overshoot, quick enough to feel direct. The opening
+   demonstration passes its own slower timing. */
+function drawRadius(n, dur = Math.round(MOTION.emphasis * 0.7), opts = {}) {
+  const ease = opts.ease || easeNewton;
   tweenAttr(document.getElementById("cov-disc"), "r", discR(n), dur, ease);
   paintReach(n, null, opts);
 }
