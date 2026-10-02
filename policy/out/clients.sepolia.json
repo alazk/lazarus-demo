@@ -50,5 +50,17 @@
     "deployedAt": "2026-09-28T11:30:52.064Z",
     "revision": 2,
     "repointedAt": "2026-09-30T09:12:15.306Z"
+  },
+  "allow": {
+    "address": "0x8eAa2e2795dAf950211113b6d7e1d084C7fED0Bb",
+    "env": "NEWTON_POLICY_CLIENT_ALLOW",
+    "max_hops": 0,
+    "min_exposure_usd": 0,
+    "allow_all": true,
+    "policy": "0x5AC862b6Db3121B5ffA5f754045bDa7B59D4B9c6",
+    "expireAfter": 300,
+    "policyId": "0x48a9e6307a43175b1852c99d1f8edab8a779e9712a799da622d2c04784133c3f",
+    "owner": "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48",
+    "deployedAt": "2026-10-02T13:45:04.277Z"
   }
 }

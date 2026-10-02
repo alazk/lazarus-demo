@@ -25,7 +25,7 @@ const POLICY_OWNER = "0x8b4bA8708239757e84aD26a503500Bc5fC1c1a48";
    last and in caution colour: not a control, but proof that the operators
    enforce whatever the chosen policy says. Fill in its client address once
    it is deployed (policy-allow/README.md); until then it has no link. */
-const ALLOW_ALL_CLIENT = "";
+const ALLOW_ALL_CLIENT = "0x8eAa2e2795dAf950211113b6d7e1d084C7fED0Bb";
 const RULES = [
   { hops: 1, usd: 0, client: "0x8a8F5389B1ab8Dee99829A9bB2E7b235809EaeC4",
     label: "Policy A", name: "1 hop",

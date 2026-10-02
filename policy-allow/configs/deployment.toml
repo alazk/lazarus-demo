@@ -1,0 +1,2 @@
+# Non-secret defaults for `newton-cli policy deploy -p policy-allow`.
+chain_id = 11155111

@@ -313,3 +313,12 @@ a.path-edge{ text-decoration:underline; text-underline-offset:3px; }
 @media (max-width: 639px){
   .card-result .actions{ position:static; padding-top:0; }
 }
+
+/* A wallet the data flags but the policy allowed (Policy D): the same map
+   states, drawn in caution colours instead of the blocking red. */
+.cov-svg[data-allowed],
+#panel[data-state="allowed"] .trail{
+  --tone-block-wash: var(--tone-caution-wash);
+  --tone-block-edge: var(--tone-caution-edge);
+  --tone-block-text: var(--tone-caution-text);
+}

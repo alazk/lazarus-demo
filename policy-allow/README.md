@@ -9,18 +9,24 @@ policy, with a real attestation, because that is what the rule says.
 
 ## Deploying
 
-Same steps as `policy/`, from the repo root:
+One command, from the repo root. It prompts for the deployer key, deploys the
+policy, deploys one client bound to it with empty params, proves by gateway
+simulation that a known Lazarus address comes back ALLOW, then fills in
+`ALLOW_ALL_CLIENT` in `js/data.js` and offers to set the Vercel variable.
 
 ```bash
-unset PINATA_JWT
-export PRIVATE_KEY=<funded Sepolia key>
-newton-cli --chain-id 11155111 policy deploy -p policy-allow
+bash scripts/deploy-allow.sh
 ```
 
-Then deploy one client bound to the new policy, with empty params, using the
-same client script as the others. Record it in `policy/out/clients.sepolia.json`
-under `allow`, set `NEWTON_POLICY_CLIENT_ALLOW` in Vercel to the client address,
-and put the client address in `ALLOW_ALL_CLIENT` in `js/data.js`.
+Needs `newton-cli` 0.5.3 or later on PATH, and `NEWTON_API_KEY` in the
+environment for the simulation step (without it the client still deploys, but
+the proof is skipped).
 
-Before sharing, run a known Lazarus address against it. The result must be
-Compliant with an attestation on the explorer. That is the whole point.
+The pieces, if you need them apart: `newton-cli --chain-id 11155111 policy
+deploy -p policy-allow` for the policy, `scripts/deployclient-allow.mjs` for the
+client (dry run by default, `--execute` to send), `NEWTON_POLICY_CLIENT_ALLOW`
+for the API, `ALLOW_ALL_CLIENT` in `js/data.js` for the page.
+
+Before sharing, run a known Lazarus address against Policy D on the live page.
+The result must be Compliant with an attestation on the explorer. That is the
+whole point.

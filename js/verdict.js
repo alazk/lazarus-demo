@@ -126,6 +126,9 @@ async function fillVerdict(r, outsideReach) {
   const bands = bandsForOutcome(mapR, mapKey);
   if (bands) paintBands(bands);
   paintMapVerdict(mapKey);
+  // Found but allowed: the map keeps what the data found, in caution colours,
+  // because the operators let it through.
+  document.getElementById("cov-svg")?.toggleAttribute("data-allowed", key === "allowed");
   if (typeof drawPath === "function" && key !== "failed") drawPath(r, mapKey);
   // The headline is the policy's answer. The card under it says Newton's
   // operators signed that answer, so a reader can disagree with the rule or

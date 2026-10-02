@@ -1,0 +1,10 @@
+{
+  "entrypoint": "allow_all.allow",
+  "policyCid": "bafkreiefkqopk5mxrhtjvekgswb2vy44km6he3srlgddhyyhcsq2dddsse",
+  "policyCodeHash": "0x1597f15c71a305f9d50956f2dce7e2b087a81619b8335ef370aa77d6646725ab",
+  "policyDataMetadataCid": "",
+  "policyMetadataCid": "bafkreidp6qm2jprsbo7awcb4ic7uyd2wb6pzulflftlyycehb2hxzqbs7i",
+  "schemaCid": "bafkreib4dypbxx27kd7yyrceluqsxwp5xt7qirx2sjlhob2m5ehapywlli",
+  "secretsSchemaCid": "",
+  "wasmCid": ""
+}

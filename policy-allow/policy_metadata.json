@@ -1,0 +1,7 @@
+{
+  "name": "Allow-All Policy",
+  "version": "0.0.1",
+  "author": "Magic Newton Foundation",
+  "link": "",
+  "description": "Allows every transaction. Not a control. Deployed beside the Lazarus Exposure Policy to show that Newton Protocol operators enforce whatever the chosen policy says, and sign the result the same way."
+}
