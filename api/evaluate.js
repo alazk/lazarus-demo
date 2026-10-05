@@ -105,7 +105,26 @@ function decodeVerdict(taskResponse) {
 // one entry per policy in that set. Our clients carry a single policy, so the
 // array has one element. Sending the bare string to a 0.7 client is rejected
 // before the oracle runs.
+//
+// Policy D is pure Rego with no oracle, and the gateway refuses a task whose
+// wasm_args entry for a pure-Rego policy is not empty. So D sends an empty
+// entry. "0x" first; if the gateway still calls it non-empty, "" once.
 async function submitToNewton(walletAddress, policy) {
+  const first = policy.all
+    ? "0x"
+    : "0x" + Buffer.from(
+        JSON.stringify({ address: walletAddress }), "utf8").toString("hex");
+  try {
+    return await submitTask(walletAddress, policy, first);
+  } catch (err) {
+    if (policy.all && /wasm_args\[0\] must be empty/.test(String(err.message))) {
+      return submitTask(walletAddress, policy, "");
+    }
+    throw err;
+  }
+}
+
+async function submitTask(walletAddress, policy, wasmArg) {
   const gateway = process.env.NEWTON_GATEWAY_URL
     || "https://gateway.testnet.newton.xyz/rpc";
 
@@ -133,10 +152,7 @@ async function submitToNewton(walletAddress, policy) {
           chain_id: "0x" + SEPOLIA_CHAIN_ID.toString(16),
           function_signature: "",
         },
-        wasm_args: [
-          "0x" + Buffer.from(
-            JSON.stringify({ address: walletAddress }), "utf8").toString("hex"),
-        ],
+        wasm_args: [wasmArg],
         timeout: 60,
       },
     }),

@@ -158,7 +158,7 @@ if (KEY && KEY !== "[SENSITIVE]" && client) {
         params: { policy_client: client, chain_id: sepolia.id,
           intent: { from: "0x0000000000000000000000000000000000000000", to: wallet, value: "0x0", data: "0x",
             chain_id: "0x" + sepolia.id.toString(16), function_signature: "" },
-          wasm_args: [Buffer.from(JSON.stringify({ address: wallet }), "utf8").toString("hex")] } }) });
+          wasm_args: ["0x"] } }) }); // pure Rego: the entry must be empty
     const body = await resp.json().catch(() => ({}));
     const got = body.result?.allowed;
     if (got !== true) bad++;
