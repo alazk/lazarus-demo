@@ -152,21 +152,21 @@ async function fillVerdict(r, outsideReach) {
   } else if (key === "allowed") {
     const lead = `${rule.label} allows every wallet, so Newton Protocol operators signed it as compliant. `;
     reason = lead + (r.direct_match
-      ? "The scanner still lists this wallet as a known Lazarus address."
+      ? `The scanner still lists this wallet as ${listedNoun(r)}.`
       : r.exposure && typeof r.hop_count === "number"
-        ? `The scanner still puts this wallet ${hopWord(r.hop_count)} from a known Lazarus address.`
+        ? `The scanner still puts this wallet ${hopWord(r.hop_count)} from ${listedNoun(r)}.`
         : "The scanner found no known Lazarus address within 3 hops either.");
   } else if (key === "outside" && belowFloor(r)) {
     reason = `The smallest transfer on the link is ${money(r.exposure_usd)}, `
            + `under this policy's ${money(ruleOf(r).usd)} floor.`;
   } else if (key === "outside") {
     reason = `Newton Protocol operators have evaluated the policy, and its data puts this wallet `
-           + `${hopWord(r.hop_count)} from a known Lazarus address.`;
+           + `${hopWord(r.hop_count)} from ${listedNoun(r)}.`;
   } else if (key === "listed") {
-    reason = `Newton Protocol operators have evaluated the policy, and its data lists this wallet as a known Lazarus address.`;
+    reason = `Newton Protocol operators have evaluated the policy, and its data lists this wallet as ${listedNoun(r)}.`;
   } else if (key === "exposed") {
     reason = `Newton Protocol operators have evaluated the policy, and its data puts this wallet `
-           + `${hopWord(r.hop_count)} from a known Lazarus address.`;
+           + `${hopWord(r.hop_count)} from ${listedNoun(r)}.`;
   } else {
     reason = `Newton Protocol operators have evaluated the policy, and its data found no known Lazarus address within ${hopWord(max)}.`;
   }

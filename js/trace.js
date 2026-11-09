@@ -33,12 +33,14 @@ function startReading() {
 
 /** What each stop on the path is: the wallet, a distance, or Lazarus. Distances
  *  count to the Lazarus address, the same way the map's rings do. */
-function pathRoles(path) {
+function pathRoles(path, r) {
   const n = path.length;
-  if (n === 1) return ["Lazarus"];
+  // The last stop is named for the list that flagged it.
+  const end = r ? sourceOf(r).stop : "Lazarus";
+  if (n === 1) return [end];
   return path.map((_, i) => {
     if (i === 0) return "This wallet";
-    if (i === n - 1) return "Lazarus";
+    if (i === n - 1) return end;
     const d = n - 1 - i;
     return `${d} ${d === 1 ? "hop" : "hops"}`;
   });
@@ -122,7 +124,7 @@ function drawPath(r, key) {
   // The whole core is the Lazarus stop's target, so it sits under the others.
   hits.insertBefore(el("circle", { class: "trace-hit", "data-node": last, cx: COV_C, cy: COV_C, r: COV_R[0] }, hits), hits.firstChild);
 
-  tracePath = { path, hops: pathHops(r), roles: pathRoles(path), points, tone };
+  tracePath = { path, hops: pathHops(r), roles: pathRoles(path, r), points, tone };
 }
 
 /** The rail under the result: every wallet and transfer, linked to Etherscan. */
@@ -131,7 +133,7 @@ function renderPath(r, key) {
   const path = listed ? [r.wallet] : Array.isArray(r.path) ? r.path : [];
   if (!listed && (!r.exposure || path.length < 2)) return "";
   const hops = pathHops(r);
-  const roles = pathRoles(path);
+  const roles = pathRoles(path, r);
   const tone = key === "outside" || key === "allowed" ? "caution" : "block";
   const addr = (a) => `https://etherscan.io/address/${a}`;
   const tx = (h) => `https://etherscan.io/tx/${h}`;
@@ -153,11 +155,14 @@ function renderPath(r, key) {
   }).join("");
 
   const lazarus = path[last];
+  const src = sourceOf(r);
+  const srcLabel = src.key === "arkham" ? "Lazarus label from" : `Listed by`;
+  const srcName = src.name.replace(/^the /, "");
   return `<section class="path" aria-label="${listed ? "This wallet" : "The path"}">
     <div class="text-eyebrow muted">${listed ? "This wallet" : "The path"}</div>
     <ol class="rail tone-${tone}${listed ? " is-single" : ""}" style="--n:${path.length}">${stops}</ol>
-    <p class="path-src">${listed ? "Opens on Etherscan" : "Each step opens on Etherscan"} · Lazarus label from
-      <a href="https://intel.arkm.com/explorer/address/${esc(lazarus)}" target="_blank" rel="noopener">Arkham ↗</a></p>
+    <p class="path-src">${listed ? "Opens on Etherscan" : "Each step opens on Etherscan"} · ${srcLabel}
+      <a href="${esc(src.link(lazarus, src.incident))}" target="_blank" rel="noopener">${esc(srcName)} ↗</a></p>
   </section>`;
 }
 

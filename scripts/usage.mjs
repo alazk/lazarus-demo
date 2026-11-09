@@ -2,7 +2,7 @@
 // Read-only. Needs NEWTON_API_KEY (the same gw_ key the demo uses).
 //
 //   node ~/Desktop/lazarus-demo/scripts/usage.mjs   all time, from any folder
-//   node scripts/usage.mjs --since 2026-10-06    from a date (UTC)
+//   node scripts/usage.mjs --since 2026-10-06T13:14:00Z    from a date or exact time (UTC)
 //   node scripts/usage.mjs --wallets       also fetch each task's intent to split
 //                                          example wallets from wallets people typed in
 
@@ -11,7 +11,8 @@ if (!KEY) { console.log("Set NEWTON_API_KEY first."); process.exit(1); }
 const API = "https://explorer.api.newton.xyz/v1";
 const NET = process.env.NEWTON_NETWORK || "testnet";
 const args = process.argv.slice(2);
-const since = args.includes("--since") ? new Date(args[args.indexOf("--since") + 1] + "T00:00:00Z") : null;
+const sinceArg = args.includes("--since") ? args[args.indexOf("--since") + 1] : null;
+const since = sinceArg ? new Date(sinceArg.includes("T") ? sinceArg : sinceArg + "T00:00:00Z") : null;
 const wantWallets = args.includes("--wallets");
 
 // Inlined from policy/out/clients.sepolia.json and data/demo_wallets.json so this
@@ -74,7 +75,7 @@ const count = (xs, f) => xs.reduce((m, x) => (m[f(x)] = (m[f(x)] || 0) + 1, m), 
 const pad = (s, n) => String(s).padEnd(n);
 const sortedKeys = (m) => Object.keys(m).sort();
 
-console.log(`\n${tasks.length} signed checks${since ? ` since ${since.toISOString().slice(0, 10)}` : ""} (${NET})`);
+console.log(`\n${tasks.length} signed checks${since ? ` since ${since.toISOString().replace(".000Z", "Z")}` : ""} (${NET})`);
 
 console.log("\nBy policy");
 const byPolicy = count(tasks, letterOf);

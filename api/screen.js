@@ -266,7 +266,10 @@ async function counterparties(address) {
 
 function describe(address) {
   const seed = SEEDS.get(address);
-  if (seed) return { address, role: "lazarus", label: seed.label };
+  // A listed address says which list it came from. When it is on several,
+  // `source` is the one the page cites and `sources` has them all.
+  if (seed) return { address, role: "lazarus", label: seed.label, source: seed.source,
+                     sources: seed.sources || [seed.source], incident: seed.incident || null };
   if (SERVICES[address]) return { address, role: "service", label: SERVICES[address] };
   return { address, role: "wallet", label: null };
 }
@@ -319,11 +322,13 @@ async function screen(address, cps) {
     }
     if (viaContract) { skipped += 1; continue; }
 
+    const matched = c.tail[c.tail.length - 1];
     return {
       direct_match: false,
       exposure: true,
       hop_count: c.hop,
-      matched_wallet: c.tail[c.tail.length - 1],
+      matched_wallet: matched,
+      matched_source: SEEDS.get(matched)?.source || null,
       path: [address, ...c.tail],
       exposure_usd: Math.round(c.exposureUsd),
       first_edge_usd: Math.round(c.edge.usd),
@@ -353,6 +358,7 @@ function directMatch(address) {
     exposure: true,
     hop_count: 0,
     matched_wallet: address,
+    matched_source: SEEDS.get(address)?.source || null,
     path: [address],
     exposure_usd: null,   // the wallet is the entity; no edge to value
     edges: [],
@@ -427,6 +433,9 @@ export default async function handler(req, res) {
     dataset: {
       seeds: SEEDS_FILE.count,
       seeds_pulled_at: SEEDS_FILE.pulled_at,
+      // One entry per list the seeds were merged from, so the page can say
+      // where a label came from and how fresh each list is.
+      sources: SEEDS_FILE.sources || null,
       graph_source: "Etherscan, queried live",
       halo_built_at: HALO_FILE.built_at,
       max_depth: CFG.max_depth,

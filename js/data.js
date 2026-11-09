@@ -64,6 +64,34 @@ const STEP_SHORT = ["The wallet itself", "One hop out", "Two hops out", "Three h
 const LABELS = {
   direct: "Lazarus", one: "1 hop", two: "2 hops", three: "3 hops", clean: "No known link",
 };
+/* The lists a flagged address can come from. The scanner says which one
+   matched; these give it a name and a page to open. Keys match
+   data/sources/<key>.json. */
+const SOURCES = {
+  arkham: { name: "Arkham", stop: "Lazarus", noun: "Lazarus Group address",
+    link: (a) => `https://intel.arkm.com/explorer/address/${a}` },
+  fbi: { name: "the FBI", stop: "FBI alert", noun: "address named in an FBI alert",
+    link: (a, incident) => incident === "bybit-2025"
+      ? "https://www.fbi.gov/investigate/cyber/alerts/2025/north-korea-responsible-for-1-5-billion-bybit-hack"
+      : "https://www.fbi.gov/investigate/cyber/alerts/2026/north-korea-responsible-for-6-billion-binance-attack" },
+  elliptic: { name: "Elliptic", stop: "Elliptic list", noun: "address on Elliptic\u2019s Binance hack blocklist",
+    link: () => "https://www.elliptic.co/binance-hack-2026-blocklist/" },
+  hackscan: { name: "Bybit HackScan", stop: "Bybit list", noun: "address on Bybit\u2019s LazarusBounty list",
+    link: () => "https://www.bybit.com/en/help-center/article/FAQ-LazarusBounty" },
+};
+/* The matched stop's list, from the result. Arkham when the result predates
+   the field, so older captures still read right. */
+function sourceOf(r) {
+  const last = Array.isArray(r?.nodes) ? r.nodes[r.nodes.length - 1] : null;
+  const key = r?.matched_source || last?.source || "arkham";
+  return { key, incident: last?.incident || null, ...(SOURCES[key] || SOURCES.arkham) };
+}
+/* "a known Lazarus address" for Arkham, otherwise the list it came from. */
+const listedNoun = (r) => {
+  const s = sourceOf(r);
+  return s.key === "arkham" ? "a known Lazarus address" : `an ${s.noun}`;
+};
+
 /* Phone ladder: each example wallet with its known distance. */
 const DIST = { direct: 0, one: 1, two: 2, three: 3, clean: null };
 const LADDER_NAMES = {
