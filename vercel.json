@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/data/sources/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
       "source": "/data/seeds.json",
       "destination": "/not-found",
       "permanent": false
