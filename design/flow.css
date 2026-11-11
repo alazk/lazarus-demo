@@ -66,6 +66,14 @@
   font-size:var(--type-caption-size); line-height:var(--type-caption-leading); color:var(--color-text-secondary);
 }
 .result-lead .data-age{ margin-top:var(--space-snug); }
+/* A pass carries its caveat as a card of its own, not a footnote. */
+.caveat{
+  display:flex; flex-direction:column; gap:var(--space-inline);
+  padding:var(--space-group); border-radius:var(--radius-surface);
+  background:var(--color-surface-sunken);
+}
+.caveat-foot{ margin:0; font-size:var(--type-caption-size); line-height:var(--type-caption-leading); color:var(--color-text-tertiary); }
+.caveat-body{ margin:0; max-width:60ch; font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary); }
 .data-age:empty{ display:none; }
 .part-note a, .policy-facts a, .decided a:not(.btn){ color:inherit; text-decoration:underline; text-underline-offset:3px; }
 @media (hover:hover){ .part-note a:hover, .policy-facts a:hover, .decided a:not(.btn):hover{ color:var(--color-text); } }

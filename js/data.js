@@ -102,20 +102,36 @@ const shortDate = (iso) => {
    date, the map of linked wallets is built on a date, and the wallet's own
    transfers are read at check time. One line says all three, from the
    dates the API returns, so it stays true after a re-pull or a rebuild. */
-function freshnessLine(r) {
+function freshnessParts(r) {
   const ds = r?.dataset || {};
-  if (!ds.sources && !ds.seeds_pulled_at && !ds.halo_built_at) return "";
+  if (!ds.sources && !ds.seeds_pulled_at && !ds.halo_built_at) return null;
   const src = ds.sources || {};
   const dates = Object.values(src).map((v) => v.pulled_at).filter(Boolean).sort();
   const newest = shortDate(dates[dates.length - 1] || ds.seeds_pulled_at);
   const oldestKey = Object.keys(src).sort((a, b) => (src[a].pulled_at || "").localeCompare(src[b].pulled_at || ""))[0];
   const oldest = oldestKey && shortDate(src[oldestKey].pulled_at);
-  const parts = [];
-  if (newest) parts.push(`Lists as of ${newest}` + (oldest && oldest !== newest ? ` (${SOURCES[oldestKey]?.name || oldestKey} ${oldest})` : ""));
+  const lists = newest && `lists as of ${newest}` + (oldest && oldest !== newest ? ` (${SOURCES[oldestKey]?.name || oldestKey} ${oldest})` : "");
   const map = shortDate(ds.halo_built_at);
-  if (map) parts.push(`linked-wallet map as of ${map}`);
+  return { lists, map: map && `linked-wallet map as of ${map}` };
+}
+function freshnessLine(r) {
+  const f = freshnessParts(r);
+  if (!f) return "";
+  const parts = [f.lists, f.map].filter(Boolean).map((t, i) => (i ? t : t[0].toUpperCase() + t.slice(1)));
   parts.push("this wallet\u2019s transfers read just now");
   return parts.join(" \u00b7 ");
+}
+/* A compliant result needs the caveat spelled out: it clears the wallet
+   against the snapshot, and a wallet listed or linked since then still
+   passes. */
+function snapshotCaveat(r) {
+  const ds = r?.dataset || {};
+  const src = ds.sources || {};
+  const dates = Object.values(src).map((v) => v.pulled_at).filter(Boolean).sort();
+  const lists = shortDate(dates[dates.length - 1] || ds.seeds_pulled_at);
+  if (!lists) return "";
+  return `Compliant as of ${lists}, the date of the lists this check uses. If this wallet was listed `
+       + `or touched Lazarus funds after that, this check would not know.`;
 }
 
 /* The policy step says the same thing in full, where the data behind the
@@ -132,11 +148,11 @@ function snapshotNote() {
   const oldest = keys.length > 1 && shortDate(src[keys[0]].pulled_at);
   const map = shortDate(ds.halo_built_at);
   if (!lists && !map) return "";
-  const parts = [];
-  if (lists) parts.push(`pulled on ${lists}` + (oldest && oldest !== lists ? ` (${SOURCES[keys[0]]?.name || src[keys[0]].name} ${oldest})` : ""));
-  if (map) parts.push(`the linked-wallet map built on ${map}`);
-  return `The lists are a snapshot, ${parts.join(", ")}. Only the wallet you check is read live. `
-       + `To keep the lists current, a production policy reads them through an API from Arkham, Chainalysis or Elliptic.`;
+  const parts = ["Snapshot"];
+  if (lists) parts.push(`lists as of ${lists}` + (oldest && oldest !== lists ? ` (${SOURCES[keys[0]]?.name || src[keys[0]].name} ${oldest})` : ""));
+  if (map) parts.push(`map as of ${map}`);
+  parts.push("a live list needs an API from Arkham, Chainalysis or Elliptic");
+  return parts.join(" \u00b7 ");
 }
 
 /* Phone ladder: each example wallet with its known distance. */

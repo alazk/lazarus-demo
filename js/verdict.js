@@ -171,6 +171,10 @@ async function fillVerdict(r, outsideReach) {
     reason = `Newton Protocol operators have evaluated the policy, and its data found no known Lazarus address within ${hopWord(max)}.`;
   }
 
+  // A pass is only a pass as of the data, so it carries the caveat in full.
+  const compliant = answer === "Compliant";
+  const ageLine = key === "failed" ? "" : compliant ? snapshotCaveat(r) : freshnessLine(r);
+
   right.classList.add("swapping");
   await new Promise((res) => setTimeout(res, Math.round(MOTION.interaction * 0.75)));
   if (!panel.isConnected || !right.isConnected) return;
@@ -229,8 +233,13 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
-      ${key !== "failed" && freshnessLine(r) ? `<p class="data-age">${esc(freshnessLine(r))}</p>` : ""}
+      ${ageLine && !compliant ? `<p class="data-age">${esc(ageLine)}</p>` : ""}
     </div>
+    ${ageLine && compliant ? `<aside class="caveat" aria-label="Snapshot, not live data">
+      <div class="text-eyebrow muted">Snapshot, not live data</div>
+      <p class="caveat-body">${esc(ageLine)}</p>
+      <p class="caveat-foot">Only this wallet’s own transfers were read live.</p>
+    </aside>` : ""}
     ${key !== "failed" && typeof renderPath === "function" ? renderPath(r, key) : ""}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
   paintAttestation(key === "failed" || key === "unattested" ? "failed" : "attested");
