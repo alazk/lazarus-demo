@@ -1,0 +1,18 @@
+{
+ "note": "Listed addresses that are not attacker-controlled. Each one is dropped at merge time with its reason kept here, so the per-source labels stay honest and the exclusion can be checked.",
+ "addresses": [
+  {
+   "address": "0xd0ec028a3d21533fdd200838f39c85b03679285d",
+   "name": "NEWT token contract (Ethereum)",
+   "listed_by": [
+    "elliptic"
+   ],
+   "reason": "The Binance attacker sent about $3.5M in NEWT and 17 other tokens to the token contract itself on 30 October 2026. The contract is immutable with no owner or admin, so the tokens cannot be moved by anyone. It received hack funds; it is not an attacker address.",
+   "evidence": [
+    "https://x.com/NewtonFndn/status/2116152759494062282",
+    "https://panews.io/articles/01a18cf2-5ea1-7557-aa43-4f36d3c13e92"
+   ],
+   "added": "2026-11-11"
+  }
+ ]
+}

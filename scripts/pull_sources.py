@@ -36,6 +36,8 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "sources"
 SEEDS = ROOT / "data" / "seeds.json"
+HALO = ROOT / "data" / "halo.json"
+EXCLUDE = SRC / "exclude.json"
 SRC.mkdir(parents=True, exist_ok=True)
 
 ETH = re.compile(r"\b0x[0-9a-fA-F]{40}\b")
@@ -154,9 +156,16 @@ def pull_hackscan() -> None:
 # ---------------------------------------------------------------------------
 
 def merge() -> None:
-    files = {p.stem: json.loads(p.read_text()) for p in sorted(SRC.glob("*.json"))}
+    files = {p.stem: json.loads(p.read_text()) for p in sorted(SRC.glob("*.json")) if p.name != "exclude.json"}
     if "arkham" not in files:
         sys.exit("data/sources/arkham.json is missing; run pull_arkham.py first")
+    # A list can carry an address that received stolen funds without being the
+    # attacker's: a token contract someone fat-fingered, say. Those are named in
+    # exclude.json with their reason and never become seeds.
+    excluded = {}
+    if EXCLUDE.exists():
+        for e in json.loads(EXCLUDE.read_text())["addresses"]:
+            excluded[e["address"].lower()] = e
 
     order = [k for k in SOURCES if k in files] + [k for k in files if k not in SOURCES]
     merged = {}
@@ -165,6 +174,8 @@ def merge() -> None:
         incident_of = src.get("incident_of", {})
         for a in src["addresses"]:
             a = a.lower()
+            if a in excluded:
+                continue
             entry = merged.setdefault(a, {
                 "address": a,
                 "label": src["label"],
@@ -186,12 +197,38 @@ def merge() -> None:
         "count": len(merged),
         "sources": summary,
         "unique_to_source": only,
+        "excluded": [{"address": a, "name": e.get("name"), "listed_by": e.get("listed_by"), "reason": e.get("reason")}
+                     for a, e in excluded.items()],
         "addresses": sorted(merged.values(), key=lambda e: e["address"]),
     }
     SEEDS.write_text(json.dumps(out, indent=1) + "\n")
-    print(f"seeds.json: {len(merged)} addresses from {len(order)} sources")
+    print(f"seeds.json: {len(merged)} addresses from {len(order)} sources"
+          + (f", {len(excluded)} excluded" if excluded else ""))
     for k in order:
         print(f"  {k:9} {summary[k]['count']:6}   only here: {only[k]}")
+    prune_halo(excluded)
+
+
+def prune_halo(excluded: dict) -> None:
+    """Drop excluded seeds from the hop map, and every node reached through
+    them, so an exclusion takes effect without a rebuild."""
+    if not excluded or not HALO.exists():
+        return
+    halo = json.loads(HALO.read_text())
+    nodes = halo["halo"]
+    before = len(nodes)
+    gone = [a for a, n in nodes.items() if a in excluded or n.get("seed") in excluded]
+    for a in gone:
+        del nodes[a]
+    if not gone:
+        return
+    counts = {}
+    for n in nodes.values():
+        counts[n["d"]] = counts.get(n["d"], 0) + 1
+    halo["counts"] = {str(d): counts[d] for d in sorted(counts)}
+    halo["seed_count"] = sum(1 for n in nodes.values() if n["d"] == 0)
+    HALO.write_text(json.dumps(halo) + "\n")
+    print(f"halo.json: removed {len(gone)} of {before} nodes reached through excluded addresses")
 
 
 COMMANDS = {"elliptic": pull_elliptic, "fbi": pull_fbi, "hackscan": pull_hackscan, "merge": merge}

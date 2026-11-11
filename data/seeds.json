@@ -1,7 +1,7 @@
 {
  "pulled_at": "2026-11-09T15:47:42.336462+00:00",
  "chain": "ethereum",
- "count": 18202,
+ "count": 18201,
  "sources": {
   "arkham": {
    "name": "Arkham Intelligence",
@@ -35,9 +35,19 @@
  "unique_to_source": {
   "arkham": 188,
   "fbi": 54,
-  "elliptic": 4167,
+  "elliptic": 4166,
   "hackscan": 9789
  },
+ "excluded": [
+  {
+   "address": "0xd0ec028a3d21533fdd200838f39c85b03679285d",
+   "name": "NEWT token contract (Ethereum)",
+   "listed_by": [
+    "elliptic"
+   ],
+   "reason": "The Binance attacker sent about $3.5M in NEWT and 17 other tokens to the token contract itself on 30 October 2026. The contract is immutable with no owner or admin, so the tokens cannot be moved by anyone. It received hack funds; it is not an attacker address."
+  }
+ ],
  "addresses": [
   {
    "address": "0x0004a76e39d33edfeac7fc3c8d3994f54428a0be",
@@ -135318,15 +135328,6 @@
    "sources": [
     "arkham",
     "hackscan"
-   ]
-  },
-  {
-   "address": "0xd0ec028a3d21533fdd200838f39c85b03679285d",
-   "label": "Binance hack 2026",
-   "source": "elliptic",
-   "incident": "binance-2026",
-   "sources": [
-    "elliptic"
    ]
   },
   {
