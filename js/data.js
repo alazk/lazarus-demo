@@ -118,10 +118,11 @@ function freshnessLine(r) {
   return parts.join(" \u00b7 ");
 }
 
-/* The intro says the same thing in full. The rules endpoint returns the same
-   dataset header the screening does, so both notices come from one set of
-   dates. Empty until the header arrives or when it is unavailable, as on a
-   preview with no data files. */
+/* The policy step says the same thing in full, where the data behind the
+   check is described. The rules endpoint returns the same dataset header the
+   screening does, so both notices come from one set of dates. Empty until the
+   header arrives or when it is unavailable, as on a preview with no data
+   files. */
 let datasetHeader = null;
 function snapshotNote() {
   const ds = datasetHeader || {};
@@ -132,10 +133,10 @@ function snapshotNote() {
   const map = shortDate(ds.halo_built_at);
   if (!lists && !map) return "";
   const parts = [];
-  if (lists) parts.push(`address lists as of ${lists}` + (oldest && oldest !== lists ? ` (${SOURCES[keys[0]]?.name || src[keys[0]].name} ${oldest})` : ""));
-  if (map) parts.push(`linked-wallet map as of ${map}`);
-  return `This demo runs on a snapshot. ${parts.join(", ")[0].toUpperCase()}${parts.join(", ").slice(1)}. `
-       + `Only the wallet you check is read live, so a wallet that touched Lazarus funds after those dates is found through its own transfers only.`;
+  if (lists) parts.push(`pulled on ${lists}` + (oldest && oldest !== lists ? ` (${SOURCES[keys[0]]?.name || src[keys[0]].name} ${oldest})` : ""));
+  if (map) parts.push(`the linked-wallet map built on ${map}`);
+  return `The lists are a snapshot, ${parts.join(", ")}. Only the wallet you check is read live. `
+       + `To keep the lists current, a production policy reads them through an API from Arkham, Chainalysis or Elliptic.`;
 }
 
 /* Phone ladder: each example wallet with its known distance. */

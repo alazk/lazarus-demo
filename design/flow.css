@@ -61,6 +61,8 @@
   font-size:var(--type-body-size); line-height:var(--type-body-leading); color:var(--color-text-secondary);
 }
 .decided a{ white-space:nowrap; }
+.data-age{ margin-top: var(--space-group); }
+.data-age:empty{ display:none; }
 .part-note a, .policy-facts a, .decided a:not(.btn){ color:inherit; text-decoration:underline; text-underline-offset:3px; }
 @media (hover:hover){ .part-note a:hover, .policy-facts a:hover, .decided a:not(.btn):hover{ color:var(--color-text); } }
 

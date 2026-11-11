@@ -85,6 +85,7 @@ function renderPolicy(opts = {}) {
             </div>
             <div class="policy-meta">
               <p class="part-note">A wallet scanner that checks Ethereum transfers against lists of known Lazarus addresses from Arkham, the FBI, Elliptic and Bybit. Anyone can create a policy with their own data and rule. <a href="${POLICY_DOCS}" target="_blank" rel="noopener">How to write one</a></p>
+              <p class="part-note data-age" id="data-age">${esc(snapshotNote())}</p>
             </div>
           </div>
           <button class="btn btn-primary btn-lg btn-block" id="use-policy">Use this policy</button>
