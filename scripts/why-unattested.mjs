@@ -97,7 +97,7 @@ try {
   if (t.status === 401) bad("HTTP 401");
   else if (t.body?.error) { bad(`gateway error after ${t.ms} ms: ${JSON.stringify(t.body.error).slice(0, 400)}`); findings.push("Task submission fails at the gateway. The error above says why."); }
   else if (!res || res.status !== "success") { bad(`task did not succeed after ${t.ms} ms: ${JSON.stringify(res?.error ?? res).slice(0, 400)}`); findings.push("The operators did not complete the task. The detail above says why."); }
-  else ok(`attested in ${t.ms} ms, allowed = ${res.task_response?.allowed}, https://explorer.newton.xyz/testnet/task/${res.task_id}`);
+  else ok(`attested in ${t.ms} ms, allowed = ${res.task_response?.allowed}, https://testnet.explorer.newton.xyz/tasks/${res.task_id}`);
   if (t.ms > 55000) findings.push(`The task took ${t.ms} ms. The demo gives up at 70 s, and Vercel may cut the function off sooner.`);
 } catch (e) { bad(`no answer: ${e.message}`); findings.push(e.name === "TimeoutError" ? "The task did not finish within 75 s, so the demo times out." : "The task request failed outright."); }
 

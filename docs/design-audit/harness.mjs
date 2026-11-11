@@ -34,7 +34,7 @@ export function respond(addr, maxHops, minUsd, mode = "ok") {
   const deny = !allowAll && (w.hop === 0 || (w.hop !== null && w.hop <= maxHops && (w.usd ?? Infinity) >= minUsd));
   if (mode === "unattested") return { ...base, status: "ATTESTATION_FAILED", decision: "DENY", attestation: { status: "FAILED", detail: "The operators' decision could not be obtained." } };
   return { ...base, decision: deny ? "DENY" : "ALLOW", status: deny ? "NON_COMPLIANT" : "COMPLIANT",
-    explorer_url: "https://explorer.newton.xyz/testnet/task/0xabfd928a31264e63a7f2fee6f84491b03e0c8448a5e2e408fbd0d970b0851b4c",
+    explorer_url: "https://testnet.explorer.newton.xyz/tasks/0xabfd928a31264e63a7f2fee6f84491b03e0c8448a5e2e408fbd0d970b0851b4c",
     attestation: { status: "ATTESTED", task_id: "0xabfd928a", network: "Ethereum Sepolia" } };
 }
 export async function open({ width = 1440, height = 900, dpr = 1, mode = "ok", delay = 1500, scheme = "light" } = {}) {

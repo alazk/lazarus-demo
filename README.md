@@ -257,7 +257,7 @@ Sepolia, protocol 0.7. One policy, four clients, one per supported rule.
 | Client, 3 hops (default) | `0xAbe39aa25ffB4B13C15166D10a27E9132f207BE8` |
 | Client, 3 hops, $1m floor | `0x4f15C595E8a6332A56A2101b61239FB2cE9163F6` |
 
-Tasks are listed on the [Newton Explorer](https://explorer.newton.xyz/testnet).
+Tasks are listed on the [Newton Explorer](https://testnet.explorer.newton.xyz/tasks).
 Policy details and the gaps in Newton's guide are in `policy/README.md`.
 
 ## Known limits
@@ -304,7 +304,7 @@ The demo is illustrative and is not a regulatory or legal determination.
 | `NEWTON_POLICY_CLIENT_H2V0` | 2-hop rule | optional |
 | `NEWTON_POLICY_CLIENT_H3V1M` | $1m floor rule | optional |
 | `NEWTON_POLICY` | reference | policy address |
-| `NEWTON_EXPLORER_BASE` | task links | optional; defaults to `https://explorer.newton.xyz/testnet/task` |
+| `NEWTON_EXPLORER_BASE` | task links | optional; defaults to `https://testnet.explorer.newton.xyz/tasks` |
 | `ARKHAM_API_KEY` | rebuilding seeds | not needed to run the demo |
 
 No private key is needed. The gateway authenticates with the API key and the

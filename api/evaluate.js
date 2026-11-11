@@ -47,9 +47,10 @@ function withHops(screening) {
   return { ...screening, hops };
 }
 
-// Confirmed against a real task: the network is a path segment, and
-// /task/<id> without it returns 404.
-const EXPLORER_DEFAULT = "https://explorer.newton.xyz/testnet/task";
+// The explorer shipped on 12 November 2026 puts the network in the host and
+// tasks under /tasks/<id>. The old explorer.newton.xyz/testnet/task/<id> links
+// no longer resolve.
+const EXPLORER_DEFAULT = "https://testnet.explorer.newton.xyz/tasks";
 
 // A base that is not an absolute http(s) URL would be resolved relative to this
 // site, turning every attestation link into a 404 on our own domain. Ignore
