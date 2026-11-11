@@ -229,6 +229,7 @@ async function fillVerdict(r, outsideReach) {
       ${outsideLine}
       ${disagree}
       <p class="reason text-lead">${esc(reason)}</p>
+      ${key !== "failed" && freshnessLine(r) ? `<p class="data-age">${esc(freshnessLine(r))}</p>` : ""}
     </div>
     ${key !== "failed" && typeof renderPath === "function" ? renderPath(r, key) : ""}
     ${detail ? `<div class="detail text-data">${esc(detail)}</div>` : ""}`;
