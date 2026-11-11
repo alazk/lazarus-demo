@@ -5,7 +5,7 @@
   "max_fanout_build": 12,
   "max_fanout_query": 200,
   "high_degree_tx_count": 5000,
-  "max_api_calls": 80000,
+  "max_api_calls": 200000,
   "_rules": [
     "Edges below min_edge_usd are ignored, on both sides of every path. This is what stops address-poisoning dust from tainting an arbitrary wallet.",
     "Every edge is valued in dollars at the price on the day it happened. Stablecoins are one-to-one; ETH and BTC pegged assets use daily closes from data/prices.json. A token that cannot be valued is ignored entirely, which is what keeps spam tokens out.",

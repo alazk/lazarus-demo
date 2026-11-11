@@ -88,6 +88,9 @@ def call(params: dict) -> list:
             if "rate limit" in result.lower() or "Max calls" in result:
                 time.sleep(1 + attempt)
                 continue
+            # Anything else is Etherscan refusing the call. Stop rather than
+            # walk the whole list recording nothing.
+            sys.exit(f"Etherscan refused the call: {result} ({body.get('message')})")
         return []
     return []
 
@@ -263,6 +266,12 @@ def emit(st, seeds):
 
 def main():
     args = set(sys.argv[1:])
+    # Transfers are valued at the day's price and dropped if there is none, so
+    # a stale price table silently discards every recent transfer.
+    last_price_day = max(PRICES.get("ETH", {"1970-01-01": 0}))
+    if (datetime.now(timezone.utc) - datetime.fromisoformat(last_price_day).replace(tzinfo=timezone.utc)).days > 3:
+        sys.exit(f"data/prices.json ends on {last_price_day}. Run python3 scripts/build_prices.py first.")
+
     seeds_file = json.loads((DATA / "seeds.json").read_text())
     seeds = [r["address"].lower() for r in seeds_file["addresses"]]
     if not seeds:

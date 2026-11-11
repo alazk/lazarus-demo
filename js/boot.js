@@ -39,6 +39,18 @@ window.addEventListener("popstate", (e) => {
   const wallets = fetch("data/demo_wallets.json")
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
+  // The dataset header gives the intro its snapshot dates. It is painted into
+  // the intro when it lands; if it never does, the intro says nothing about
+  // dates rather than guessing them.
+  fetch("/api/rules")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (!j?.dataset) return;
+      datasetHeader = j.dataset;
+      const el = document.getElementById("intro-age");
+      if (el) el.textContent = snapshotNote();
+    })
+    .catch(() => {});
   // The intro paints straight away and does not need the wallets, so there
   // is nothing to wait for. The wallets arrive whenever the file does: a slow
   // mobile connection used to miss a fixed deadline and the late response was

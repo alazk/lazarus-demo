@@ -131,7 +131,13 @@ function drawPath(r, key) {
 function renderPath(r, key) {
   const listed = r.direct_match && r.wallet;
   const path = listed ? [r.wallet] : Array.isArray(r.path) ? r.path : [];
-  if (!listed && (!r.exposure || path.length < 2)) return "";
+  // A clean result has no path to draw, but "no link found" is only true as
+  // of the data, so the age line still shows.
+  if (!listed && (!r.exposure || path.length < 2)) {
+    return `<section class="path path-empty" aria-label="Data age">
+      <p class="path-src path-age">No link found · ${esc(freshnessLine(r))}</p>
+    </section>`;
+  }
   const hops = pathHops(r);
   const roles = pathRoles(path, r);
   const tone = key === "outside" || key === "allowed" ? "caution" : "block";
@@ -163,6 +169,7 @@ function renderPath(r, key) {
     <ol class="rail tone-${tone}${listed ? " is-single" : ""}" style="--n:${path.length}">${stops}</ol>
     <p class="path-src">${listed ? "Opens on Etherscan" : "Each step opens on Etherscan"} · ${srcLabel}
       <a href="${esc(src.link(lazarus, src.incident))}" target="_blank" rel="noopener">${esc(srcName)} ↗</a></p>
+    <p class="path-src path-age">${esc(freshnessLine(r))}</p>
   </section>`;
 }
 

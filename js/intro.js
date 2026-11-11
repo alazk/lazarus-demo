@@ -94,6 +94,7 @@ function renderIntro() {
             ${button.render({ label: "Start with a policy", id: "go-console", variant: "primary", size: "lg" })}
             ${button.render({ label: "Next", id: "next-act", variant: "tertiary", size: "md" })}
           </div>
+          <p class="intro-age" id="intro-age">${esc(snapshotNote())}</p>
         </div>
         <div class="act-figure">
           <div class="card card-policy card-cov">

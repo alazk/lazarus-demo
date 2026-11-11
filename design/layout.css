@@ -88,6 +88,13 @@
   display: flex; flex-direction: column; align-items: center;
 }
 
+.intro-age{
+  margin: var(--space-group) 0 0; max-width: 52ch;
+  font-size: var(--type-caption-size); line-height: var(--type-caption-leading);
+  color: var(--color-text-secondary);
+}
+.intro-age:empty{ display: none; }
+
 .ring-note{
   align-self: center; width: max-content; max-width: 100%;
   margin: var(--space-group) 0 0; text-align: center;
