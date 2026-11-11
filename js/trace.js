@@ -160,7 +160,7 @@ function renderPath(r, key) {
   const src = sourceOf(r);
   const srcLabel = src.key === "arkham" ? "Lazarus label from" : `Listed by`;
   const srcName = src.name.replace(/^the /, "");
-  return `<section class="path" aria-label="${listed ? "This wallet" : "The path"}">
+  return `<section class="path${listed ? " path-listed" : ""}" aria-label="${listed ? "This wallet" : "The path"}">
     <div class="text-eyebrow muted">${listed ? "This wallet" : "The path"}</div>
     <ol class="rail tone-${tone}${listed ? " is-single" : ""}" style="--n:${path.length}">${stops}</ol>
     <p class="path-src">${listed ? "Opens on Etherscan" : "Each step opens on Etherscan"} · ${srcLabel}
